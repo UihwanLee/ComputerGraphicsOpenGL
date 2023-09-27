@@ -4,60 +4,188 @@
 #include <gl/freeglut_ext.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-#define _CRT_SECURE_NO_WARNNINGS
+#define _CRT_SECURE_NO_WARNINGS
 
 void make_vertexShaders();
 void make_fragmentShaders();
-GLuint make_shaderProgram();
+void make_shaderProgram();
 GLvoid drawScene();
 GLvoid Reshape(int w, int h);
 
-GLint width, height;
-GLuint shaderProgramID;
-GLuint vertexShader;
-GLuint fragmentShader;
+// 입력 처리 함수
+GLvoid Mouse(int button, int state, int x, int y);
+GLvoid Keyboard(unsigned char key, int x, int y);
 
-void main(int argc, char** argv)
+void InitBuffer();
+void MakeTriangle();
+
+GLchar* vertexSource, * fragmentSource; //--- 소스코드 저장 변수
+GLuint vertexShader, fragmentShader; //--- 세이더 객체
+GLuint shaderProgramID; //--- 셰이더 프로그램
+
+const GLfloat triShape[3][3] = { 
+{ -0.5, -0.5, 0.0 }, { 0.5, -0.5, 0.0 }, { 0.0, 0.5, 0.0} };
+
+const GLfloat colors[3][3] = { 
+{ 1.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 }, { 0.0, 0.0, 1.0 } };
+
+GLfloat pointShape[3] = { 0.0f, 0.0f, 0.0f };
+
+GLfloat color_point[3] = { 0.0f, 0.0f, 0.0f };
+
+GLfloat triShape2[3][3] = { //--- 삼각형 위치 값
+{ -0.1, -0.1, 0.0 }, { 0.1, -0.1, 0.0 }, { 0.0, 0.1, 0.0} };
+
+GLuint vao, vbo[2];
+
+GLfloat curPos[3] = { 0.2f, 0.2f, 0.2f };
+
+
+int main(int argc, char** argv)
 {
-	width = 500;
-	height = 500;
 	//--- 윈도우 생성하기
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100, 100);
-	glutInitWindowSize(width, height);
+	glutInitWindowSize(800, 600);
 	glutCreateWindow("Example1");
-
 	//--- GLEW 초기화하기
 	glewExperimental = GL_TRUE;
 	glewInit();
-	//--- 세이더 읽어와서 세이더 프로그램 만들기
-	make_vertexShaders(); //--- 버텍스 세이더 만들기
-	make_fragmentShaders(); //--- 프래그먼트 세이더 만들기
-	shaderProgramID = make_shaderProgram();
-	//--- 세이더 프로그램 만들기
-	glutDisplayFunc(drawScene); //--- 출력 콜백 함수
+	make_shaderProgram();
+	InitBuffer();
+	glutDisplayFunc(drawScene);
 	glutReshapeFunc(Reshape);
+	glutKeyboardFunc(Keyboard);
 	glutMainLoop();
 }
 
 GLvoid drawScene()
 {
-	GLfloat rColor, gColor, bColor;
+	//--- 변경된 배경색 설정
+	//glClearColor(rColor, gColor, bColor, 1.0f);
+	//glClearColor(1.0, 1.0, 1.0, 1.0f);
 
-	rColor = gColor = 0.0;
-	bColor = 1.0; //--- 배경색을 파랑색으로 설정
-	glClearColor(rColor, gColor, bColor, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	////glClearColor(1.0, 1.0, 1.0, 1.0f);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	////--- 렌더링 파이프라인에 세이더 불러오기
+	//glUseProgram(shaderProgramID);
+	////--- 사용할 VAO 불러오기
+	//glBindVertexArray(vao);
+
+	////--- 삼각형 그리기
+	//glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	glutSwapBuffers(); //--- 화면에 출력하기
+}
+
+void InitBuffer()
+{
+	glGenVertexArrays(1, &vao); //--- VAO 를 지정하고 할당하기
+	glBindVertexArray(vao); //--- VAO를 바인드하기
+	glGenBuffers(2, vbo); //--- 2개의 VBO를 지정하고 할당하기
+	//--- 1번째 VBO를 활성화하여 바인드하고, 버텍스 속성 (좌표값)을 저장
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	//--- 변수 diamond 에서 버텍스 데이터 값을 버퍼에 복사한다.
+	//--- triShape 배열의 사이즈: 9 * float
+	glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), triShape, GL_STATIC_DRAW);
+	//--- 좌표값을 attribute 인덱스 0번에 명시한다: 버텍스 당 3* float
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	//--- attribute 인덱스 0번을 사용가능하게 함
+	glEnableVertexAttribArray(0);
+	//--- 2번째 VBO를 활성화 하여 바인드 하고, 버텍스 속성 (색상)을 저장
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	//--- 변수 colors에서 버텍스 색상을 복사한다.
+	//--- colors 배열의 사이즈: 9 *float 
+	glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), colors, GL_STATIC_DRAW);
+	//--- 색상값을 attribute 인덱스 1번에 명시한다: 버텍스 당 3*float
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	//--- attribute 인덱스 1번을 사용 가능하게 함.
+	glEnableVertexAttribArray(1);
+}
+
+void MakePoint()
+{
+	for (int i = 0; i < 3; i++)
+	{
+		pointShape[i] = curPos[i];
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	//--- 변수 diamond 에서 버텍스 데이터 값을 버퍼에 복사한다.
+	//--- triShape 배열의 사이즈: 9 * float
+	glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat), pointShape, GL_STATIC_DRAW);
+	//--- 좌표값을 attribute 인덱스 0번에 명시한다: 버텍스 당 3* float
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	//--- attribute 인덱스 0번을 사용가능하게 함
+	glEnableVertexAttribArray(0);
+	//--- 2번째 VBO를 활성화 하여 바인드 하고, 버텍스 속성 (색상)을 저장
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	//--- 변수 colors에서 버텍스 색상을 복사한다.
+	//--- colors 배열의 사이즈: 9 *float 
+	glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat), color_point, GL_STATIC_DRAW);
+	//--- 색상값을 attribute 인덱스 1번에 명시한다: 버텍스 당 3*float
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	//--- attribute 인덱스 1번을 사용 가능하게 함.
+	glEnableVertexAttribArray(1);
+
+	glClearColor(1.0, 1.0, 1.0, 1.0f);
+
+	//glClearColor(1.0, 1.0, 1.0, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	//--- 렌더링 파이프라인에 세이더 불러오기
 	glUseProgram(shaderProgramID);
+	//--- 사용할 VAO 불러오기
+	glBindVertexArray(vao);
 
-	glPointSize(5.0);
-	glDrawArrays(GL_POINTS, 0, 1); //--- 렌더링하기: 0번 인덱스에서 1개의 버텍스를 사용하여 점 그리기
-	
-	glutSwapBuffers(); // 화면에 출력하기
+	//--- 점 그리기
+	glDrawArrays(GL_POINT, 0, 1);
 
+}
+
+void MakeTriangle()
+{
+	// 삼각형 만들기
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			triShape2[i][j] = triShape2[i][j] - curPos[i];
+		}
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	//--- 변수 diamond 에서 버텍스 데이터 값을 버퍼에 복사한다.
+	//--- triShape 배열의 사이즈: 9 * float
+	glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), triShape2, GL_STATIC_DRAW);
+	//--- 좌표값을 attribute 인덱스 0번에 명시한다: 버텍스 당 3* float
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	//--- attribute 인덱스 0번을 사용가능하게 함
+	glEnableVertexAttribArray(0);
+	//--- 2번째 VBO를 활성화 하여 바인드 하고, 버텍스 속성 (색상)을 저장
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	//--- 변수 colors에서 버텍스 색상을 복사한다.
+	//--- colors 배열의 사이즈: 9 *float 
+	glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), colors, GL_STATIC_DRAW);
+	//--- 색상값을 attribute 인덱스 1번에 명시한다: 버텍스 당 3*float
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	//--- attribute 인덱스 1번을 사용 가능하게 함.
+	glEnableVertexAttribArray(1);
+
+	glClearColor(1.0, 1.0, 1.0, 1.0f);
+
+	//glClearColor(1.0, 1.0, 1.0, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	//--- 렌더링 파이프라인에 세이더 불러오기
+	glUseProgram(shaderProgramID);
+	//--- 사용할 VAO 불러오기
+	glBindVertexArray(vao);
+
+	//--- 삼각형 그리기
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
 GLvoid Reshape(int w, int h)
@@ -70,7 +198,7 @@ char* filetobuf(const char* file)
 	FILE* fptr;
 	long length;
 	char* buf;
-	fptr = fopen(file, "rb"); // Open file for reading 
+	fopen_s(&fptr, file, "rb"); // Open file for reading 
 	if (!fptr) // Return NULL on failure 
 		return NULL;
 	fseek(fptr, 0, SEEK_END); // Seek to the end of the file 
@@ -83,16 +211,33 @@ char* filetobuf(const char* file)
 	return buf; // Return the buffer 
 }
 
+void make_shaderProgram()
+{
+	make_vertexShaders(); //--- 버텍스 세이더 만들기
+	make_fragmentShaders(); //--- 프래그먼트 세이더 만들기
+	//-- shader Program
+	shaderProgramID = glCreateProgram();
+	glAttachShader(shaderProgramID, vertexShader);
+	glAttachShader(shaderProgramID, fragmentShader);
+	glLinkProgram(shaderProgramID);
+	//--- 세이더 삭제하기
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+	//--- Shader Program 사용하기
+	glUseProgram(shaderProgramID);
+}
+
 
 void make_vertexShaders()
 {
-	GLchar* vertexSource;
-	//--- 버텍스 세이더 읽어 저장하고 컴파일 하기
-	//--- filetobuf: 사용자정의 함수로 텍스트를 읽어서 문자열에 저장하는 함수
 	vertexSource = filetobuf("vertex.glsl");
+	//--- 버텍스 세이더 객체 만들기
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexSource, NULL);
+	//--- 세이더 코드를 세이더 객체에 넣기
+	glShaderSource(vertexShader, 1, (const GLchar**)&vertexSource, 0);
+	//--- 버텍스 세이더 컴파일하기
 	glCompileShader(vertexShader);
+	//--- 컴파일이 제대로 되지 않은 경우: 에러 체크
 	GLint result;
 	GLchar errorLog[512];
 	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &result);
@@ -102,49 +247,44 @@ void make_vertexShaders()
 		std::cerr << "ERROR: vertex shader 컴파일 실패\n" << errorLog << std::endl;
 		return;
 	}
-
 }
 
 void make_fragmentShaders()
 {
-	GLchar* fragmentSource;
-	//--- 프래그먼트 세이더 읽어 저장하고 컴파일하기
-	fragmentSource = filetobuf("fragment.glsl"); // 프래그세이더 읽어오기
+	fragmentSource = filetobuf("fragment.glsl");
+	//--- 프래그먼트 세이더 객체 만들기
 	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
+	//--- 세이더 코드를 세이더 객체에 넣기
+	glShaderSource(fragmentShader, 1, (const GLchar**)&fragmentSource, 0);
+	//--- 프래그먼트 세이더 컴파일
 	glCompileShader(fragmentShader);
+	//--- 컴파일이 제대로 되지 않은 경우: 컴파일 에러 체크
 	GLint result;
 	GLchar errorLog[512];
 	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &result);
 	if (!result)
 	{
 		glGetShaderInfoLog(fragmentShader, 512, NULL, errorLog);
-		std::cerr << "ERROR: frag_shader 컴파일 실패\n" << errorLog << std::endl;
+		std::cerr << "ERROR: fragment shader 컴파일 실패\n" << errorLog << std::endl;
 		return;
 	}
 }
 
-GLuint make_shaderProgram()
+GLvoid Keyboard(unsigned char key, int x, int y)
 {
-	GLuint shaderID;
-	shaderID = glCreateProgram(); //--- 세이더 프로그램 만들기
-	glAttachShader(shaderID, vertexShader); //--- 세이더 프로그램에 버텍스 세이더 붙이기
-	glAttachShader(shaderID, fragmentShader); //--- 세이더 프로그램에 프래그먼트 세이더 붙이기
-	glLinkProgram(shaderID); //--- 세이더 프로그램 링크하기
-	glDeleteShader(vertexShader); //--- 세이더 객체를 세이더 프로그램에 링크했음으로, 세이더 객체 자체는 삭제 가능
-	glDeleteShader(fragmentShader);
-
-	GLint result;
-	GLchar errorLog[512];
-	glGetProgramiv(shaderID, GL_LINK_STATUS, &result); // ---세이더가 잘 연결되었는지 체크하기
-	if (!result) {
-		glGetProgramInfoLog(shaderID, 512, NULL, errorLog);
-		std::cerr << "ERROR: shader program 연결 실패\n" << errorLog << std::endl;
-		return false;
+	switch (key)
+	{
+	case 'r':
+		MakeTriangle();
+		break;
+	case 'a':
+		MakePoint();
+		break;
+	case 'q':
+		exit(EXIT_FAILURE);
+		break;
+	default:
+		break;
 	}
-	glUseProgram(shaderID); //--- 만들어진 세이더 프로그램 사용하기
-	//--- 여러 개의 세이더프로그램 만들 수 있고, 그 중 한개의 프로그램을 사용하려면
-	//--- glUseProgram 함수를 호출하여 사용 할 특정 프로그램을 지정한다.
-	//--- 사용하기 직전에 호출할 수 있다.
-	return shaderID;
+	glutPostRedisplay();
 }
