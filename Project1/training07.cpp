@@ -64,7 +64,7 @@ GLvoid drawScene()
 {
 	//--- 변경된 배경색 설정
 	//glClearColor(rColor, gColor, bColor, 1.0f);
-	//glClearColor(1.0, 1.0, 1.0, 1.0f);
+	glClearColor(1.0, 1.0, 1.0, 1.0f);
 
 	////glClearColor(1.0, 1.0, 1.0, 1.0f);
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
