@@ -1,3 +1,6 @@
 ﻿  training07.cpp
-C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\training07.cpp(37,59): warning C4305: '초기화 중': 'double'에서 'GLfloat'(으)로 잘립니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\training07.cpp(42,1): warning C4305: '초기화 중': 'double'에서 'GLfloat'(으)로 잘립니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\training07.cpp(48,1): warning C4305: '초기화 중': 'double'에서 'GLfloat'(으)로 잘립니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\training07.cpp(263,19): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\training07.cpp(264,19): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
   Project1.vcxproj -> C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\x64\Debug\Project1.exe

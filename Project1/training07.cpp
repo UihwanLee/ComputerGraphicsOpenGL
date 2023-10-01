@@ -6,6 +6,8 @@
 #include <stdio.h>
 #define _CRT_SECURE_NO_WARNINGS
 
+using namespace std;
+
 void make_vertexShaders();
 void make_fragmentShaders();
 void make_shaderProgram();
@@ -13,7 +15,7 @@ GLvoid drawScene();
 GLvoid Reshape(int w, int h);
 
 // 입력 처리 함수
-GLvoid Mouse(int button, int state, int x, int y);
+GLvoid MouseClick(int button, int state, int x, int y);
 GLvoid Keyboard(unsigned char key, int x, int y);
 
 void InitBuffer();
@@ -23,22 +25,29 @@ GLchar* vertexSource, * fragmentSource; //--- 소스코드 저장 변수
 GLuint vertexShader, fragmentShader; //--- 세이더 객체
 GLuint shaderProgramID; //--- 셰이더 프로그램
 
-const GLfloat triShape[3][3] = { 
-{ -0.5, -0.5, 0.0 }, { 0.5, -0.5, 0.0 }, { 0.0, 0.5, 0.0} };
-
-const GLfloat colors[3][3] = { 
-{ 1.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 }, { 0.0, 0.0, 1.0 } };
-
 GLfloat pointShape[3] = { 0.0f, 0.0f, 0.0f };
-
 GLfloat color_point[3] = { 0.0f, 0.0f, 0.0f };
 
-GLfloat triShape2[3][3] = { //--- 삼각형 위치 값
-{ -0.1, -0.1, 0.0 }, { 0.1, -0.1, 0.0 }, { 0.0, 0.1, 0.0} };
+GLfloat triShape[2][3][3] = //--- 삼각형 위치 값
+{ 
+	{{ -0.1, -0.1, 0.0 }, { 0.1, -0.1, 0.0 }, { 0.0, 0.1, 0.0}},
+	{{ -0.1, -0.1, 0.0 }, { 0.1, -0.1, 0.0 }, { 0.0, 0.1, 0.0}}
+};
+GLfloat triShapeScale[2][3][3] = //--- 삼각형 크기 값
+{
+	{{ -0.1, -0.1, 0.0 }, { 0.1, -0.1, 0.0 }, { 0.0, 0.1, 0.0}},
+	{{ -0.1, -0.1, 0.0 }, { 0.1, -0.1, 0.0 }, { 0.0, 0.1, 0.0}}
+};
+const GLfloat colors[2][3][3] =
+{
+	{{ 1.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 }, { 0.0, 0.0, 1.0 }},
+	{{ 1.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 }, { 0.0, 0.0, 1.0 }}
+};
 
 GLuint vao, vbo[2];
+GLfloat curPos[3] = { 0.f, 0.f, 0.f };
 
-GLfloat curPos[3] = { 0.2f, 0.2f, 0.2f };
+bool g_left_button = false;
 
 
 int main(int argc, char** argv)
@@ -57,6 +66,7 @@ int main(int argc, char** argv)
 	glutDisplayFunc(drawScene);
 	glutReshapeFunc(Reshape);
 	glutKeyboardFunc(Keyboard);
+	glutMouseFunc(MouseClick);
 	glutMainLoop();
 }
 
@@ -67,42 +77,42 @@ GLvoid drawScene()
 	glClearColor(1.0, 1.0, 1.0, 1.0f);
 
 	////glClearColor(1.0, 1.0, 1.0, 1.0f);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	////--- 렌더링 파이프라인에 세이더 불러오기
-	//glUseProgram(shaderProgramID);
+	glUseProgram(shaderProgramID);
 	////--- 사용할 VAO 불러오기
-	//glBindVertexArray(vao);
+	glBindVertexArray(vao);
 
 	////--- 삼각형 그리기
-	//glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glutSwapBuffers(); //--- 화면에 출력하기
 }
 
 void InitBuffer()
 {
-	glGenVertexArrays(1, &vao); //--- VAO 를 지정하고 할당하기
-	glBindVertexArray(vao); //--- VAO를 바인드하기
-	glGenBuffers(2, vbo); //--- 2개의 VBO를 지정하고 할당하기
-	//--- 1번째 VBO를 활성화하여 바인드하고, 버텍스 속성 (좌표값)을 저장
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	//--- 변수 diamond 에서 버텍스 데이터 값을 버퍼에 복사한다.
-	//--- triShape 배열의 사이즈: 9 * float
-	glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), triShape, GL_STATIC_DRAW);
-	//--- 좌표값을 attribute 인덱스 0번에 명시한다: 버텍스 당 3* float
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	//--- attribute 인덱스 0번을 사용가능하게 함
-	glEnableVertexAttribArray(0);
-	//--- 2번째 VBO를 활성화 하여 바인드 하고, 버텍스 속성 (색상)을 저장
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	//--- 변수 colors에서 버텍스 색상을 복사한다.
-	//--- colors 배열의 사이즈: 9 *float 
-	glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), colors, GL_STATIC_DRAW);
-	//--- 색상값을 attribute 인덱스 1번에 명시한다: 버텍스 당 3*float
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	//--- attribute 인덱스 1번을 사용 가능하게 함.
-	glEnableVertexAttribArray(1);
+	//glGenVertexArrays(1, &vao); //--- VAO 를 지정하고 할당하기
+	//glBindVertexArray(vao); //--- VAO를 바인드하기
+	//glGenBuffers(2, vbo); //--- 2개의 VBO를 지정하고 할당하기
+	////--- 1번째 VBO를 활성화하여 바인드하고, 버텍스 속성 (좌표값)을 저장
+	//glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	////--- 변수 diamond 에서 버텍스 데이터 값을 버퍼에 복사한다.
+	////--- triShape 배열의 사이즈: 9 * float
+	//glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), triShape, GL_STATIC_DRAW);
+	////--- 좌표값을 attribute 인덱스 0번에 명시한다: 버텍스 당 3* float
+	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	////--- attribute 인덱스 0번을 사용가능하게 함
+	//glEnableVertexAttribArray(0);
+	////--- 2번째 VBO를 활성화 하여 바인드 하고, 버텍스 속성 (색상)을 저장
+	//glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	////--- 변수 colors에서 버텍스 색상을 복사한다.
+	////--- colors 배열의 사이즈: 9 *float 
+	//glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), colors, GL_STATIC_DRAW);
+	////--- 색상값을 attribute 인덱스 1번에 명시한다: 버텍스 당 3*float
+	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	////--- attribute 인덱스 1번을 사용 가능하게 함.
+	//glEnableVertexAttribArray(1);
 }
 
 void MakePoint()
@@ -113,36 +123,16 @@ void MakePoint()
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	//--- 변수 diamond 에서 버텍스 데이터 값을 버퍼에 복사한다.
-	//--- triShape 배열의 사이즈: 9 * float
 	glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat), pointShape, GL_STATIC_DRAW);
-	//--- 좌표값을 attribute 인덱스 0번에 명시한다: 버텍스 당 3* float
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	//--- attribute 인덱스 0번을 사용가능하게 함
 	glEnableVertexAttribArray(0);
-	//--- 2번째 VBO를 활성화 하여 바인드 하고, 버텍스 속성 (색상)을 저장
+
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	//--- 변수 colors에서 버텍스 색상을 복사한다.
-	//--- colors 배열의 사이즈: 9 *float 
 	glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat), color_point, GL_STATIC_DRAW);
-	//--- 색상값을 attribute 인덱스 1번에 명시한다: 버텍스 당 3*float
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	//--- attribute 인덱스 1번을 사용 가능하게 함.
 	glEnableVertexAttribArray(1);
 
-	glClearColor(1.0, 1.0, 1.0, 1.0f);
-
-	//glClearColor(1.0, 1.0, 1.0, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//--- 렌더링 파이프라인에 세이더 불러오기
-	glUseProgram(shaderProgramID);
-	//--- 사용할 VAO 불러오기
-	glBindVertexArray(vao);
-
-	//--- 점 그리기
-	glDrawArrays(GL_POINT, 0, 1);
-
+	
 }
 
 void MakeTriangle()
@@ -152,40 +142,24 @@ void MakeTriangle()
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			triShape2[i][j] = triShape2[i][j] - curPos[i];
+			if (j == 0) triShape[0][i][j] = curPos[0] - triShapeScale[0][i][j];
+			if (j == 1) triShape[0][i][j] = curPos[1] + triShapeScale[0][i][j];
 		}
 	}
 
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao); 
+	glGenBuffers(2, vbo); 
+
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	//--- 변수 diamond 에서 버텍스 데이터 값을 버퍼에 복사한다.
-	//--- triShape 배열의 사이즈: 9 * float
-	glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), triShape2, GL_STATIC_DRAW);
-	//--- 좌표값을 attribute 인덱스 0번에 명시한다: 버텍스 당 3* float
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	//--- attribute 인덱스 0번을 사용가능하게 함
+	glBufferData(GL_ARRAY_BUFFER, sizeof(triShape), triShape, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 12, 0);
 	glEnableVertexAttribArray(0);
-	//--- 2번째 VBO를 활성화 하여 바인드 하고, 버텍스 속성 (색상)을 저장
+
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	//--- 변수 colors에서 버텍스 색상을 복사한다.
-	//--- colors 배열의 사이즈: 9 *float 
-	glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), colors, GL_STATIC_DRAW);
-	//--- 색상값을 attribute 인덱스 1번에 명시한다: 버텍스 당 3*float
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	//--- attribute 인덱스 1번을 사용 가능하게 함.
+	glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 12, 0);
 	glEnableVertexAttribArray(1);
-
-	glClearColor(1.0, 1.0, 1.0, 1.0f);
-
-	//glClearColor(1.0, 1.0, 1.0, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//--- 렌더링 파이프라인에 세이더 불러오기
-	glUseProgram(shaderProgramID);
-	//--- 사용할 VAO 불러오기
-	glBindVertexArray(vao);
-
-	//--- 삼각형 그리기
-	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
 GLvoid Reshape(int w, int h)
@@ -268,6 +242,28 @@ void make_fragmentShaders()
 		std::cerr << "ERROR: fragment shader 컴파일 실패\n" << errorLog << std::endl;
 		return;
 	}
+}
+
+float map(float value, float fromLow, float fromHigh, float toLow, float toHigh) {
+	return (value - fromLow) / (fromHigh - fromLow) * (toHigh - toLow) + toLow;
+}
+
+GLvoid MouseClick(int button, int state, int x, int y)
+{
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	{
+		curPos[0] = map(x, 0.0f, 800.0f, -1.0f, 1.0f);
+		curPos[1] = map(y, 600.0f, 0.0f, -1.0f, 1.0f);
+		g_left_button = true;
+		MakeTriangle();
+ 	}
+
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
+	{
+		g_left_button = false;
+	}
+
+	//glutPostRedisplay();
 }
 
 GLvoid Keyboard(unsigned char key, int x, int y)
