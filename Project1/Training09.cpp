@@ -31,7 +31,7 @@ GLvoid MouseClick(int button, int state, int x, int y);
 GLvoid Keyboard(unsigned char key, int x, int y);
 
 void InitBuffer();
-void DrawAllTriangle(int idx, float r, float g, float b, float size);
+void DrawAllTriangle(int idx, float move_x, float move_y);
 
 GLchar* vertexSource, * fragmentSource; //--- 소스코드 저장 변수
 GLuint vertexShader, fragmentShader; //--- 세이더 객체
@@ -52,6 +52,11 @@ int g_cur_area = 0;
 bool g_left_button = false;
 int CONDITION = 1;
 int NUM_OBJECT = 0;
+
+bool isMovingDiagonal = false;
+bool isMovingZigZag = false;
+bool isMovingRectSpiral = false;
+bool isMovingCircleSpiral = false;
 
 
 int main(int argc, char** argv)
@@ -88,7 +93,7 @@ GLvoid drawScene()
 	////--- 사용할 VAO 불러오기
 	glBindVertexArray(vao);
 
-	DrawAllTriangle(-1, -1.f, -1.f, -1.f, 1.f);
+	DrawAllTriangle(-1, 0.f, 0.f);
 
 	glutSwapBuffers(); //--- 화면에 출력하기
 }
@@ -154,10 +159,10 @@ void InitBuffer()
 			else if (j == 2)
 			{
 				triShape[i][j][0] = 0.f;
-				triShape[i][j][1] = 0.1f;
+				triShape[i][j][1] = 0.2f;
 
 				triShapeScale[i][j][0] = 0.f;
-				triShapeScale[i][j][1] = 0.1f;
+				triShapeScale[i][j][1] = 0.2f;
 
 				colors[i][j][0] = 0.0f;
 				colors[i][j][1] = 0.0f;
@@ -179,10 +184,10 @@ void TryDrawTriangle()
 
 	NUM_OBJECT += 1;
 
-	DrawAllTriangle(NUM_OBJECT - 1, -1.f, -1.f, -1.f, 0.f);
+	DrawAllTriangle(NUM_OBJECT - 1, 0.f, 0.f);
 }
 
-void DrawAllTriangle(int idx, float r, float g, float b, float size)
+void DrawAllTriangle(int idx, float move_x, float move_y)
 {
 	// 클릭한 곳에 삼각형 생성
 	if (idx != -1)
@@ -194,6 +199,16 @@ void DrawAllTriangle(int idx, float r, float g, float b, float size)
 				if (j == 0) triShape[idx][i][j] = curPos[0] - triShapeScale[idx][i][j];
 				if (j == 1) triShape[idx][i][j] = curPos[1] + triShapeScale[idx][i][j];
 			}
+		}
+	}
+
+	// 위치 이동 변화가 있으면 위치 이동
+	for (int i = 0; i < NUM_OBJECT; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			triShape[i][j][0] += move_x;
+			triShape[i][j][1] += move_y;
 		}
 	}
 
@@ -300,39 +315,10 @@ float map(float value, float fromLow, float fromHigh, float toLow, float toHigh)
 	return (value - fromLow) / (fromHigh - fromLow) * (toHigh - toLow) + toLow;
 }
 
-// 클릭한 마우스 포인터가 어느 영역인지 체크
-GLvoid CheckArea(int x, int y)
-{
-	// 제 1 영역
-	if (0 <= x && x < (WIDTH / 2) && 0 <= y && y < (HEIGHT / 2))
-	{
-		g_cur_area = 1;
-	}
-
-	// 제 2 영역
-	if ((WIDTH / 2) <= x && x <= (WIDTH) && 0 <= y && y < (HEIGHT / 2))
-	{
-		g_cur_area = 2;
-	}
-
-	// 제 3 영역
-	if (0 <= x && x < (WIDTH / 2) && (HEIGHT / 2) <= y && y <= (HEIGHT))
-	{
-		g_cur_area = 3;
-	}
-
-	// 제 4 영역
-	if ((WIDTH / 2) <= x && x <= (WIDTH) && (HEIGHT / 2) <= y && y <= (HEIGHT))
-	{
-		g_cur_area = 4;
-	}
-}
-
 GLvoid MouseClick(int button, int state, int x, int y)
 {
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 	{
-		CheckArea(x, y);
 		curPos[0] = map(x, 0.0f, 800.0f, -1.0f, 1.0f);
 		curPos[1] = map(y, 600.0f, 0.0f, -1.0f, 1.0f);
 		g_left_button = true;
@@ -347,24 +333,49 @@ GLvoid MouseClick(int button, int state, int x, int y)
 	glutPostRedisplay();
 }
 
-GLvoid Reset()
+GLvoid MovingDiagonal(int isAnim)
 {
-	CONDITION = 0;
-	NUM_OBJECT = 0;
+	float move_x = 0.01f;
+	float move_y = 0.01f;
+
+	DrawAllTriangle(-1.0f, move_x, move_y);
+
+	glutPostRedisplay();
+
+	if(isMovingDiagonal) glutTimerFunc(30, MovingDiagonal, isMovingDiagonal);
+}
+
+GLvoid MovingZigZag()
+{
+
+}
+
+GLvoid MovingRectSpiral()
+{
+
+}
+
+GLvoid MovingCircleSpiral()
+{
+
 }
 
 GLvoid Keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
-	case 'a':
-		CONDITION = 1;
+	case '1':
+		isMovingDiagonal = true;
+		glutTimerFunc(30, MovingDiagonal, isMovingDiagonal);
 		break;
-	case 'b':
-		CONDITION = 2;
+	case '2':
+		MovingZigZag();
 		break;
-	case 'c':
-		Reset();
+	case '3':
+		MovingRectSpiral();
+		break;
+	case '4':
+		MovingCircleSpiral();
 		break;
 	case 'q':
 		exit(EXIT_FAILURE);
