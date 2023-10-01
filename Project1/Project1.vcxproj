@@ -136,6 +136,7 @@
     <ClCompile Include="training05.cpp" />
     <ClCompile Include="training06.cpp" />
     <ClCompile Include="training07.cpp" />
+    <ClCompile Include="training08.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="fragment.glsl" />
