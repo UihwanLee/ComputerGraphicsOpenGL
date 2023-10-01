@@ -32,7 +32,7 @@ GLvoid Keyboard(unsigned char key, int x, int y);
 
 void InitBuffer();
 void DrawCoordinatePlane();
-void DrawAllTriangle(int idx, float move_x, float move_y);
+void DrawAllTriangle(int idx, float r, float g, float b);
 
 GLchar* vertexSource, * fragmentSource; //--- 소스코드 저장 변수
 GLuint vertexShader, fragmentShader; //--- 세이더 객체
@@ -98,7 +98,7 @@ GLvoid drawScene()
 	DrawCoordinatePlane();
 
 	// 각 사분면에 있는 삼각형 그리기
-	DrawAllTriangle(-1, 0.f, 0.f);
+	DrawAllTriangle(-1, -1.f, -1.f, -1.f);
 
 	glutSwapBuffers(); //--- 화면에 출력하기
 }
@@ -115,6 +115,20 @@ int GetRandomIntValue(GLfloat min, GLfloat max)
 	value = dis(gen);
 
 	return int(value);
+}
+
+GLfloat GetRandomFloatValue(GLfloat min, GLfloat max)
+{
+	GLfloat value;
+
+	random_device rd;
+	mt19937 gen(rd());
+
+	uniform_real_distribution<GLfloat> dis(min, max);
+
+	value = dis(gen);
+
+	return value;
 }
 
 void InitBuffer()
@@ -231,31 +245,46 @@ void TryDrawTriangle()
 
 	NUM_TRIANGLE += 1;
 
-	DrawAllTriangle(NUM_TRIANGLE - 1, 0.f, 0.f);
+	DrawAllTriangle(NUM_TRIANGLE - 1, -1.f, -1.f, -1.f);
 }
 
-void DrawAllTriangle(int idx, float move_x, float move_y)
+void ChangeTriRandom(int idx)
+{
+	// Color change
+
+	GLfloat color_r = GetRandomFloatValue(0.f, 1.0f);
+	GLfloat color_g = GetRandomFloatValue(0.f, 1.0f);
+	GLfloat color_b = GetRandomFloatValue(0.f, 1.0f);
+
+	DrawAllTriangle(idx, color_r, color_g, color_b);
+}
+
+void DrawAllTriangle(int idx, float r, float g, float b)
 {
 	// 클릭한 곳에 삼각형 생성
 	if (idx != -1)
 	{
-		for (int i = 0; i < 3; i++)
+		if (!(NUM_TRIANGLE  > MAX_NUM_OBJECT) && r == -1)
 		{
-			for (int j = 0; j < 3; j++)
+			for (int i = 0; i < 3; i++)
 			{
-				if (j == 0) triShape[idx][i][j] = curPos[0] - triShapeScale[idx][i][j];
-				if (j == 1) triShape[idx][i][j] = curPos[1] + triShapeScale[idx][i][j];
+				for (int j = 0; j < 3; j++)
+				{
+					if (j == 0) triShape[idx][i][j] = curPos[0] - triShapeScale[idx][i][j];
+					if (j == 1) triShape[idx][i][j] = curPos[1] + triShapeScale[idx][i][j];
+				}
 			}
 		}
-	}
 
-	// 위치 이동 변화가 있으면 위치 이동
-	for (int i = 0; i < NUM_TRIANGLE; i++)
-	{
-		for (int j = 0; j < 3; j++)
+		// 색상 변경
+		if (r!=-1)
 		{
-			triShape[i][j][0] += move_x;
-			triShape[i][j][1] += move_y;
+			for (int i = 0; i < 3; i++)
+			{
+				colors[idx][i][0] = r;
+				colors[idx][i][1] = g;
+				colors[idx][i][2] = b;
+			}
 		}
 	}
 
@@ -424,7 +453,7 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 	switch (key)
 	{
 	case 'a':
-		CONDITION = 1;
+		ChangeTriRandom(0);
 		break;
 	case 'b':
 		CONDITION = 2;
