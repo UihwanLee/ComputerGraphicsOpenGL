@@ -559,14 +559,38 @@ GLvoid Reset()
 	NUM_OBJECT = 0;
 }
 
+void ChangeFigure()
+{
+	// 삼각형 -> 선으로 바꾸기
+	if (CONDITION == 1)
+	{
+		CONDITION = 2;
+		for (int i = 0; i < NUM_OBJECT; i++)
+		{
+			ChangeTriRandom(i);
+		}
+	}
+	// 선 -> 삼각형으로 바꾸기
+	else
+	{
+		CONDITION = 1;
+		for (int i = 0; i < NUM_OBJECT; i++)
+		{
+			ChangeTriRandom(i);
+		}
+	}
+}
+
 GLvoid Keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
 	case 'a':
+		ChangeFigure();
 		CONDITION = 1;
 		break;
 	case 'b':
+		ChangeFigure();
 		CONDITION = 2;
 		break;
 	case 'c':
