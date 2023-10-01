@@ -6,6 +6,12 @@
 #include <stdio.h>
 #define _CRT_SECURE_NO_WARNINGS
 
+#define MAX_NUM_OBJECT 10
+#define BYTE_SIZE_TRIANGLE 36
+
+#define MAX_TRI_ROW 3
+#define MAX_TRI_COL 3
+
 using namespace std;
 
 void make_vertexShaders();
@@ -19,7 +25,7 @@ GLvoid MouseClick(int button, int state, int x, int y);
 GLvoid Keyboard(unsigned char key, int x, int y);
 
 void InitBuffer();
-void MakeTriangle();
+void DrawAllTriangle(int idx, float move_x, float move_y);
 
 GLchar* vertexSource, * fragmentSource; //--- 소스코드 저장 변수
 GLuint vertexShader, fragmentShader; //--- 세이더 객체
@@ -28,26 +34,22 @@ GLuint shaderProgramID; //--- 셰이더 프로그램
 GLfloat pointShape[3] = { 0.0f, 0.0f, 0.0f };
 GLfloat color_point[3] = { 0.0f, 0.0f, 0.0f };
 
-GLfloat triShape[2][3][3] = //--- 삼각형 위치 값
-{ 
-	{{ -0.1, -0.1, 0.0 }, { 0.1, -0.1, 0.0 }, { 0.0, 0.1, 0.0}},
-	{{ -0.1, -0.1, 0.0 }, { 0.1, -0.1, 0.0 }, { 0.0, 0.1, 0.0}}
-};
-GLfloat triShapeScale[2][3][3] = //--- 삼각형 크기 값
-{
-	{{ -0.1, -0.1, 0.0 }, { 0.1, -0.1, 0.0 }, { 0.0, 0.1, 0.0}},
-	{{ -0.1, -0.1, 0.0 }, { 0.1, -0.1, 0.0 }, { 0.0, 0.1, 0.0}}
-};
-const GLfloat colors[2][3][3] =
-{
-	{{ 1.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 }, { 0.0, 0.0, 1.0 }},
-	{{ 1.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 }, { 0.0, 0.0, 1.0 }}
-};
+GLfloat triShape[MAX_NUM_OBJECT][MAX_TRI_ROW][MAX_TRI_COL]; //--- 삼각형 위치 값
+
+GLfloat triShapeScale[MAX_NUM_OBJECT][MAX_TRI_ROW][MAX_TRI_COL];
+
+GLfloat colors[MAX_NUM_OBJECT][MAX_TRI_ROW][MAX_TRI_COL];
 
 GLuint vao, vbo[2];
 GLfloat curPos[3] = { 0.f, 0.f, 0.f };
 
+// 글로벌 변수
+
 bool g_left_button = false;
+int CONDITION = 0;
+int NUM_POINT = 0;
+int NUM_TRIANGLE = 0;
+int NUM_RECTANGLE = 0;
 
 
 int main(int argc, char** argv)
@@ -85,34 +87,59 @@ GLvoid drawScene()
 	glBindVertexArray(vao);
 
 	////--- 삼각형 그리기
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glDrawArrays(GL_TRIANGLES, 0, 3 * NUM_TRIANGLE);
 
 	glutSwapBuffers(); //--- 화면에 출력하기
 }
 
 void InitBuffer()
 {
-	//glGenVertexArrays(1, &vao); //--- VAO 를 지정하고 할당하기
-	//glBindVertexArray(vao); //--- VAO를 바인드하기
-	//glGenBuffers(2, vbo); //--- 2개의 VBO를 지정하고 할당하기
-	////--- 1번째 VBO를 활성화하여 바인드하고, 버텍스 속성 (좌표값)을 저장
-	//glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	////--- 변수 diamond 에서 버텍스 데이터 값을 버퍼에 복사한다.
-	////--- triShape 배열의 사이즈: 9 * float
-	//glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), triShape, GL_STATIC_DRAW);
-	////--- 좌표값을 attribute 인덱스 0번에 명시한다: 버텍스 당 3* float
-	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	////--- attribute 인덱스 0번을 사용가능하게 함
-	//glEnableVertexAttribArray(0);
-	////--- 2번째 VBO를 활성화 하여 바인드 하고, 버텍스 속성 (색상)을 저장
-	//glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	////--- 변수 colors에서 버텍스 색상을 복사한다.
-	////--- colors 배열의 사이즈: 9 *float 
-	//glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), colors, GL_STATIC_DRAW);
-	////--- 색상값을 attribute 인덱스 1번에 명시한다: 버텍스 당 3*float
-	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	////--- attribute 인덱스 1번을 사용 가능하게 함.
-	//glEnableVertexAttribArray(1);
+	for (int i = 0; i < MAX_NUM_OBJECT; i++)
+	{
+		// { -0.1, -0.1, 0.0 }, { 0.1, -0.1, 0.0 }, { 0.0, 0.1, 0.0}
+		for (int j = 0; j < 3; j++)
+		{
+			if (j == 0)
+			{
+				triShape[i][j][0] = -0.1f;
+				triShape[i][j][1] = -0.1f;
+
+				triShapeScale[i][j][0] = -0.1f;
+				triShapeScale[i][j][1] = -0.1f;
+
+				colors[i][j][0] = 1.0f;
+				colors[i][j][1] = 0.0f;
+				colors[i][j][2] = 0.0f;
+			}
+			else if (j == 1)
+			{
+				triShape[i][j][0] = 0.1f;
+				triShape[i][j][1] = -0.1f;
+
+				triShapeScale[i][j][0] = 0.1f;
+				triShapeScale[i][j][1] = -0.1f;
+
+				colors[i][j][0] = 0.0f;
+				colors[i][j][1] = 1.0f;
+				colors[i][j][2] = 0.0f;
+			}
+			else if (j == 2)
+			{
+				triShape[i][j][0] = 0.f;
+				triShape[i][j][1] = 0.1f;
+
+				triShapeScale[i][j][0] = 0.f;
+				triShapeScale[i][j][1] = 0.1f;
+
+				colors[i][j][0] = 0.0f;
+				colors[i][j][1] = 0.0f;
+				colors[i][j][2] = 1.0f;
+			}
+
+			triShape[i][j][2] = 0.f;
+			triShapeScale[i][j][2] = 0.f;
+		}
+	}
 }
 
 void MakePoint()
@@ -135,15 +162,48 @@ void MakePoint()
 	
 }
 
-void MakeTriangle()
+void MoveAllObject(float move_x, float move_y)
 {
-	// 삼각형 만들기
-	for (int i = 0; i < 3; i++)
+	DrawAllTriangle(-1, move_x, move_y);
+}
+
+void TryDrawTriangle()
+{
+	if (CONDITION != 3) return;
+
+	if (NUM_TRIANGLE + 1 > MAX_NUM_OBJECT)
+	{
+		cout << "NUM_OUT_ERROR" << endl;
+		return;
+	}
+
+	NUM_TRIANGLE += 1;
+
+	DrawAllTriangle(NUM_TRIANGLE - 1, 0.f, 0.f);
+}
+
+void DrawAllTriangle(int idx, float move_x, float move_y)
+{
+	// 클릭한 곳에 삼각형 생성
+	if (idx != -1)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = 0; j < 3; j++)
+			{
+				if (j == 0) triShape[idx][i][j] = curPos[0] - triShapeScale[idx][i][j];
+				if (j == 1) triShape[idx][i][j] = curPos[1] + triShapeScale[idx][i][j];
+			}
+		}
+	}
+
+	// 위치 이동 변화가 있으면 위치 이동
+	for (int i = 0; i < NUM_TRIANGLE; i++)
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			if (j == 0) triShape[0][i][j] = curPos[0] - triShapeScale[0][i][j];
-			if (j == 1) triShape[0][i][j] = curPos[1] + triShapeScale[0][i][j];
+			triShape[i][j][0] += move_x;
+			triShape[i][j][1] += move_y;
 		}
 	}
 
@@ -152,13 +212,13 @@ void MakeTriangle()
 	glGenBuffers(2, vbo); 
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(triShape), triShape, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 12, 0);
+	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_TRIANGLE * NUM_TRIANGLE, triShape, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 12, 0);
+	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_TRIANGLE * NUM_TRIANGLE, colors, GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(1);
 }
 
@@ -255,7 +315,7 @@ GLvoid MouseClick(int button, int state, int x, int y)
 		curPos[0] = map(x, 0.0f, 800.0f, -1.0f, 1.0f);
 		curPos[1] = map(y, 600.0f, 0.0f, -1.0f, 1.0f);
 		g_left_button = true;
-		MakeTriangle();
+		TryDrawTriangle();
  	}
 
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
@@ -263,18 +323,42 @@ GLvoid MouseClick(int button, int state, int x, int y)
 		g_left_button = false;
 	}
 
-	//glutPostRedisplay();
+	glutPostRedisplay();
+}
+
+GLvoid Reset()
+{
+	CONDITION = 0;
+	NUM_TRIANGLE = 0;
 }
 
 GLvoid Keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
-	case 'r':
-		MakeTriangle();
+	case 'p':
+		CONDITION = 1;
+		break;
+	case 'l':
+		CONDITION = 2;
+		break;
+	case 't':
+		CONDITION = 3;
+		break;
+	case 'w':
+		MoveAllObject(0.f, 0.1f);
 		break;
 	case 'a':
-		MakePoint();
+		MoveAllObject(-0.1f, 0.f);
+		break;
+	case 's':
+		MoveAllObject(0.f, -0.1f);
+		break;
+	case 'd':
+		MoveAllObject(0.1f, 0.f);
+		break;
+	case 'c':
+		Reset();
 		break;
 	case 'q':
 		exit(EXIT_FAILURE);
