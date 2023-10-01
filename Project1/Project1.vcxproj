@@ -129,14 +129,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="test.cpp" />
-    <ClCompile Include="training01.cpp" />
-    <ClCompile Include="training02.cpp" />
-    <ClCompile Include="training03.cpp" />
-    <ClCompile Include="training04.cpp" />
-    <ClCompile Include="training05.cpp" />
-    <ClCompile Include="training06.cpp" />
-    <ClCompile Include="training07.cpp" />
-    <ClCompile Include="training08.cpp" />
+    <ClCompile Include="Training01.cpp" />
+    <ClCompile Include="Training02.cpp" />
+    <ClCompile Include="Training03.cpp" />
+    <ClCompile Include="Training04.cpp" />
+    <ClCompile Include="Training05.cpp" />
+    <ClCompile Include="Training06.cpp" />
+    <ClCompile Include="Training07.cpp" />
+    <ClCompile Include="Training08.cpp" />
+    <ClCompile Include="Training09.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="fragment.glsl" />

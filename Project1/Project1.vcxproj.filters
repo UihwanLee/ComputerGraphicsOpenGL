@@ -18,31 +18,34 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="training01.cpp">
+    <ClCompile Include="Training01.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="training02.cpp">
+    <ClCompile Include="Training02.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="training03.cpp">
+    <ClCompile Include="Training03.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="training04.cpp">
+    <ClCompile Include="Training04.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="training05.cpp">
+    <ClCompile Include="Training05.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="training06.cpp">
+    <ClCompile Include="Training06.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="training07.cpp">
+    <ClCompile Include="Training07.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="test.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="training08.cpp">
+    <ClCompile Include="Training08.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Training09.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
