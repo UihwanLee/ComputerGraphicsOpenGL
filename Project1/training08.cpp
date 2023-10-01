@@ -427,6 +427,7 @@ GLvoid MouseClick(int button, int state, int x, int y)
 		curPos[1] = map(y, 600.0f, 0.0f, -1.0f, 1.0f);
 		g_left_button = true;
 		CheckArea(x, y);
+		ChangeTriRandom(g_cur_area-1);
 		TryDrawTriangle();
 
 		cout << g_cur_area << endl;
@@ -453,7 +454,6 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 	switch (key)
 	{
 	case 'a':
-		ChangeTriRandom(0);
 		break;
 	case 'b':
 		CONDITION = 2;
