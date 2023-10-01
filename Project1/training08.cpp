@@ -4,6 +4,8 @@
 #include <gl/freeglut_ext.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <random>
+
 #define _CRT_SECURE_NO_WARNINGS
 
 #define MAX_NUM_OBJECT 4
@@ -12,6 +14,9 @@
 
 #define MAX_TRI_ROW 3
 #define MAX_TRI_COL 3
+
+#define WIDTH 800
+#define HEIGHT 600
 
 using namespace std;
 
@@ -47,12 +52,12 @@ GLfloat curPos[3] = { 0.f, 0.f, 0.f };
 
 // 글로벌 변수
 
+int g_cur_area = 0;
 bool g_left_button = false;
 int CONDITION = 0;
 int NUM_POINT = 0;
 int NUM_LINE = 0;
 int NUM_TRIANGLE = 0;
-int NUM_RECTANGLE = 0;
 
 
 int main(int argc, char** argv)
@@ -61,7 +66,7 @@ int main(int argc, char** argv)
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100, 100);
-	glutInitWindowSize(800, 600);
+	glutInitWindowSize(WIDTH, HEIGHT);
 	glutCreateWindow("Example1");
 	//--- GLEW 초기화하기
 	glewExperimental = GL_TRUE;
@@ -98,12 +103,23 @@ GLvoid drawScene()
 	glutSwapBuffers(); //--- 화면에 출력하기
 }
 
+int GetRandomIntValue(GLfloat min, GLfloat max)
+{
+	GLfloat value;
+
+	random_device rd;
+	mt19937 gen(rd());
+
+	uniform_real_distribution<GLfloat> dis(min, max);
+
+	value = dis(gen);
+
+	return int(value);
+}
+
 void InitBuffer()
 {
-	// 좌표평면
-	// (0, 0, 0)
-	// (800, 0, 0)
-	// (
+	// 좌표평면 갱신
 	for (int i = 0; i < 4; i++)
 	{
 		if (i == 0) 
@@ -346,6 +362,34 @@ float map(float value, float fromLow, float fromHigh, float toLow, float toHigh)
 	return (value - fromLow) / (fromHigh - fromLow) * (toHigh - toLow) + toLow;
 }
 
+// 클릭한 마우스 포인터가 어느 영역인지 체크
+GLvoid CheckArea(int x, int y)
+{
+	// 제 1 영역
+	if (0 <= x && x < (WIDTH / 2) && 0 <= y && y < (HEIGHT / 2))
+	{
+		g_cur_area = 1;
+	}
+
+	// 제 2 영역
+	if ((WIDTH / 2) <= x && x <= (WIDTH) && 0 <= y && y < (HEIGHT / 2))
+	{
+		g_cur_area = 2;
+	}
+
+	// 제 3 영역
+	if (0 <= x && x < (WIDTH / 2) && (HEIGHT / 2) <= y && y <= (HEIGHT))
+	{
+		g_cur_area = 3;
+	}
+
+	// 제 4 영역
+	if ((WIDTH / 2) <= x && x <= (WIDTH) && (HEIGHT / 2) <= y && y <= (HEIGHT))
+	{
+		g_cur_area = 4;
+	}
+}
+
 GLvoid MouseClick(int button, int state, int x, int y)
 {
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
@@ -353,7 +397,10 @@ GLvoid MouseClick(int button, int state, int x, int y)
 		curPos[0] = map(x, 0.0f, 800.0f, -1.0f, 1.0f);
 		curPos[1] = map(y, 600.0f, 0.0f, -1.0f, 1.0f);
 		g_left_button = true;
+		CheckArea(x, y);
 		TryDrawTriangle();
+
+		cout << g_cur_area << endl;
 	}
 
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
@@ -370,7 +417,6 @@ GLvoid Reset()
 	NUM_POINT = 0;
 	NUM_LINE = 0;
 	NUM_TRIANGLE = 0;
-	NUM_RECTANGLE = 0;
 }
 
 GLvoid Keyboard(unsigned char key, int x, int y)
