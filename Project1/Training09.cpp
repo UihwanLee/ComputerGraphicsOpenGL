@@ -31,7 +31,7 @@ GLvoid MouseClick(int button, int state, int x, int y);
 GLvoid Keyboard(unsigned char key, int x, int y);
 
 void InitBuffer();
-void DrawAllTriangle(int idx, float move_x, float move_y);
+void DrawAllTriangle(int idx);
 
 GLchar* vertexSource, * fragmentSource; //--- 소스코드 저장 변수
 GLuint vertexShader, fragmentShader; //--- 세이더 객체
@@ -52,6 +52,10 @@ int g_cur_area = 0;
 bool g_left_button = false;
 int CONDITION = 1;
 int NUM_OBJECT = 0;
+
+float speed = 0.01f;
+float dir_x[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+float dir_y[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 bool isMovingDiagonal = false;
 bool isMovingZigZag = false;
@@ -93,7 +97,7 @@ GLvoid drawScene()
 	////--- 사용할 VAO 불러오기
 	glBindVertexArray(vao);
 
-	DrawAllTriangle(-1, 0.f, 0.f);
+	DrawAllTriangle(-1);
 
 	glutSwapBuffers(); //--- 화면에 출력하기
 }
@@ -184,10 +188,10 @@ void TryDrawTriangle()
 
 	NUM_OBJECT += 1;
 
-	DrawAllTriangle(NUM_OBJECT - 1, 0.f, 0.f);
+	DrawAllTriangle(NUM_OBJECT - 1);
 }
 
-void DrawAllTriangle(int idx, float move_x, float move_y)
+void DrawAllTriangle(int idx)
 {
 	// 클릭한 곳에 삼각형 생성
 	if (idx != -1)
@@ -203,12 +207,15 @@ void DrawAllTriangle(int idx, float move_x, float move_y)
 	}
 
 	// 위치 이동 변화가 있으면 위치 이동
-	for (int i = 0; i < NUM_OBJECT; i++)
+	if (isMovingDiagonal || isMovingZigZag || isMovingRectSpiral || isMovingCircleSpiral)
 	{
-		for (int j = 0; j < 3; j++)
+		for (int i = 0; i < NUM_OBJECT; i++)
 		{
-			triShape[i][j][0] += move_x;
-			triShape[i][j][1] += move_y;
+			for (int j = 0; j < 3; j++)
+			{
+				triShape[i][j][0] += speed * dir_x[i];
+				triShape[i][j][1] += speed * dir_y[i];
+			}
 		}
 	}
 
@@ -333,12 +340,48 @@ GLvoid MouseClick(int button, int state, int x, int y)
 	glutPostRedisplay();
 }
 
+// 이동하는 사각형 벽과 충돌 체크 후 방향 바꾸기
+GLvoid CheckCollisionTri(int idx)
+{
+	float TRI_TOP_y = triShape[idx][2][1];
+	float TRI_LEFT_BOTTOM_x = triShape[idx][0][0];
+	float TRI_LEFT_BOTTOM_y = triShape[idx][0][1];
+	float TRI_RIGHT_BOTTOM_x = triShape[idx][1][0];
+	float TRI_RIGHT_BOTTOM_y = triShape[idx][1][1];
+
+	// 위쪽 벽에 닿은 경우
+	if (TRI_TOP_y >= 1.0f || TRI_LEFT_BOTTOM_y >= 1.0f)
+	{
+		dir_y[idx] = dir_y[idx] * (-1.0f);
+	}
+
+	// 아래쪽 벽에 닿은 경우
+	if (TRI_LEFT_BOTTOM_y <= -1.0f || TRI_TOP_y <= -1.0f)
+	{
+		dir_y[idx] = dir_y[idx] * (-1.0f);
+	}
+
+	// 오른쪽 벽에 닿은 경우
+	if (TRI_RIGHT_BOTTOM_x >= 1.0f || TRI_LEFT_BOTTOM_x >= 1.0f)
+	{
+		dir_x[idx] = dir_x[idx] * (-1.0f);
+	}
+
+	// 왼쪽 벽에 닿은 경우
+	if (TRI_LEFT_BOTTOM_x <= -1.0f || TRI_RIGHT_BOTTOM_x <= -1.0f)
+	{
+		dir_x[idx] = dir_x[idx] * (-1.0f);
+	}
+}
+
 GLvoid MovingDiagonal(int isAnim)
 {
-	float move_x = 0.01f;
-	float move_y = 0.01f;
+	for (int i = 0; i < NUM_OBJECT; i++)
+	{
+		CheckCollisionTri(i);
+	}
 
-	DrawAllTriangle(-1.0f, move_x, move_y);
+	DrawAllTriangle(-1.0f);
 
 	glutPostRedisplay();
 
