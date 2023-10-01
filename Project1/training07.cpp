@@ -7,6 +7,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #define MAX_NUM_OBJECT 10
+#define BYTE_SIZE_POINT 12
 #define BYTE_SIZE_TRIANGLE 36
 
 #define MAX_TRI_ROW 3
@@ -25,14 +26,15 @@ GLvoid MouseClick(int button, int state, int x, int y);
 GLvoid Keyboard(unsigned char key, int x, int y);
 
 void InitBuffer();
+void DrawAllPoint(int idx, float move_x, float move_y);
 void DrawAllTriangle(int idx, float move_x, float move_y);
 
 GLchar* vertexSource, * fragmentSource; //--- 소스코드 저장 변수
 GLuint vertexShader, fragmentShader; //--- 세이더 객체
 GLuint shaderProgramID; //--- 셰이더 프로그램
 
-GLfloat pointShape[3] = { 0.0f, 0.0f, 0.0f };
-GLfloat color_point[3] = { 0.0f, 0.0f, 0.0f };
+GLfloat pointShape[MAX_NUM_OBJECT][3];
+GLfloat color_point[MAX_NUM_OBJECT][3];
 
 GLfloat triShape[MAX_NUM_OBJECT][MAX_TRI_ROW][MAX_TRI_COL]; //--- 삼각형 위치 값
 
@@ -48,6 +50,7 @@ GLfloat curPos[3] = { 0.f, 0.f, 0.f };
 bool g_left_button = false;
 int CONDITION = 0;
 int NUM_POINT = 0;
+int NUM_LINE = 0;
 int NUM_TRIANGLE = 0;
 int NUM_RECTANGLE = 0;
 
@@ -86,8 +89,10 @@ GLvoid drawScene()
 	////--- 사용할 VAO 불러오기
 	glBindVertexArray(vao);
 
-	////--- 삼각형 그리기
-	glDrawArrays(GL_TRIANGLES, 0, 3 * NUM_TRIANGLE);
+	////--- 오브젝트 그리기
+	glPointSize(5.0);
+	DrawAllPoint(-1, 0.f, 0.f);
+	DrawAllTriangle(-1, 0.f, 0.f);
 
 	glutSwapBuffers(); //--- 화면에 출력하기
 }
@@ -99,8 +104,11 @@ void InitBuffer()
 		// { -0.1, -0.1, 0.0 }, { 0.1, -0.1, 0.0 }, { 0.0, 0.1, 0.0}
 		for (int j = 0; j < 3; j++)
 		{
+			pointShape[i][j] = 0.f;
+			color_point[i][j] = 0.f;
 			if (j == 0)
 			{
+
 				triShape[i][j][0] = -0.1f;
 				triShape[i][j][1] = -0.1f;
 
@@ -142,29 +150,50 @@ void InitBuffer()
 	}
 }
 
-void MakePoint()
-{
-	for (int i = 0; i < 3; i++)
-	{
-		pointShape[i] = curPos[i];
-	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat), pointShape, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat), color_point, GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(1);
-
-	
-}
-
 void MoveAllObject(float move_x, float move_y)
 {
 	DrawAllTriangle(-1, move_x, move_y);
+}
+
+void TryDrawPoint()
+{
+	if (CONDITION != 1) return;
+
+	if (NUM_POINT + 1 > MAX_NUM_OBJECT)
+	{
+		cout << "NUM_OUT_ERROR" << endl;
+		return;
+	}
+
+	NUM_POINT += 1;
+
+	DrawAllPoint(NUM_POINT - 1, 0.f, 0.f);
+}
+
+void DrawAllPoint(int idx, float move_x, float move_y)
+{
+	if (idx != -1)
+	{
+		pointShape[idx][0] = curPos[0];
+		pointShape[idx][1] = curPos[1];
+	}
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+	glGenBuffers(2, vbo);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_POINT * NUM_POINT, pointShape, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_POINT * NUM_POINT, color_point, GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(1);
+
+	glPointSize(5.0);
+	glDrawArrays(GL_POINTS, 0, 1 * NUM_POINT);
 }
 
 void TryDrawTriangle()
@@ -220,6 +249,8 @@ void DrawAllTriangle(int idx, float move_x, float move_y)
 	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_TRIANGLE * NUM_TRIANGLE, colors, GL_STATIC_DRAW);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(1);
+
+	glDrawArrays(GL_TRIANGLES, 0, 3 * NUM_TRIANGLE);
 }
 
 GLvoid Reshape(int w, int h)
@@ -315,6 +346,7 @@ GLvoid MouseClick(int button, int state, int x, int y)
 		curPos[0] = map(x, 0.0f, 800.0f, -1.0f, 1.0f);
 		curPos[1] = map(y, 600.0f, 0.0f, -1.0f, 1.0f);
 		g_left_button = true;
+		TryDrawPoint();
 		TryDrawTriangle();
  	}
 
@@ -329,7 +361,10 @@ GLvoid MouseClick(int button, int state, int x, int y)
 GLvoid Reset()
 {
 	CONDITION = 0;
+	NUM_POINT = 0;
+	NUM_LINE = 0;
 	NUM_TRIANGLE = 0;
+	NUM_RECTANGLE = 0;
 }
 
 GLvoid Keyboard(unsigned char key, int x, int y)
@@ -344,6 +379,9 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 		break;
 	case 't':
 		CONDITION = 3;
+		break;
+	case 'r':
+		CONDITION = 4;
 		break;
 	case 'w':
 		MoveAllObject(0.f, 0.1f);
