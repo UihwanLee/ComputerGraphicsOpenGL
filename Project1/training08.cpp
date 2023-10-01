@@ -254,6 +254,20 @@ void DrawCoordinatePlane()
 	glDrawArrays(GL_LINES, 0, 2 * 2);
 }
 
+void ChangeTriRandom(int idx)
+{
+	// 색상 변경
+
+	GLfloat color_r = GetRandomFloatValue(0.f, 1.0f);
+	GLfloat color_g = GetRandomFloatValue(0.f, 1.0f);
+	GLfloat color_b = GetRandomFloatValue(0.f, 1.0f);
+
+	GLfloat rand_size = GetRandomFloatValue(0.2f, 3.0f);
+
+	DrawAllLine(idx, color_r, color_g, color_b, rand_size / 10.0f);
+	DrawAllTriangle(idx, color_r, color_g, color_b, rand_size);
+}
+
 void TryDrawLine()
 {
 	if (CONDITION != 2) return;
@@ -265,7 +279,7 @@ void TryDrawLine()
 
 	NUM_OBJECT += 1;
 
-	DrawAllLine(NUM_OBJECT - 1, -1.f, -1.f, -1.f, 1.f);
+	DrawAllLine(NUM_OBJECT - 1, -1.f, -1.f, -1.f, 0.1f);
 }
 
 void DrawAllLine(int idx, float r, float g, float b, float size)
@@ -286,9 +300,26 @@ void DrawAllLine(int idx, float r, float g, float b, float size)
 					if (i == 1 && j == 1) lineShape[idx][i][j] = curPos[idx][1] - 0.1f;
 				}
 			}
+			isActive[idx] = true;
 		}
 
+		// 색상 && 사이즈 변경
+		if (isActive[idx] && r != -1)
+		{
+			for (int i = 0; i < 2; i++)
+			{
+				colorLine[idx][i][0] = r;
+				colorLine[idx][i][1] = g;
+				colorLine[idx][i][2] = b;
 
+				for (int j = 0; j < 3; j++)
+				{
+					if (j == 0) lineShape[idx][i][j] = curPos[idx][0];
+					if (i == 0 && j == 1) lineShape[idx][i][j] = curPos[idx][1] + size;
+					if (i == 1 && j == 1) lineShape[idx][i][j] = curPos[idx][1] - size;
+				}
+			}
+		}
 	}
 
 	glGenVertexArrays(1, &vao);
@@ -320,19 +351,6 @@ void TryDrawTriangle()
 	NUM_OBJECT += 1;
 
 	DrawAllTriangle(NUM_OBJECT - 1, -1.f, -1.f, -1.f, 0.f);
-}
-
-void ChangeTriRandom(int idx)
-{
-	// 색상 변경
-
-	GLfloat color_r = GetRandomFloatValue(0.f, 1.0f);
-	GLfloat color_g = GetRandomFloatValue(0.f, 1.0f);
-	GLfloat color_b = GetRandomFloatValue(0.f, 1.0f);
-
-	GLfloat rand_size = GetRandomFloatValue(0.2f, 3.0f);
-
-	DrawAllTriangle(idx, color_r, color_g, color_b, rand_size);
 }
 
 void DrawAllTriangle(int idx, float r, float g, float b, float size)
