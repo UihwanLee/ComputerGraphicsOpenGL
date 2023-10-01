@@ -56,6 +56,8 @@ int NUM_OBJECT = 0;
 float speed = 0.01f;
 float dir_x[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 float dir_y[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+float zigzagDist_y[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+bool zigzag_yUp[4] = { false, false, false, false };
 
 bool isMovingDiagonal = false;
 bool isMovingZigZag = false;
@@ -341,7 +343,7 @@ GLvoid MouseClick(int button, int state, int x, int y)
 }
 
 // 이동하는 사각형 벽과 충돌 체크 후 방향 바꾸기
-GLvoid CheckCollisionTri(int idx)
+GLvoid CheckCollision1(int idx)
 {
 	float TRI_TOP_y = triShape[idx][2][1];
 	float TRI_LEFT_BOTTOM_x = triShape[idx][0][0];
@@ -378,7 +380,7 @@ GLvoid MovingDiagonal(int isAnim)
 {
 	for (int i = 0; i < NUM_OBJECT; i++)
 	{
-		CheckCollisionTri(i);
+		CheckCollision1(i);
 	}
 
 	DrawAllTriangle(-1.0f);
@@ -388,9 +390,75 @@ GLvoid MovingDiagonal(int isAnim)
 	if(isMovingDiagonal) glutTimerFunc(30, MovingDiagonal, isMovingDiagonal);
 }
 
-GLvoid MovingZigZag()
+// 지그재그 운동 충돌처리
+GLvoid CheckCollision2(int idx)
 {
+	float TRI_TOP_y = triShape[idx][2][1];
+	float TRI_LEFT_BOTTOM_x = triShape[idx][0][0];
+	float TRI_LEFT_BOTTOM_y = triShape[idx][0][1];
+	float TRI_RIGHT_BOTTOM_x = triShape[idx][1][0];
+	float TRI_RIGHT_BOTTOM_y = triShape[idx][1][1];
 
+	// 위쪽 벽에 닿은 경우
+	if (TRI_TOP_y >= 1.0f || TRI_LEFT_BOTTOM_y >= 1.0f)
+	{
+		zigzag_yUp[idx] = false;
+	}
+
+	// 아래쪽 벽에 닿은 경우
+	if (TRI_LEFT_BOTTOM_y <= -1.0f || TRI_TOP_y <= -1.0f)
+	{
+		zigzag_yUp[idx] = true;
+	}
+
+	// 오른쪽 벽에 닿은 경우
+	if (TRI_RIGHT_BOTTOM_x >= 1.0f || TRI_LEFT_BOTTOM_x >= 1.0f)
+	{
+		dir_x[idx] = 0.0f;
+		dir_y[idx] = (zigzag_yUp[idx]) ? 1.0f : - 1.0f;
+		zigzagDist_y[idx] += 0.05f;
+	}
+
+	// 왼쪽 벽에 닿은 경우
+	if (TRI_LEFT_BOTTOM_x <= -1.0f || TRI_RIGHT_BOTTOM_x <= -1.0f)
+	{
+		dir_x[idx] = 0.0f;
+		dir_y[idx] = (zigzag_yUp[idx]) ? 1.0f : -1.0f;
+		zigzagDist_y[idx] += 0.05f;
+	}
+
+	// 아래 이동이 특정 범위를 넘을 경우 : 왼쪽이면 오른쪽 이동 / 오른쪽이면 왼쪽 이동
+	if (zigzagDist_y[idx] >= 1.0f)
+	{
+		dir_x[idx] = (TRI_LEFT_BOTTOM_x <= -1.0f || TRI_RIGHT_BOTTOM_x <= -1.0f) ? 1.0f : -1.0f;
+		dir_y[idx] = 0.0f;
+		zigzagDist_y[idx] = 0.0f;
+	}
+}
+
+GLvoid GoZigZag()
+{
+	for (int i = 0; i < NUM_OBJECT; i++)
+	{
+		float TRI_LEFT_x = triShape[i][0][0];
+		
+		dir_x[i] = (TRI_LEFT_x < 0.0f) ? 1.0f : -1.0f;
+		dir_y[i] = 0.0f;
+	}
+}
+
+GLvoid MovingZigZag(int isAnim)
+{
+	for (int i = 0; i < NUM_OBJECT; i++)
+	{
+		CheckCollision2(i);
+	}
+
+	DrawAllTriangle(-1.0f);
+
+	glutPostRedisplay();
+
+	if (isMovingZigZag) glutTimerFunc(30, MovingZigZag, isMovingZigZag);
 }
 
 GLvoid MovingRectSpiral()
@@ -403,21 +471,46 @@ GLvoid MovingCircleSpiral()
 
 }
 
+void StopAllAnim()
+{
+	isMovingDiagonal = false;
+	isMovingZigZag = false;
+	isMovingRectSpiral = false;
+	isMovingCircleSpiral = false;
+
+	// 이동 변수들 초기화
+	for (int i = 0; i < NUM_OBJECT; i++)
+	{
+		dir_x[i] = 1.0f;
+		dir_y[i] = 1.0f;
+		zigzagDist_y[i] = 0.0f;
+		zigzag_yUp[i] = false;
+	}
+}
+
 GLvoid Keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
 	case '1':
+		StopAllAnim();
 		isMovingDiagonal = true;
 		glutTimerFunc(30, MovingDiagonal, isMovingDiagonal);
 		break;
 	case '2':
-		MovingZigZag();
+		StopAllAnim();
+		GoZigZag();
+		isMovingZigZag = true;
+		glutTimerFunc(30, MovingZigZag, isMovingZigZag);
 		break;
 	case '3':
+		StopAllAnim();
+		isMovingRectSpiral = true;
 		MovingRectSpiral();
 		break;
 	case '4':
+		StopAllAnim();
+		isMovingCircleSpiral = true;
 		MovingCircleSpiral();
 		break;
 	case 'q':
