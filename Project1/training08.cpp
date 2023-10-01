@@ -32,7 +32,8 @@ GLvoid Keyboard(unsigned char key, int x, int y);
 
 void InitBuffer();
 void DrawCoordinatePlane();
-void DrawAllTriangle(int idx, float r, float g, float b);
+void DrawAllLine(int idx, float r, float g, float b, float size);
+void DrawAllTriangle(int idx, float r, float g, float b, float size);
 
 GLchar* vertexSource, * fragmentSource; //--- 소스코드 저장 변수
 GLuint vertexShader, fragmentShader; //--- 세이더 객체
@@ -42,22 +43,27 @@ GLuint shaderProgramID; //--- 셰이더 프로그램
 GLfloat coordinatePlane[4][3];
 GLfloat coordinatePlane_Color[4][3];
 
+// 선
+GLfloat lineShape[MAX_NUM_OBJECT][2][3];
+GLfloat colorLine[MAX_NUM_OBJECT][2][3];
+
 // 삼각형
 GLfloat triShape[MAX_NUM_OBJECT][MAX_TRI_ROW][MAX_TRI_COL]; //--- 삼각형 위치 값
 GLfloat triShapeScale[MAX_NUM_OBJECT][MAX_TRI_ROW][MAX_TRI_COL];
 GLfloat colors[MAX_NUM_OBJECT][MAX_TRI_ROW][MAX_TRI_COL];
 
 GLuint vao, vbo[2], ebo[2];
-GLfloat curPos[3] = { 0.f, 0.f, 0.f };
+GLfloat curPos[4][3] = { { 0.f, 0.f, 0.f },
+						 { 0.f, 0.f, 0.f }, 
+						 { 0.f, 0.f, 0.f },
+						 { 0.f, 0.f, 0.f } };
 
 // 글로벌 변수
-
+bool isActive[4] = { false, false, false, false };
 int g_cur_area = 0;
 bool g_left_button = false;
-int CONDITION = 0;
-int NUM_POINT = 0;
-int NUM_LINE = 0;
-int NUM_TRIANGLE = 0;
+int CONDITION = 1;
+int NUM_OBJECT = 0;
 
 
 int main(int argc, char** argv)
@@ -98,7 +104,8 @@ GLvoid drawScene()
 	DrawCoordinatePlane();
 
 	// 각 사분면에 있는 삼각형 그리기
-	DrawAllTriangle(-1, -1.f, -1.f, -1.f);
+	DrawAllLine(-1, -1.f, -1.f, -1.f, 1.f);
+	DrawAllTriangle(-1, -1.f, -1.f, -1.f, 1.f);
 
 	glutSwapBuffers(); //--- 화면에 출력하기
 }
@@ -167,11 +174,18 @@ void InitBuffer()
 
 	for (int i = 0; i < MAX_NUM_OBJECT; i++)
 	{
-		// { -0.1, -0.1, 0.0 }, { 0.1, -0.1, 0.0 }, { 0.0, 0.1, 0.0}
 		for (int j = 0; j < 3; j++)
 		{
 			if (j == 0)
 			{
+				lineShape[i][j][0] = 0.f;
+				lineShape[i][j][1] = 0.f;
+				lineShape[i][j][2] = 0.f;
+
+				colorLine[i][j][0] = 0.f;
+				colorLine[i][j][1] = 0.f;
+				colorLine[i][j][2] = 0.f;
+
 				triShape[i][j][0] = -0.1f;
 				triShape[i][j][1] = -0.1f;
 
@@ -184,6 +198,13 @@ void InitBuffer()
 			}
 			else if (j == 1)
 			{
+				lineShape[i][j][0] = 0.f;
+				lineShape[i][j][1] = 0.f;
+				lineShape[i][j][2] = 0.f;
+
+				colorLine[i][j][0] = 0.f;
+				colorLine[i][j][1] = 0.f;
+				colorLine[i][j][2] = 0.f;
 
 				triShape[i][j][0] = 0.1f;
 				triShape[i][j][1] = -0.1f;
@@ -233,57 +254,131 @@ void DrawCoordinatePlane()
 	glDrawArrays(GL_LINES, 0, 2 * 2);
 }
 
-void TryDrawTriangle()
+void TryDrawLine()
 {
-	//if (CONDITION != 3) return;
+	if (CONDITION != 2) return;
 
-	if (NUM_TRIANGLE + 1 > MAX_NUM_OBJECT)
+	if (NUM_OBJECT + 1 > MAX_NUM_OBJECT)
 	{
-		cout << "NUM_OUT_ERROR" << endl;
 		return;
 	}
 
-	NUM_TRIANGLE += 1;
+	NUM_OBJECT += 1;
 
-	DrawAllTriangle(NUM_TRIANGLE - 1, -1.f, -1.f, -1.f);
+	DrawAllLine(NUM_OBJECT - 1, -1.f, -1.f, -1.f, 1.f);
+}
+
+void DrawAllLine(int idx, float r, float g, float b, float size)
+{
+	if (CONDITION != 2) return;
+
+	// 클릭한 곳에 선 생성
+	if (idx != -1)
+	{
+		if (isActive[idx] == false)
+		{
+			for (int i = 0; i < 2; i++)
+			{
+				for (int j = 0; j < 3; j++)
+				{
+					if (j == 0) lineShape[idx][i][j] = curPos[idx][0];
+					if (i == 0 && j == 1) lineShape[idx][i][j] = curPos[idx][1] + 0.1f;
+					if (i == 1 && j == 1) lineShape[idx][i][j] = curPos[idx][1] - 0.1f;
+				}
+			}
+		}
+
+
+	}
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+	glGenBuffers(2, vbo);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_LINE * NUM_OBJECT, lineShape, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_LINE * NUM_OBJECT, colorLine, GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(1);
+
+	glDrawArrays(GL_LINES, 0, 2 * NUM_OBJECT);
+}
+
+void TryDrawTriangle()
+{
+	if (CONDITION != 1) return;
+
+	if (NUM_OBJECT + 1 > MAX_NUM_OBJECT)
+	{
+		return;
+	}
+
+	NUM_OBJECT += 1;
+
+	DrawAllTriangle(NUM_OBJECT - 1, -1.f, -1.f, -1.f, 0.f);
 }
 
 void ChangeTriRandom(int idx)
 {
-	// Color change
+	// 색상 변경
 
 	GLfloat color_r = GetRandomFloatValue(0.f, 1.0f);
 	GLfloat color_g = GetRandomFloatValue(0.f, 1.0f);
 	GLfloat color_b = GetRandomFloatValue(0.f, 1.0f);
 
-	DrawAllTriangle(idx, color_r, color_g, color_b);
+	GLfloat rand_size = GetRandomFloatValue(0.2f, 3.0f);
+
+	DrawAllTriangle(idx, color_r, color_g, color_b, rand_size);
 }
 
-void DrawAllTriangle(int idx, float r, float g, float b)
+void DrawAllTriangle(int idx, float r, float g, float b, float size)
 {
+	if (CONDITION != 1) return;
+
 	// 클릭한 곳에 삼각형 생성
 	if (idx != -1)
 	{
-		if (!(NUM_TRIANGLE  > MAX_NUM_OBJECT) && r == -1)
+		if (isActive[idx] == false)
 		{
 			for (int i = 0; i < 3; i++)
 			{
 				for (int j = 0; j < 3; j++)
 				{
-					if (j == 0) triShape[idx][i][j] = curPos[0] - triShapeScale[idx][i][j];
-					if (j == 1) triShape[idx][i][j] = curPos[1] + triShapeScale[idx][i][j];
+					if (j == 0) triShape[idx][i][j] = curPos[idx][0] - triShapeScale[idx][i][j];
+					if (j == 1) triShape[idx][i][j] = curPos[idx][1] + triShapeScale[idx][i][j];
 				}
 			}
+			isActive[idx] = true;
 		}
 
-		// 색상 변경
-		if (r!=-1)
+		// 색상 && 사이즈 변경
+		if (isActive[idx] && r != -1)
 		{
 			for (int i = 0; i < 3; i++)
 			{
 				colors[idx][i][0] = r;
 				colors[idx][i][1] = g;
 				colors[idx][i][2] = b;
+
+				if (i == 0)
+				{
+					triShape[idx][i][0] = curPos[idx][0] - (triShapeScale[idx][i][0] * size);
+					triShape[idx][i][1] = curPos[idx][1] + (triShapeScale[idx][i][1] * size);
+				}
+				if (i == 1)
+				{
+					triShape[idx][i][0] = curPos[idx][0] - (triShapeScale[idx][i][0] * size);
+					triShape[idx][i][1] = curPos[idx][1] + (triShapeScale[idx][i][1] * size);
+				}
+				if (i == 2)
+				{
+					triShape[idx][i][0] = curPos[idx][0] - (triShapeScale[idx][i][0]);
+					triShape[idx][i][1] = curPos[idx][1] + (triShapeScale[idx][i][1] * size);
+				}
 			}
 		}
 	}
@@ -293,16 +388,16 @@ void DrawAllTriangle(int idx, float r, float g, float b)
 	glGenBuffers(2, vbo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_TRIANGLE * NUM_TRIANGLE, triShape, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_TRIANGLE * NUM_OBJECT, triShape, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_TRIANGLE * NUM_TRIANGLE, colors, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_TRIANGLE * NUM_OBJECT, colors, GL_STATIC_DRAW);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(1);
 
-	glDrawArrays(GL_TRIANGLES, 0, 3 * NUM_TRIANGLE);
+	glDrawArrays(GL_TRIANGLES, 0, 3 * NUM_OBJECT);
 }
 
 GLvoid Reshape(int w, int h)
@@ -423,14 +518,13 @@ GLvoid MouseClick(int button, int state, int x, int y)
 {
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 	{
-		curPos[0] = map(x, 0.0f, 800.0f, -1.0f, 1.0f);
-		curPos[1] = map(y, 600.0f, 0.0f, -1.0f, 1.0f);
-		g_left_button = true;
 		CheckArea(x, y);
+		curPos[g_cur_area-1][0] = map(x, 0.0f, 800.0f, -1.0f, 1.0f);
+		curPos[g_cur_area-1][1] = map(y, 600.0f, 0.0f, -1.0f, 1.0f);
+		g_left_button = true;
 		ChangeTriRandom(g_cur_area-1);
+		TryDrawLine();
 		TryDrawTriangle();
-
-		cout << g_cur_area << endl;
 	}
 
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
@@ -444,9 +538,7 @@ GLvoid MouseClick(int button, int state, int x, int y)
 GLvoid Reset()
 {
 	CONDITION = 0;
-	NUM_POINT = 0;
-	NUM_LINE = 0;
-	NUM_TRIANGLE = 0;
+	NUM_OBJECT = 0;
 }
 
 GLvoid Keyboard(unsigned char key, int x, int y)
@@ -454,6 +546,7 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 	switch (key)
 	{
 	case 'a':
+		CONDITION = 1;
 		break;
 	case 'b':
 		CONDITION = 2;

@@ -1,4 +1,4 @@
 ﻿  training08.cpp
-C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\training08.cpp(426,19): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\training08.cpp(427,19): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\training08.cpp(522,33): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\training08.cpp(523,33): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
   Project1.vcxproj -> C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\x64\Debug\Project1.exe
