@@ -1,6 +1,9 @@
 ﻿  Training09.cpp
-C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training09.cpp(331,19): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training09.cpp(332,19): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training09.cpp(386,19): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training09.cpp(457,19): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training09.cpp(339,19): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training09.cpp(340,19): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training09.cpp(395,19): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training09.cpp(466,19): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training09.cpp(492,11): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training09.cpp(493,11): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training09.cpp(507,19): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
   Project1.vcxproj -> C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\x64\Debug\Project1.exe

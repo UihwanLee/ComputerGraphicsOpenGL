@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <random>
+#include <cmath>
 
 #define _CRT_SECURE_NO_WARNINGS
 
@@ -17,6 +18,8 @@
 
 #define WIDTH 800
 #define HEIGHT 600
+
+#define PI 3.14159265
 
 using namespace std;
 
@@ -32,6 +35,7 @@ GLvoid Keyboard(unsigned char key, int x, int y);
 
 void InitBuffer();
 void DrawAllTriangle(int idx);
+void SetSpiralPivot();
 
 GLchar* vertexSource, * fragmentSource; //--- 소스코드 저장 변수
 GLuint vertexShader, fragmentShader; //--- 세이더 객체
@@ -58,6 +62,10 @@ float dir_x[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 float dir_y[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 float zigzagDist_y[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 bool zigzag_yUp[4] = { false, false, false, false };
+
+float spiralPivot[4][2] = { {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f} };
+float circleSpiralRadius[4] = { 0.2f, 0.2f, 0.2f, 0.2f };
+int circleSpiralDeg[4] = {0, 0, 0, 0};
 
 bool isMovingDiagonal = false;
 bool isMovingZigZag = false;
@@ -209,7 +217,7 @@ void DrawAllTriangle(int idx)
 	}
 
 	// 위치 이동 변화가 있으면 위치 이동
-	if (isMovingDiagonal || isMovingZigZag || isMovingRectSpiral || isMovingCircleSpiral)
+	if (isMovingDiagonal || isMovingZigZag)
 	{
 		for (int i = 0; i < NUM_OBJECT; i++)
 		{
@@ -332,6 +340,7 @@ GLvoid MouseClick(int button, int state, int x, int y)
 		curPos[1] = map(y, 600.0f, 0.0f, -1.0f, 1.0f);
 		g_left_button = true;
 		TryDrawTriangle();
+		if(isMovingRectSpiral || isMovingCircleSpiral) SetSpiralPivot();
 	}
 
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
@@ -461,23 +470,49 @@ GLvoid MovingZigZag(int isAnim)
 	if (isMovingZigZag) glutTimerFunc(30, MovingZigZag, isMovingZigZag);
 }
 
+GLvoid SetSpiralPivot()
+{
+	for (int i = 0; i < NUM_OBJECT; i++)
+	{
+		spiralPivot[i][0] = triShape[i][0][0] + triShapeScale[i][0][0];
+		spiralPivot[i][1] = triShape[i][2][1] - triShapeScale[i][2][1];
+	}
+}
+
 GLvoid MovingRectSpiral()
 {
 
 }
 
-GLvoid MovingCircleSpiral()
+GLvoid MovingCircleSpiral(int isAnim)
 {
+	for (int idx = 0; idx < NUM_OBJECT; idx++)
+	{
+		// pivot 원운동 radian = degree * (pi/180)
+		float x = spiralPivot[idx][0] + circleSpiralRadius[idx] * (cos(circleSpiralDeg[idx] * (PI / 180.f)));
+		float y = spiralPivot[idx][1] + circleSpiralRadius[idx] * (sin(circleSpiralDeg[idx] * (PI / 180.f)));
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = 0; j < 3; j++)
+			{
+				if (j == 0) triShape[idx][i][j] = x - triShapeScale[idx][i][j];
+				if (j == 1) triShape[idx][i][j] = y + triShapeScale[idx][i][j];
+			}
+		}
 
+		circleSpiralDeg[idx] = ((circleSpiralDeg[idx] + 5) % 360);
+		if (circleSpiralDeg[idx] % 180 == 0) circleSpiralRadius[idx] = circleSpiralRadius[idx] * 1.2f;
+	}
+
+	DrawAllTriangle(-1.0f);
+
+	glutPostRedisplay();
+
+	if (isMovingCircleSpiral) glutTimerFunc(30, MovingCircleSpiral, isMovingCircleSpiral);
 }
 
 void StopAllAnim()
 {
-	isMovingDiagonal = false;
-	isMovingZigZag = false;
-	isMovingRectSpiral = false;
-	isMovingCircleSpiral = false;
-
 	// 이동 변수들 초기화
 	for (int i = 0; i < NUM_OBJECT; i++)
 	{
@@ -485,7 +520,30 @@ void StopAllAnim()
 		dir_y[i] = 1.0f;
 		zigzagDist_y[i] = 0.0f;
 		zigzag_yUp[i] = false;
+
+		circleSpiralDeg[i] = 0;
+		circleSpiralRadius[i] = 0.2f;
+
+		// 스파이럴 운동중인 경우 다시 Pivot으로 설정해줌
+		if ((isMovingRectSpiral || isMovingCircleSpiral) && isMovingDiagonal )
+		{
+			for (int p = 0; p < 3; p++)
+			{
+				for (int q = 0; q < 3; q++)
+				{
+					if (q == 0) triShape[i][p][q] = spiralPivot[i][0] - triShapeScale[i][p][q];
+					if (q == 1) triShape[i][p][q] = spiralPivot[i][1] + triShapeScale[i][p][q];
+
+					cout << spiralPivot[i][0] << ", " << spiralPivot[i][1] << endl;
+				}
+			}
+		}
 	}
+
+	isMovingDiagonal = false;
+	isMovingZigZag = false;
+	isMovingRectSpiral = false;
+	isMovingCircleSpiral = false;
 }
 
 GLvoid Keyboard(unsigned char key, int x, int y)
@@ -511,7 +569,8 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 	case '4':
 		StopAllAnim();
 		isMovingCircleSpiral = true;
-		MovingCircleSpiral();
+		SetSpiralPivot();
+		glutTimerFunc(30, MovingCircleSpiral, isMovingCircleSpiral);
 		break;
 	case 'q':
 		exit(EXIT_FAILURE);
