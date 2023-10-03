@@ -64,6 +64,8 @@ float zigzagDist_y[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 bool zigzag_yUp[4] = { false, false, false, false };
 
 float spiralPivot[4][2] = { {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f} };
+
+float rectSpiralDist[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 float circleSpiralRadius[4] = { 0.2f, 0.2f, 0.2f, 0.2f };
 int circleSpiralDeg[4] = {0, 0, 0, 0};
 
@@ -351,8 +353,7 @@ GLvoid MouseClick(int button, int state, int x, int y)
 	glutPostRedisplay();
 }
 
-// 이동하는 사각형 벽과 충돌 체크 후 방향 바꾸기
-GLvoid CheckCollision1(int idx)
+int CheckCollision(int idx)
 {
 	float TRI_TOP_y = triShape[idx][2][1];
 	float TRI_LEFT_BOTTOM_x = triShape[idx][0][0];
@@ -363,23 +364,59 @@ GLvoid CheckCollision1(int idx)
 	// 위쪽 벽에 닿은 경우
 	if (TRI_TOP_y >= 1.0f || TRI_LEFT_BOTTOM_y >= 1.0f)
 	{
-		dir_y[idx] = dir_y[idx] * (-1.0f);
+		return 1;
 	}
 
 	// 아래쪽 벽에 닿은 경우
 	if (TRI_LEFT_BOTTOM_y <= -1.0f || TRI_TOP_y <= -1.0f)
 	{
-		dir_y[idx] = dir_y[idx] * (-1.0f);
+		return 2;
 	}
 
 	// 오른쪽 벽에 닿은 경우
 	if (TRI_RIGHT_BOTTOM_x >= 1.0f || TRI_LEFT_BOTTOM_x >= 1.0f)
 	{
-		dir_x[idx] = dir_x[idx] * (-1.0f);
+		return 3;
 	}
 
 	// 왼쪽 벽에 닿은 경우
 	if (TRI_LEFT_BOTTOM_x <= -1.0f || TRI_RIGHT_BOTTOM_x <= -1.0f)
+	{
+		return 4;
+	}
+
+	return -1;
+}
+
+// 이동하는 사각형 벽과 충돌 체크 후 방향 바꾸기
+GLvoid CheckCollision1(int idx)
+{
+	float TRI_TOP_y = triShape[idx][2][1];
+	float TRI_LEFT_BOTTOM_x = triShape[idx][0][0];
+	float TRI_LEFT_BOTTOM_y = triShape[idx][0][1];
+	float TRI_RIGHT_BOTTOM_x = triShape[idx][1][0];
+	float TRI_RIGHT_BOTTOM_y = triShape[idx][1][1];
+
+	// 위쪽 벽에 닿은 경우
+	if (CheckCollision(idx) == 1)
+	{
+		dir_y[idx] = dir_y[idx] * (-1.0f);
+	}
+
+	// 아래쪽 벽에 닿은 경우
+	if (CheckCollision(idx) == 2)
+	{
+		dir_y[idx] = dir_y[idx] * (-1.0f);
+	}
+
+	// 오른쪽 벽에 닿은 경우
+	if (CheckCollision(idx) == 3)
+	{
+		dir_x[idx] = dir_x[idx] * (-1.0f);
+	}
+
+	// 왼쪽 벽에 닿은 경우
+	if (CheckCollision(idx) == 4)
 	{
 		dir_x[idx] = dir_x[idx] * (-1.0f);
 	}
@@ -409,19 +446,19 @@ GLvoid CheckCollision2(int idx)
 	float TRI_RIGHT_BOTTOM_y = triShape[idx][1][1];
 
 	// 위쪽 벽에 닿은 경우
-	if (TRI_TOP_y >= 1.0f || TRI_LEFT_BOTTOM_y >= 1.0f)
+	if (CheckCollision(idx) == 1)
 	{
 		zigzag_yUp[idx] = false;
 	}
 
 	// 아래쪽 벽에 닿은 경우
-	if (TRI_LEFT_BOTTOM_y <= -1.0f || TRI_TOP_y <= -1.0f)
+	if (CheckCollision(idx) == 2)
 	{
 		zigzag_yUp[idx] = true;
 	}
 
 	// 오른쪽 벽에 닿은 경우
-	if (TRI_RIGHT_BOTTOM_x >= 1.0f || TRI_LEFT_BOTTOM_x >= 1.0f)
+	if (CheckCollision(idx) == 3)
 	{
 		dir_x[idx] = 0.0f;
 		dir_y[idx] = (zigzag_yUp[idx]) ? 1.0f : - 1.0f;
@@ -429,7 +466,7 @@ GLvoid CheckCollision2(int idx)
 	}
 
 	// 왼쪽 벽에 닿은 경우
-	if (TRI_LEFT_BOTTOM_x <= -1.0f || TRI_RIGHT_BOTTOM_x <= -1.0f)
+	if (CheckCollision(idx) == 4)
 	{
 		dir_x[idx] = 0.0f;
 		dir_y[idx] = (zigzag_yUp[idx]) ? 1.0f : -1.0f;
@@ -481,7 +518,10 @@ GLvoid SetSpiralPivot()
 
 GLvoid MovingRectSpiral()
 {
+	for (int idx = 0; idx < NUM_OBJECT; idx++)
+	{
 
+	}
 }
 
 GLvoid MovingCircleSpiral(int isAnim)
@@ -502,6 +542,7 @@ GLvoid MovingCircleSpiral(int isAnim)
 
 		circleSpiralDeg[idx] = ((circleSpiralDeg[idx] + 5) % 360);
 		if (circleSpiralDeg[idx] % 180 == 0) circleSpiralRadius[idx] = circleSpiralRadius[idx] * 1.2f;
+		if (circleSpiralRadius[idx] > 0.8) circleSpiralRadius[idx] = 0.2f;
 	}
 
 	DrawAllTriangle(-1.0f);
@@ -525,7 +566,7 @@ void StopAllAnim()
 		circleSpiralRadius[i] = 0.2f;
 
 		// 스파이럴 운동중인 경우 다시 Pivot으로 설정해줌
-		if ((isMovingRectSpiral || isMovingCircleSpiral) && isMovingDiagonal )
+		if ((isMovingRectSpiral || isMovingCircleSpiral))
 		{
 			for (int p = 0; p < 3; p++)
 			{
@@ -533,8 +574,6 @@ void StopAllAnim()
 				{
 					if (q == 0) triShape[i][p][q] = spiralPivot[i][0] - triShapeScale[i][p][q];
 					if (q == 1) triShape[i][p][q] = spiralPivot[i][1] + triShapeScale[i][p][q];
-
-					cout << spiralPivot[i][0] << ", " << spiralPivot[i][1] << endl;
 				}
 			}
 		}
@@ -564,6 +603,7 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 	case '3':
 		StopAllAnim();
 		isMovingRectSpiral = true;
+		SetSpiralPivot();
 		MovingRectSpiral();
 		break;
 	case '4':
