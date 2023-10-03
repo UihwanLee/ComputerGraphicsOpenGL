@@ -63,9 +63,17 @@ float dir_y[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 float zigzagDist_y[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 bool zigzag_yUp[4] = { false, false, false, false };
 
+float pivot[4][2] = { {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f} };
 float spiralPivot[4][2] = { {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f} };
 
-float rectSpiralDist[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+// 사각형 스파이럴
+float rectSpiralDir[4][2] = { {-1.0f, 0.0f}, {-1.0f, 0.0f}, {-1.0f, 0.0f}, {-1.0f, 0.0f} };
+float rectSpiralMaxDist[4] = {0.1f, 0.1f, 0.1f, 0.1f};
+float rectSpiralDist[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+int rectSpiralDistCount[4] = { 0, 0, 0, 0 };
+int rectSpiralMaxCount[4] = {0, 0, 0, 0};
+
+// 원 스파이럴
 float circleSpiralRadius[4] = { 0.2f, 0.2f, 0.2f, 0.2f };
 int circleSpiralDeg[4] = {0, 0, 0, 0};
 
@@ -228,6 +236,9 @@ void DrawAllTriangle(int idx)
 				triShape[i][j][0] += speed * dir_x[i];
 				triShape[i][j][1] += speed * dir_y[i];
 			}
+
+			pivot[i][0] += speed * dir_x[i];
+			pivot[i][1] += speed * dir_y[i];
 		}
 	}
 
@@ -342,6 +353,8 @@ GLvoid MouseClick(int button, int state, int x, int y)
 		curPos[1] = map(y, 600.0f, 0.0f, -1.0f, 1.0f);
 		g_left_button = true;
 		TryDrawTriangle();
+		if (NUM_OBJECT + 1 <= MAX_NUM_OBJECT) pivot[NUM_OBJECT - 1][0] = curPos[0];
+		if (NUM_OBJECT + 1 <= MAX_NUM_OBJECT) pivot[NUM_OBJECT - 1][1] = curPos[1];
 		if(isMovingRectSpiral || isMovingCircleSpiral) SetSpiralPivot();
 	}
 
@@ -516,12 +529,64 @@ GLvoid SetSpiralPivot()
 	}
 }
 
-GLvoid MovingRectSpiral()
+GLvoid MovingRectSpiral(int isAnim)
 {
 	for (int idx = 0; idx < NUM_OBJECT; idx++)
 	{
+		float x = spiralPivot[idx][0] + speed * rectSpiralDir[idx][0];
+		float y = spiralPivot[idx][1] + speed * rectSpiralDir[idx][1];
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = 0; j < 3; j++)
+			{
+				if (j == 0) triShape[idx][i][j] += speed * rectSpiralDir[idx][0];
+				if (j == 1) triShape[idx][i][j] += speed * rectSpiralDir[idx][1];
+			}
+		}
+		rectSpiralDist[idx] += 0.01f;
 
+		if (rectSpiralDist[idx] >= rectSpiralMaxDist[idx])
+		{
+			rectSpiralDist[idx] = 0.0f;
+			rectSpiralMaxCount[idx] += 1;
+			rectSpiralDistCount[idx] += 1;
+
+			// 끝점에 도달할때 마다 방향 변경
+			if (rectSpiralDistCount[idx] % 4 == 1)
+			{
+				rectSpiralDir[idx][0] = 0.0f;
+				rectSpiralDir[idx][1] = -1.0f;
+			}
+			else if (rectSpiralDistCount[idx] % 4 == 2)
+			{
+				rectSpiralDir[idx][0] = 1.0f;
+				rectSpiralDir[idx][1] = 0.0f;
+			}
+			else if (rectSpiralDistCount[idx] % 4 == 3)
+			{
+				rectSpiralDir[idx][0] = 0.0f;
+				rectSpiralDir[idx][1] = 1.0f;
+			}
+			else
+			{
+				rectSpiralDir[idx][0] = -1.0f;
+				rectSpiralDir[idx][1] = 0.0f;
+			}
+		}
+
+		if (rectSpiralMaxCount[idx] >= 2)
+		{
+			// 거리 증가
+			rectSpiralMaxDist[idx] = rectSpiralMaxDist[idx] + 0.1f;
+			rectSpiralMaxCount[idx] = 0;
+		}
 	}
+
+	DrawAllTriangle(-1.0f);
+
+	glutPostRedisplay();
+
+	if (isMovingRectSpiral) glutTimerFunc(30, MovingRectSpiral, isMovingRectSpiral);
 }
 
 GLvoid MovingCircleSpiral(int isAnim)
@@ -577,6 +642,13 @@ void StopAllAnim()
 				}
 			}
 		}
+
+		rectSpiralDir[i][0] = -1.0f;
+		rectSpiralDir[i][1] = 0.0f;
+		rectSpiralDist[i] = 0.0f;
+		rectSpiralMaxDist[i] = 0.1f;
+		rectSpiralDistCount[i] = 0;
+		rectSpiralMaxCount[i] = 0;
 	}
 
 	isMovingDiagonal = false;
@@ -604,7 +676,7 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 		StopAllAnim();
 		isMovingRectSpiral = true;
 		SetSpiralPivot();
-		MovingRectSpiral();
+		if (isMovingRectSpiral) glutTimerFunc(30, MovingRectSpiral, isMovingRectSpiral);
 		break;
 	case '4':
 		StopAllAnim();
