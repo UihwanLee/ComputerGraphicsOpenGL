@@ -45,6 +45,7 @@ GLuint shaderProgramID; //--- 셰이더 프로그램
 // 삼각형
 GLfloat triShape[MAX_NUM_OBJECT][MAX_TRI_ROW][MAX_TRI_COL]; //--- 삼각형 위치 값
 GLfloat triShapeScale[MAX_NUM_OBJECT][MAX_TRI_ROW][MAX_TRI_COL];
+GLfloat triShapeChangeScale[MAX_NUM_OBJECT][MAX_TRI_ROW][MAX_TRI_COL];
 GLfloat colors[MAX_NUM_OBJECT][MAX_TRI_ROW][MAX_TRI_COL];
 
 GLuint vao, vbo[2], ebo[2];
@@ -164,6 +165,9 @@ void InitBuffer()
 				triShapeScale[i][j][0] = -0.1f;
 				triShapeScale[i][j][1] = -0.1f;
 
+				triShapeChangeScale[i][j][0] = -0.1f;
+				triShapeChangeScale[i][j][1] = -0.1f;
+
 				colors[i][j][0] = 1.0f;
 				colors[i][j][1] = 0.0f;
 				colors[i][j][2] = 0.0f;
@@ -175,6 +179,9 @@ void InitBuffer()
 
 				triShapeScale[i][j][0] = 0.1f;
 				triShapeScale[i][j][1] = -0.1f;
+
+				triShapeChangeScale[i][j][0] = 0.1f;
+				triShapeChangeScale[i][j][1] = -0.1f;
 
 				colors[i][j][0] = 0.0f;
 				colors[i][j][1] = 1.0f;
@@ -188,6 +195,9 @@ void InitBuffer()
 				triShapeScale[i][j][0] = 0.f;
 				triShapeScale[i][j][1] = 0.2f;
 
+				triShapeChangeScale[i][j][0] = 0.f;
+				triShapeChangeScale[i][j][1] = 0.2f;
+
 				colors[i][j][0] = 0.0f;
 				colors[i][j][1] = 0.0f;
 				colors[i][j][2] = 1.0f;
@@ -195,6 +205,7 @@ void InitBuffer()
 
 			triShape[i][j][2] = 0.f;
 			triShapeScale[i][j][2] = 0.f;
+			triShapeChangeScale[i][j][2] = 0.f;
 		}
 	}
 }
@@ -366,6 +377,64 @@ GLvoid MouseClick(int button, int state, int x, int y)
 	glutPostRedisplay();
 }
 
+GLvoid ChangeTriangleShape(int idx, int dir)
+{
+	// 상하좌우 변경
+	if (dir == 1)
+	{
+		triShapeChangeScale[idx][0][0] = -0.1f;
+		triShapeChangeScale[idx][0][1] = 0.1f;
+
+		triShapeChangeScale[idx][1][0] = 0.1f;
+		triShapeChangeScale[idx][1][1] = 0.1f;
+
+		triShapeChangeScale[idx][2][0] = 0.0f;
+		triShapeChangeScale[idx][2][1] = -0.2f;
+	}
+	else if (dir == 2)
+	{
+		triShapeChangeScale[idx][0][0] = -0.1f;
+		triShapeChangeScale[idx][0][1] = -0.1f;
+
+		triShapeChangeScale[idx][1][0] = 0.1f;
+		triShapeChangeScale[idx][1][1] = -0.1f;
+
+		triShapeChangeScale[idx][2][0] = 0.0f;
+		triShapeChangeScale[idx][2][1] = 0.2f;
+	}
+	else if (dir == 3)
+	{
+		triShapeChangeScale[idx][0][0] = -0.1f;
+		triShapeChangeScale[idx][0][1] = 0.1f;
+
+		triShapeChangeScale[idx][1][0] = -0.1f;
+		triShapeChangeScale[idx][1][1] = -0.1f;
+
+		triShapeChangeScale[idx][2][0] = 0.1f;
+		triShapeChangeScale[idx][2][1] = 0.0f;
+	}
+	else if (dir == 4)
+	{
+		triShapeChangeScale[idx][0][0] = 0.1f;
+		triShapeChangeScale[idx][0][1] = 0.1f;
+
+		triShapeChangeScale[idx][1][0] = 0.1f;
+		triShapeChangeScale[idx][1][1] = -0.1f;
+
+		triShapeChangeScale[idx][2][0] = -0.1f;
+		triShapeChangeScale[idx][2][1] = 0.0f;
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			if (j == 0) triShape[idx][i][j] = pivot[idx][0] - triShapeChangeScale[idx][i][j];
+			if (j == 1) triShape[idx][i][j] = pivot[idx][1] + triShapeChangeScale[idx][i][j];
+		}
+	}
+}
+
 int CheckCollision(int idx)
 {
 	float TRI_TOP_y = triShape[idx][2][1];
@@ -375,26 +444,30 @@ int CheckCollision(int idx)
 	float TRI_RIGHT_BOTTOM_y = triShape[idx][1][1];
 
 	// 위쪽 벽에 닿은 경우
-	if (TRI_TOP_y >= 1.0f || TRI_LEFT_BOTTOM_y >= 1.0f)
+	if (TRI_TOP_y >= 1.0f || TRI_LEFT_BOTTOM_y >= 1.0f || TRI_RIGHT_BOTTOM_y >= 1.0f)
 	{
+		ChangeTriangleShape(idx, 1);
 		return 1;
 	}
 
 	// 아래쪽 벽에 닿은 경우
-	if (TRI_LEFT_BOTTOM_y <= -1.0f || TRI_TOP_y <= -1.0f)
+	if (TRI_LEFT_BOTTOM_y <= -1.0f || TRI_TOP_y <= -1.0f || TRI_LEFT_BOTTOM_y <= -1.0f || TRI_RIGHT_BOTTOM_y <= -1.0f)
 	{
+		ChangeTriangleShape(idx, 2);
 		return 2;
 	}
 
 	// 오른쪽 벽에 닿은 경우
-	if (TRI_RIGHT_BOTTOM_x >= 1.0f || TRI_LEFT_BOTTOM_x >= 1.0f)
+	if (TRI_RIGHT_BOTTOM_x >= 1.0f || TRI_LEFT_BOTTOM_x >= 1.0f || TRI_RIGHT_BOTTOM_y >= 1.0f)
 	{
+		ChangeTriangleShape(idx, 3);
 		return 3;
 	}
 
 	// 왼쪽 벽에 닿은 경우
-	if (TRI_LEFT_BOTTOM_x <= -1.0f || TRI_RIGHT_BOTTOM_x <= -1.0f)
+	if (TRI_LEFT_BOTTOM_x <= -1.0f || TRI_RIGHT_BOTTOM_x <= -1.0f || TRI_RIGHT_BOTTOM_y <= -1.0f)
 	{
+		ChangeTriangleShape(idx, 4);
 		return 4;
 	}
 
@@ -453,34 +526,39 @@ GLvoid MovingDiagonal(int isAnim)
 GLvoid CheckCollision2(int idx)
 {
 	float TRI_TOP_y = triShape[idx][2][1];
+	float TRI_TOP_x = triShape[idx][2][0];
 	float TRI_LEFT_BOTTOM_x = triShape[idx][0][0];
 	float TRI_LEFT_BOTTOM_y = triShape[idx][0][1];
 	float TRI_RIGHT_BOTTOM_x = triShape[idx][1][0];
 	float TRI_RIGHT_BOTTOM_y = triShape[idx][1][1];
 
 	// 위쪽 벽에 닿은 경우
-	if (CheckCollision(idx) == 1)
+	if (TRI_TOP_y >= 1.0f || TRI_LEFT_BOTTOM_y >= 1.0f || TRI_RIGHT_BOTTOM_y >= 1.0f)
 	{
+		ChangeTriangleShape(idx, 1);
 		zigzag_yUp[idx] = false;
 	}
 
 	// 아래쪽 벽에 닿은 경우
-	if (CheckCollision(idx) == 2)
+	if (TRI_LEFT_BOTTOM_y <= -1.0f || TRI_TOP_y <= -1.0f || TRI_LEFT_BOTTOM_y <= -1.0f || TRI_RIGHT_BOTTOM_y <= -1.0f)
 	{
+		ChangeTriangleShape(idx, 2);
 		zigzag_yUp[idx] = true;
 	}
 
 	// 오른쪽 벽에 닿은 경우
-	if (CheckCollision(idx) == 3)
+	if (TRI_RIGHT_BOTTOM_x >= 1.0f || TRI_LEFT_BOTTOM_x >= 1.0f || TRI_RIGHT_BOTTOM_y >= 1.0f || TRI_TOP_x >= 1.0f)
 	{
+		ChangeTriangleShape(idx, 3);
 		dir_x[idx] = 0.0f;
 		dir_y[idx] = (zigzag_yUp[idx]) ? 1.0f : - 1.0f;
 		zigzagDist_y[idx] += 0.05f;
 	}
 
 	// 왼쪽 벽에 닿은 경우
-	if (CheckCollision(idx) == 4)
+	if (TRI_LEFT_BOTTOM_x <= -1.0f || TRI_RIGHT_BOTTOM_x <= -1.0f || TRI_RIGHT_BOTTOM_y <= -1.0f || TRI_TOP_x <= -1.0f)
 	{
+		ChangeTriangleShape(idx, 4);
 		dir_x[idx] = 0.0f;
 		dir_y[idx] = (zigzag_yUp[idx]) ? 1.0f : -1.0f;
 		zigzagDist_y[idx] += 0.05f;
@@ -524,8 +602,11 @@ GLvoid SetSpiralPivot()
 {
 	for (int i = 0; i < NUM_OBJECT; i++)
 	{
-		spiralPivot[i][0] = triShape[i][0][0] + triShapeScale[i][0][0];
-		spiralPivot[i][1] = triShape[i][2][1] - triShapeScale[i][2][1];
+		//spiralPivot[i][0] = triShape[i][0][0] + triShapeScale[i][0][0];
+		//spiralPivot[i][1] = triShape[i][2][1] - triShapeScale[i][2][1];
+
+		spiralPivot[i][0] = pivot[i][0];
+		spiralPivot[i][1] = pivot[i][1];
 	}
 }
 
@@ -600,8 +681,8 @@ GLvoid MovingCircleSpiral(int isAnim)
 		{
 			for (int j = 0; j < 3; j++)
 			{
-				if (j == 0) triShape[idx][i][j] = x - triShapeScale[idx][i][j];
-				if (j == 1) triShape[idx][i][j] = y + triShapeScale[idx][i][j];
+				if (j == 0) triShape[idx][i][j] = x - triShapeChangeScale[idx][i][j];
+				if (j == 1) triShape[idx][i][j] = y + triShapeChangeScale[idx][i][j];
 			}
 		}
 
