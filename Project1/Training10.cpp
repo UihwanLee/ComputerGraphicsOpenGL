@@ -359,7 +359,7 @@
 //	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 //	glEnableVertexAttribArray(1);
 //
-//	glDrawArrays(GL_LINES, 0, 2 * NUM_LINE);
+//	glDrawArrays(GL_LINE_LOOP, 0, 2 * NUM_LINE);
 //}
 //
 //GLvoid Reshape(int w, int h)

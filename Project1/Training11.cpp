@@ -241,10 +241,12 @@ void ResetAllShape()
 
 	for (int i = 0; i < MAX_NUM_OBJECT; i++)
 	{
+		colorPoint[i][0] = 1.f;
+		colorPoint[i][1] = 0.f;
+		colorPoint[i][2] = 0.f;
 		for (int j = 0; j < 3; j++)
 		{
 			pointShape[i][j] = 0.f;
-			colorPoint[i][j] = 0.f;
 			if (j == 0)
 			{
 				lineShape[i][j][0] = 0.f;
@@ -423,8 +425,8 @@ GLvoid SetPointPos(int idx, bool isReset)
 {
 	if (isReset)
 	{
-		pointShape[idx][0] = pivot[3][0];
-		pointShape[idx][1] = pivot[3][1];
+		pointShape[idx][0] = 0.0f;
+		pointShape[idx][1] = 0.0f;
 	}
 }
 
@@ -461,14 +463,14 @@ GLvoid SetTrianglePos(int idx, bool isReset)
 		// 삼각형을 선 형태로 만들기
 		for (int i = 0; i < 3; i++)
 		{
-			triShape[idx][0][0] = lineShape[0][1][0];
-			triShape[idx][0][1] = lineShape[0][1][1];
+			triShape[idx][0][0] = 0.3f;
+			triShape[idx][0][1] = 0.2f;
 
-			triShape[idx][1][0] = lineShape[0][0][0];
-			triShape[idx][1][1] = lineShape[0][0][1];
+			triShape[idx][1][0] = -0.3f;
+			triShape[idx][1][1] = -0.2f;
 
-			triShape[idx][2][0] = lineShape[0][0][0] + 0.01f;
-			triShape[idx][2][1] = lineShape[0][0][1];
+			triShape[idx][2][0] = -0.3f;
+			triShape[idx][2][1] = -0.2f;
 
 			// 색상 변경
 			colorTri[idx][i][0] = colorLine[0][0][0];
@@ -498,18 +500,18 @@ GLvoid SetRectanglePos(int idx, bool isReset)
 		{
 			if (i == 0 || i == 2 || i == 5)
 			{
-				rectShape[idx][i][0] = 0.5f;
-				rectShape[idx][i][1] = 0.8f;
+				rectShape[idx][i][0] = 0.f;
+				rectShape[idx][i][1] = 0.3f;
 			}
 			else if (i == 1 || i == 3)
 			{
-				rectShape[idx][i][0] = 0.8f;
-				rectShape[idx][i][1] = 0.2f;
+				rectShape[idx][i][0] = 0.3f;
+				rectShape[idx][i][1] = -0.3f;
 			}
 			else if (i == 4)
 			{
-				rectShape[idx][i][0] = 0.2f;
-				rectShape[idx][i][1] = 0.2f;
+				rectShape[idx][i][0] = -0.3f;
+				rectShape[idx][i][1] = -0.3f;
 			}
 		}
 	}
@@ -535,23 +537,23 @@ GLvoid SetPentagonPos(int idx, bool isReset)
 		{
 			if (i == 0 || i == 1 || i == 4)
 			{
-				pentaShape[idx][i][0] = -0.8f;
-				pentaShape[idx][i][1] = -0.2f;
+				pentaShape[idx][i][0] = -0.3f;
+				pentaShape[idx][i][1] = 0.3f;
 			}
 			else if (i == 2 || i == 3 || i == 7)
 			{
-				pentaShape[idx][i][0] = -0.2f;
-				pentaShape[idx][i][1] = -0.2f;
+				pentaShape[idx][i][0] = 0.3f;
+				pentaShape[idx][i][1] = 0.3f;
 			}
 			else if (i == 5 || i == 6)
 			{
-				pentaShape[idx][i][0] = -0.8f;
-				pentaShape[idx][i][1] = -0.8f;
+				pentaShape[idx][i][0] = -0.3f;
+				pentaShape[idx][i][1] = -0.3f;
 			}
 			else if (i == 8)
 			{
-				pentaShape[idx][i][0] = -0.2f;
-				pentaShape[idx][i][1] = -0.8f;
+				pentaShape[idx][i][0] = 0.3f;
+				pentaShape[idx][i][1] = -0.3f;
 			}
 		}
 	}
@@ -801,7 +803,10 @@ void StopAllAnim()
 GLvoid SetLineToTri()
 {
 	isChangingToTri = true;
-	NUM_LINE -= 1;
+	NUM_LINE = 0;
+	NUM_TRIANGLE = 0;
+	NUM_RECTANGLE = 0;
+	NUM_PENTAGON = 0;
 	NUM_TRIANGLE += 1;
 	SetTrianglePos(NUM_TRIANGLE - 1, false);
 	glutTimerFunc(30, LineToTriAnim, isChangingToTri);
@@ -814,31 +819,31 @@ GLvoid LineToTriAnim(int isAnim)
 	bool isComplete = true;
 	for (int i = 0; i < 9; i++) changingPivot[i] = false;
 
-	if (triShape[idx][0][0] > pivot[0][0])
+	if (triShape[idx][0][0] > 0.0f)
 	{
 		triShape[idx][0][0] -= 0.01f;
 		changingPivot[0] = true;
 	}
 
-	if (triShape[idx][0][1] < pivot[0][1] - triShapeScale[idx][0][1])
+	if (triShape[idx][0][1] < 0.3f)
 	{
 		triShape[idx][0][1] += 0.01f;
 		changingPivot[2] = true;
 	}
 
-	if (triShape[idx][1][1] > pivot[0][1] + triShapeScale[idx][0][1])
+	if (triShape[idx][1][1] > -0.3f)
 	{
 		triShape[idx][1][1] -= 0.01f;
 		changingPivot[3] = true;
 	}
 
-	if (triShape[idx][2][0] < pivot[0][0] + triShapeScale[idx][1][0])
+	if (triShape[idx][2][0] < 0.3f)
 	{
 		triShape[idx][2][0] += 0.01f;
 		changingPivot[4] = true;
 	}
 
-	if (triShape[idx][2][1] > pivot[0][1] + triShapeScale[idx][1][1])
+	if (triShape[idx][2][1] > -0.3f)
 	{
 		triShape[idx][2][1] -= 0.01f;
 		changingPivot[5] = true;
@@ -854,7 +859,6 @@ GLvoid LineToTriAnim(int isAnim)
 
 	if (isComplete)
 	{
-		cout << "Complete" << endl;
 		isChangingToTri = false;
 	}
 
@@ -868,7 +872,11 @@ GLvoid LineToTriAnim(int isAnim)
 GLvoid SetTriToRect()
 {
 	isChangingToRect = true;
-	NUM_TRIANGLE -= 1;
+	NUM_LINE = 0;
+	NUM_TRIANGLE = 0;
+	NUM_RECTANGLE = 0;
+	NUM_PENTAGON = 0;
+	NUM_TRIANGLE = 0;
 	NUM_RECTANGLE += 1;
 	SetRectanglePos(NUM_RECTANGLE - 1, false);
 	glutTimerFunc(30, TriToRectAnim, isChangingToRect);
@@ -880,19 +888,19 @@ GLvoid TriToRectAnim(int isAnim)
 	bool isComplete = true;
 	for (int i = 0; i < 12; i++) changingPivot[i] = false;
 
-	if (rectShape[idx][0][0] < 0.79f)
+	if (rectShape[idx][0][0] < 0.3f)
 	{
 		rectShape[idx][0][0] += 0.01f;
 		changingPivot[0] = true;
 	}
 
-	if (rectShape[idx][2][0] > 0.2f)
+	if (rectShape[idx][2][0] > -0.3f)
 	{
 		rectShape[idx][2][0] -= 0.01f;
 		changingPivot[1] = true;
 	}
 
-	if (rectShape[idx][5][0] > 0.2f)
+	if (rectShape[idx][5][0] > -0.3f)
 	{
 		rectShape[idx][5][0] -= 0.01f;
 		changingPivot[2] = true;
@@ -921,7 +929,11 @@ GLvoid TriToRectAnim(int isAnim)
 GLvoid SetRectToPenta()
 {
 	isChangingToPenta = true;
-	NUM_RECTANGLE -= 1;
+	NUM_LINE = 0;
+	NUM_TRIANGLE = 0;
+	NUM_RECTANGLE = 0;
+	NUM_PENTAGON = 0;
+	NUM_TRIANGLE = 0;
 	NUM_PENTAGON += 1;
 	SetPentagonPos(NUM_PENTAGON - 1, false);
 	glutTimerFunc(30, RectToPentaAnim, isChangingToPenta);
@@ -933,55 +945,55 @@ GLvoid RectToPentaAnim(int isAnim)
 	bool isComplete = true;
 	for (int i = 0; i < 18; i++) changingPivot[i] = false;
 
-	if (pentaShape[idx][0][0] < -0.49f)
+	if (pentaShape[idx][0][0] < 0.0f)
 	{
 		pentaShape[idx][0][0] += 0.01f;
 		changingPivot[0] = true;
 	}
 	
-	if (pentaShape[idx][1][1] > -0.41f)
+	if (pentaShape[idx][1][1] > 0.1f)
 	{
 		pentaShape[idx][1][1] -= 0.01f;
 		changingPivot[1] = true;
 	}
 
-	if (pentaShape[idx][4][1] > -0.41f)
+	if (pentaShape[idx][4][1] > 0.1f)
 	{
 		pentaShape[idx][4][1] -= 0.01f;
 		changingPivot[2] = true;
 	}
 
-	if (pentaShape[idx][2][1] > -0.41f)
+	if (pentaShape[idx][2][1] > 0.1f)
 	{
 		pentaShape[idx][2][1] -= 0.01f;
 		changingPivot[3] = true;
 	}
 
-	if (pentaShape[idx][3][1] > -0.41f)
+	if (pentaShape[idx][3][1] > 0.1f)
 	{
 		pentaShape[idx][3][1] -= 0.01f;
 		changingPivot[4] = true;
 	}
 
-	if (pentaShape[idx][7][1] > -0.41f)
+	if (pentaShape[idx][7][1] > 0.1f)
 	{
 		pentaShape[idx][7][1] -= 0.01f;
 		changingPivot[5] = true;
 	}
 
-	if (pentaShape[idx][5][0] < -0.71f)
+	if (pentaShape[idx][5][0] < -0.2f)
 	{
 		pentaShape[idx][5][0] += 0.01f;
 		changingPivot[6] = true;
 	}
 
-	if (pentaShape[idx][6][0] < -0.71f)
+	if (pentaShape[idx][6][0] < -0.2f)
 	{
 		pentaShape[idx][6][0] += 0.01f;
 		changingPivot[7] = true;
 	}
 
-	if (pentaShape[idx][8][0] > -0.29f)
+	if (pentaShape[idx][8][0] > 0.2f)
 	{
 		pentaShape[idx][8][0] -= 0.01f;
 		changingPivot[8] = true;
@@ -1010,7 +1022,50 @@ GLvoid RectToPentaAnim(int isAnim)
 
 GLvoid SetPentaToPoint()
 {
+	NUM_LINE = 0;
+	NUM_TRIANGLE = 0;
+	NUM_RECTANGLE = 0;
+	NUM_PENTAGON = 0;
+	NUM_TRIANGLE = 0;
+	NUM_PENTAGON += 1;
 	isChangingToPoint = true;
+	int i = 0;
+	
+	for (int j = 0; j < 9; j++)
+	{
+		// 색상
+		colorPenta[i][j][0] = 1.0f;
+		colorPenta[i][j][1] = 0.0f;
+		colorPenta[i][j][2] = 0.0f;
+
+		if (j == 0)
+		{
+			pentaShape[i][j][0] = 0.f;
+			pentaShape[i][j][1] = 0.3f;
+		}
+		else if (j == 1 || j == 4)
+		{
+			pentaShape[i][j][0] = -0.3f;
+			pentaShape[i][j][1] = 0.1f;
+		}
+		else if (j == 2 || j == 3 || j == 7)
+		{
+			pentaShape[i][j][0] = 0.3f;
+			pentaShape[i][j][1] = 0.1f;
+		}
+		else if (j == 5 || j == 6)
+		{
+			pentaShape[i][j][0] = -0.2f;
+			pentaShape[i][j][1] = -0.3f;
+			pentaShape[i][j][2] = 0.f;
+		}
+		else if (j == 8)
+		{
+			pentaShape[i][j][0] = 0.2f;
+			pentaShape[i][j][1] = -0.3f;
+		}
+	}
+
 	glutTimerFunc(30, PentaToPointAnim, isChangingToPoint);
 }
 
@@ -1022,15 +1077,23 @@ GLvoid PentaToPointAnim(int isAnim)
 
 	for (int i = 0; i < 9; i++)
 	{
-		if (i == 0 || i == 1 || i == 4)
+		if (i == 0)
 		{
-			if (pentaShape[idx][i][0] > 0.5f + 0.02f)
+			if (pentaShape[idx][i][1] > 0.0f)
+			{
+				changingPivot[1] = true;
+				pentaShape[idx][i][1] -= 0.01f;
+			}
+		}
+		if (i == 1 || i == 4)
+		{
+			if (pentaShape[idx][i][0] < 0.0f)
 			{
 				changingPivot[0] = true;
-				pentaShape[idx][i][0] -= 0.01f;
+				pentaShape[idx][i][0] += 0.01f;
 			}
 
-			if (pentaShape[idx][i][1] > -0.5f + 0.05f)
+			if (pentaShape[idx][i][1] > 0.0f)
 			{
 				changingPivot[1] = true;
 				pentaShape[idx][i][1] -= 0.01f;
@@ -1038,13 +1101,13 @@ GLvoid PentaToPointAnim(int isAnim)
 		}
 		if (i == 2 || i == 3 || i == 7)
 		{
-			if (pentaShape[idx][i][0] < 0.5f - 0.02f)
+			if (pentaShape[idx][i][0] > 0.0f)
 			{
 				changingPivot[2] = true;
-				pentaShape[idx][i][0] += 0.01f;
+				pentaShape[idx][i][0] -= 0.01f;
 			}
 
-			if (pentaShape[idx][i][1] < -0.5f + 0.02f)
+			if (pentaShape[idx][i][1] < 0.0f)
 			{
 				changingPivot[3] = true;
 				pentaShape[idx][i][1] -= 0.01f;
@@ -1052,13 +1115,13 @@ GLvoid PentaToPointAnim(int isAnim)
 		}
 		if (i == 5 || i == 6)
 		{
-			if (pentaShape[idx][i][0] > 0.5f - 0.02f)
+			if (pentaShape[idx][i][0] < 0.0f)
 			{
 				changingPivot[3] = true;
-				pentaShape[idx][i][0] -= 0.01f;
+				pentaShape[idx][i][0] += 0.01f;
 			}
 
-			if (pentaShape[idx][i][1] < -0.5f + 0.02f)
+			if (pentaShape[idx][i][1] < 0.0f)
 			{
 				changingPivot[4] = true;
 				pentaShape[idx][i][1] += 0.01f;
@@ -1066,13 +1129,13 @@ GLvoid PentaToPointAnim(int isAnim)
 		}
 		if (i == 8)
 		{
-			if (pentaShape[idx][i][0] < 0.5f + 0.02f)
+			if (pentaShape[idx][i][0] > 0.0f)
 			{
 				changingPivot[5] = true;
-				pentaShape[idx][i][0] += 0.01f;
+				pentaShape[idx][i][0] -= 0.01f;
 			}
 
-			if (pentaShape[idx][i][1] < -0.5f + 0.02f)
+			if (pentaShape[idx][i][1] < 0.0f)
 			{
 				changingPivot[6] = true;
 				pentaShape[idx][i][1] += 0.01f;
@@ -1111,15 +1174,19 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 		Reset();
 		break;
 	case 'l':
+		Reset();
 		SetLineToTri();
 		break;
 	case 't':
+		Reset();
 		SetTriToRect();
 		break;
 	case 'r':
+		Reset();
 		SetRectToPenta();
 		break;
 	case 'p':
+		Reset();
 		SetPentaToPoint();
 		break;
 	case 'c':
