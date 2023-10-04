@@ -35,6 +35,7 @@ GLvoid Reshape(int w, int h);
 GLvoid MouseClick(int button, int state, int x, int y);
 GLvoid Keyboard(unsigned char key, int x, int y);
 
+GLvoid InitBuffer();
 GLvoid Reset();
 GLvoid ResetPivot();
 void StopAllAnim();
@@ -111,6 +112,7 @@ int main(int argc, char** argv)
 	glewExperimental = GL_TRUE;
 	glewInit();
 	make_shaderProgram();
+	InitBuffer();
 	Reset();
 	glutDisplayFunc(drawScene);
 	glutReshapeFunc(Reshape);
@@ -169,6 +171,12 @@ GLfloat GetRandomFloatValue(GLfloat min, GLfloat max)
 	value = dis(gen);
 
 	return value;
+}
+
+GLvoid InitBuffer()
+{
+	glGenVertexArrays(1, &vao);
+	glGenBuffers(2, vbo);
 }
 
 GLvoid Reset()
@@ -463,9 +471,7 @@ void ChangeTriRandom(int idx)
 
 void DrawAllPoint()
 {
-	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
-	glGenBuffers(2, vbo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_POINT * NUM_POINT, pointShape, GL_STATIC_DRAW);
@@ -483,9 +489,7 @@ void DrawAllPoint()
 
 void DrawAllLine()
 {
-	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
-	glGenBuffers(2, vbo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_LINE * NUM_LINE, lineShape, GL_STATIC_DRAW);
@@ -502,9 +506,7 @@ void DrawAllLine()
 
 void DrawAllTriangle()
 {
-	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
-	glGenBuffers(2, vbo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_TRIANGLE * NUM_TRIANGLE, triShape, GL_STATIC_DRAW);
@@ -521,9 +523,7 @@ void DrawAllTriangle()
 
 void DrawAllRectangle()
 {
-	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
-	glGenBuffers(2, vbo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_RECTANGLE * NUM_RECTANGLE, rectShape, GL_STATIC_DRAW);
@@ -540,9 +540,7 @@ void DrawAllRectangle()
 
 void DrawAllPentagon()
 {
-	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
-	glGenBuffers(2, vbo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_PENTAGON * NUM_PENTAGON, pentaShape, GL_STATIC_DRAW);
