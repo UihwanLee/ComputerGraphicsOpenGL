@@ -34,6 +34,7 @@ GLvoid Reshape(int w, int h);
 // 입력 처리 함수
 GLvoid MouseClick(int button, int state, int x, int y);
 GLvoid Keyboard(unsigned char key, int x, int y);
+GLvoid MouseDrag(int x, int y);
 
 GLvoid InitBuffer();
 GLvoid Reset();
@@ -91,6 +92,7 @@ typedef struct Object
 {
 	vector<float> pivot;
 	int type_f;				// 도형 타입 : 점(0) / 선(1) / 삼각형(2) / 사각형(3) / 오각형(4)
+	int shape_idx;
 };
 
 vector<Object> objectList;
@@ -130,6 +132,7 @@ int main(int argc, char** argv)
 	glutReshapeFunc(Reshape);
 	glutKeyboardFunc(Keyboard);
 	glutMouseFunc(MouseClick);
+	glutMotionFunc(MouseDrag);
 	glutMainLoop();
 }
 
@@ -239,26 +242,31 @@ GLvoid UpdateObjects()
 		if (objectList[i].type_f == 0)
 		{
 			NUM_POINT += 1;
+			objectList[i].shape_idx = NUM_POINT - 1;
 			SetPointPos(NUM_POINT - 1, i);
 		}
 		else if (objectList[i].type_f == 1)
 		{
 			NUM_LINE += 1;
+			objectList[i].shape_idx = NUM_LINE - 1;
 			SetLinePos(NUM_LINE - 1, i);
 		}
 		else if (objectList[i].type_f == 2)
 		{
 			NUM_TRIANGLE += 1;
+			objectList[i].shape_idx = NUM_TRIANGLE - 1;
 			SetTrianglePos(NUM_TRIANGLE - 1, i);
 		}
 		else if (objectList[i].type_f == 3)
 		{
 			NUM_RECTANGLE += 1;
+			objectList[i].shape_idx = NUM_RECTANGLE - 1;
 			SetRectanglePos(NUM_RECTANGLE - 1, i);
 		}
 		else if (objectList[i].type_f == 4)
 		{
 			NUM_PENTAGON += 1;
+			objectList[i].shape_idx = NUM_PENTAGON - 1;
 			SetPentagonPos(NUM_PENTAGON - 1, i);
 		}
 	}
@@ -730,6 +738,25 @@ GLvoid MouseClick(int button, int state, int x, int y)
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
 	{
 		g_left_button = false;
+	}
+
+	glutPostRedisplay();
+}
+
+GLvoid MouseDrag(int x, int y)
+{
+	// && g_cur_rect != -1
+	if (g_left_button && cur_obj_idx != -1)
+	{
+		// 마우스 드래그에 따른 도형 이동
+		objectList[cur_obj_idx].pivot[0] = (2.0f * x) / glutGet(GLUT_WINDOW_WIDTH) - 1.0f;
+		objectList[cur_obj_idx].pivot[1] = 1.0f - (2.0f * y) / glutGet(GLUT_WINDOW_HEIGHT);
+
+		if (objectList[cur_obj_idx].type_f == 0) SetPointPos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
+		else if (objectList[cur_obj_idx].type_f == 1) SetLinePos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
+		else if (objectList[cur_obj_idx].type_f == 2) SetTrianglePos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
+		else if (objectList[cur_obj_idx].type_f == 3) SetRectanglePos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
+		else if (objectList[cur_obj_idx].type_f == 4) SetPentagonPos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
 	}
 
 	glutPostRedisplay();
