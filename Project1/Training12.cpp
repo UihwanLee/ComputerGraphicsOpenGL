@@ -90,7 +90,7 @@ GLuint vao, vbo[2], ebo[2];
 typedef struct Object
 {
 	vector<float> pivot;
-	int type_f;				// 도형 타입 : 점(1) / 선(2) / 삼각형(3) / 사각형(4) / 오각형(5)
+	int type_f;				// 도형 타입 : 점(0) / 선(1) / 삼각형(2) / 사각형(3) / 오각형(4)
 };
 
 vector<Object> objectList;
@@ -98,9 +98,7 @@ Object obj;
 vector<float> pivot;
 
 // 글로벌 변수
-bool isActive[4] = { false, false, false, false };
 int g_cur_area = 0;
-bool g_left_button = false;
 int CONDITION = 1;
 int NUM_OBJECT = 0;
 int NUM_POINT = 0;
@@ -108,6 +106,11 @@ int NUM_LINE = 0;
 int NUM_TRIANGLE = 0;
 int NUM_RECTANGLE = 0;
 int NUM_PENTAGON = 0;
+
+// 마우스
+bool g_left_button = false;
+float mx, my;
+int cur_obj_idx = -1;
 
 int main(int argc, char** argv)
 {
@@ -448,8 +451,8 @@ void ResetAllShape()
 
 GLvoid SetPointPos(int shape_idx, int pivot_idx)
 {
-	pointShape[shape_idx][0] = 0.0f;
-	pointShape[shape_idx][1] = 0.0f;
+	pointShape[shape_idx][0] = objectList[pivot_idx].pivot[0];
+	pointShape[shape_idx][1] = objectList[pivot_idx].pivot[1];
 }
 
 GLvoid SetLinePos(int shape_idx, int pivot_idx)
@@ -664,8 +667,54 @@ void make_fragmentShaders()
 	}
 }
 
-float map(float value, float fromLow, float fromHigh, float toLow, float toHigh) {
+float GetClickPos(float value, float fromLow, float fromHigh, float toLow, float toHigh) {
 	return (value - fromLow) / (fromHigh - fromLow) * (toHigh - toLow) + toLow;
+}
+
+bool CheckCollisinWithMouse(float min_x, float min_y, float max_x, float max_y)
+{
+	bool isCollision = false;
+
+	if (min_x <= mx && mx <= max_x && min_y <= my && my <= max_y)
+	{
+		isCollision = true;
+	}
+
+	return isCollision;
+}
+
+GLvoid CheckClickObject()
+{
+	cur_obj_idx = -1;
+
+	// 마우스로 클릭한 곳이 오브젝트인지 판별하기
+	for (int i = 0; i < NUM_OBJECT; i++)
+	{
+		if (objectList[i].type_f == 0)
+		{
+			if (CheckCollisinWithMouse(objectList[i].pivot[0] - 0.03f, objectList[i].pivot[1] - 0.03f, objectList[i].pivot[0] + 0.03f, objectList[i].pivot[1] + 0.03f))
+			{
+				cur_obj_idx = i;
+				return;
+			}
+		}
+		else if (objectList[i].type_f == 1)
+		{
+			if (CheckCollisinWithMouse(objectList[i].pivot[0] - 0.1f, objectList[i].pivot[1] - 0.06f, objectList[i].pivot[0] + 0.1f, objectList[i].pivot[1] + 0.06f))
+			{
+				cur_obj_idx = i;
+				return;
+			}
+		}
+		else
+		{
+			if (CheckCollisinWithMouse(objectList[i].pivot[0] - 0.1f, objectList[i].pivot[1] - 0.1f, objectList[i].pivot[0] + 0.1f, objectList[i].pivot[1] + 0.1f))
+			{
+				cur_obj_idx = i;
+				return;
+			}
+		}
+	}
 }
 
 GLvoid MouseClick(int button, int state, int x, int y)
@@ -673,8 +722,9 @@ GLvoid MouseClick(int button, int state, int x, int y)
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 	{
 		g_left_button = true;
-		//TryDrawLine();
-		//TryDrawTriangle();
+		mx = GetClickPos(x, 0.0f, 800.0f, -1.0f, 1.0f);
+		my = GetClickPos(y, 0.0f, 600.0f, 1.0f, -1.0f);
+		CheckClickObject();
 	}
 
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
