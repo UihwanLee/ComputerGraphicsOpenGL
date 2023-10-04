@@ -1,8 +1,8 @@
 ﻿  Training12.cpp
-C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training12.cpp(105,2): warning C4091: 'typedef ': 변수를 선언하지 않으면 'Object' 왼쪽은 무시됩니다.
-C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training12.cpp(251,32): warning C4267: '=': 'size_t'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training12.cpp(744,20): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training12.cpp(745,20): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training12.cpp(751,20): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training12.cpp(752,20): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training12.cpp(106,2): warning C4091: 'typedef ': 변수를 선언하지 않으면 'Object' 왼쪽은 무시됩니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training12.cpp(253,32): warning C4267: '=': 'size_t'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training12.cpp(786,20): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training12.cpp(787,20): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training12.cpp(794,20): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Project1\Training12.cpp(795,20): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
   Project1.vcxproj -> C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\x64\Debug\Project1.exe

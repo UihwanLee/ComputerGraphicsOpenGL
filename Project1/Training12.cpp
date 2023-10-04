@@ -102,6 +102,7 @@ typedef struct Object
 	vector<float> pivot;
 	int type_f;				// 도형 타입 : 점(0) / 선(1) / 삼각형(2) / 사각형(3) / 오각형(4)
 	int shape_idx;
+	bool isActive;
 };
 
 vector<Object> objectList;
@@ -228,6 +229,7 @@ GLvoid ResetObjects()
 		obj.pivot.emplace_back(x);
 		obj.pivot.emplace_back(y);
 		obj.type_f = (i % 5);
+		obj.isActive = true;
 
 		objectList.emplace_back(obj);
 	}
@@ -252,6 +254,9 @@ GLvoid UpdateObjects()
 	// 현재 남아있는 오브젝트들을 type_f 변수에 따라 변수를 업데이트한다.
 	for (int i = 0; i < NUM_OBJECT; i++)
 	{
+		// 비활성화된 오브젝트는 넘어감
+		if (objectList[i].isActive == false) continue;
+
 		if (objectList[i].type_f == 0)
 		{
 			NUM_POINT += 1;
@@ -281,6 +286,12 @@ GLvoid UpdateObjects()
 			NUM_PENTAGON += 1;
 			objectList[i].shape_idx = NUM_PENTAGON - 1;
 			SetPentagonPos(NUM_PENTAGON - 1, i);
+		}
+		else if (objectList[i].type_f == 5)
+		{
+			NUM_HEXAGON += 1;
+			objectList[i].shape_idx = NUM_HEXAGON - 1;
+			SetHexagonPos(NUM_HEXAGON - 1, i);
 		}
 	}
 
@@ -700,6 +711,9 @@ GLvoid CheckClickObject()
 		// 현재 드래그하고 있는 도형은 넘어가기
 		if (pre_obj_idx != -1 && pre_obj_idx == i) continue;
 
+		// 비활성화된 도형은 넘어가기
+		if (objectList[i].isActive == false) continue;
+
 		if (objectList[i].type_f == 0)
 		{
 			if (CheckCollisinWithMouse(objectList[i].pivot[0] - 0.03f, objectList[i].pivot[1] - 0.03f, objectList[i].pivot[0] + 0.03f, objectList[i].pivot[1] + 0.03f))
@@ -716,6 +730,15 @@ GLvoid CheckClickObject()
 				return;
 			}
 		}
+		else if (objectList[i].type_f == 5)
+		{
+			if (CheckCollisinWithMouse(objectList[i].pivot[0] - 0.1f, objectList[i].pivot[1] - 0.1f, objectList[i].pivot[0] + 0.1f, objectList[i].pivot[1] + 0.1f))
+			{
+				cur_obj_idx = i;
+				cout << "Hello" << cur_obj_idx << endl;
+				return;
+			}
+		}
 		else
 		{
 			if (CheckCollisinWithMouse(objectList[i].pivot[0] - 0.1f, objectList[i].pivot[1] - 0.1f, objectList[i].pivot[0] + 0.1f, objectList[i].pivot[1] + 0.1f))
@@ -727,13 +750,32 @@ GLvoid CheckClickObject()
 	}
 }
 
+GLvoid GenerateNewObject(int vertex, float pivot_x, float pivot_y)
+{
+	obj.type_f = vertex;
+	obj.pivot[0] = pivot_x;
+	obj.pivot[1] = pivot_y;
+	obj.isActive = true;
+	objectList.push_back(obj);
+}
+
 GLvoid CombineObject(int comb1_idx, int comb2_idx)
 {
-	cout << "도형 " << comb1_idx << "번과 도형 " << comb2_idx << "번을 섞는다!" << endl;
+	int vertex = (objectList[comb1_idx].type_f + 1) + (objectList[comb2_idx].type_f + 1);
 
-	int vetex = (objectList[comb1_idx].type_f + 1) + (objectList[comb2_idx].type_f + 1);
+	// 2개의 도형 비활성화
+	objectList[comb1_idx].isActive = false;
+	objectList[comb2_idx].isActive = false;
 
-	cout << "새로운 도형의 꼭짓점 :" << vetex << endl;
+	vertex = (vertex - 1) % 6;
+
+	// 꼭짓점을 기준으로 새로운 도형 생성
+	GenerateNewObject(vertex, objectList[comb2_idx].pivot[0], objectList[comb2_idx].pivot[1]);
+
+	UpdateObjects();
+
+	pre_obj_idx = -1;
+	cur_obj_idx = -1;
 }
 
 GLvoid MouseClick(int button, int state, int x, int y)
@@ -748,12 +790,16 @@ GLvoid MouseClick(int button, int state, int x, int y)
 
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
 	{
+		g_left_button = false;
 		mx = GetClickPos(x, 0.0f, 800.0f, -1.0f, 1.0f);
 		my = GetClickPos(y, 0.0f, 600.0f, 1.0f, -1.0f);
 		pre_obj_idx = cur_obj_idx;
 		CheckClickObject();
-		if (cur_obj_idx != -1) CombineObject(pre_obj_idx, cur_obj_idx);
-		g_left_button = false;
+
+		if (cur_obj_idx != -1 && pre_obj_idx != -1)
+		{
+			CombineObject(pre_obj_idx, cur_obj_idx);
+		}
 	}
 
 	glutPostRedisplay();
@@ -764,15 +810,19 @@ GLvoid MouseDrag(int x, int y)
 	// && g_cur_rect != -1
 	if (g_left_button && cur_obj_idx != -1)
 	{
-		// 마우스 드래그에 따른 도형 이동
-		objectList[cur_obj_idx].pivot[0] = (2.0f * x) / glutGet(GLUT_WINDOW_WIDTH) - 1.0f;
-		objectList[cur_obj_idx].pivot[1] = 1.0f - (2.0f * y) / glutGet(GLUT_WINDOW_HEIGHT);
+		if (objectList[cur_obj_idx].isActive)
+		{
+			// 마우스 드래그에 따른 도형 이동
+			objectList[cur_obj_idx].pivot[0] = (2.0f * x) / glutGet(GLUT_WINDOW_WIDTH) - 1.0f;
+			objectList[cur_obj_idx].pivot[1] = 1.0f - (2.0f * y) / glutGet(GLUT_WINDOW_HEIGHT);
 
-		if (objectList[cur_obj_idx].type_f == 0) SetPointPos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
-		else if (objectList[cur_obj_idx].type_f == 1) SetLinePos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
-		else if (objectList[cur_obj_idx].type_f == 2) SetTrianglePos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
-		else if (objectList[cur_obj_idx].type_f == 3) SetRectanglePos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
-		else if (objectList[cur_obj_idx].type_f == 4) SetPentagonPos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
+			if (objectList[cur_obj_idx].type_f == 0) SetPointPos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
+			else if (objectList[cur_obj_idx].type_f == 1) SetLinePos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
+			else if (objectList[cur_obj_idx].type_f == 2) SetTrianglePos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
+			else if (objectList[cur_obj_idx].type_f == 3) SetRectanglePos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
+			else if (objectList[cur_obj_idx].type_f == 4) SetPentagonPos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
+			else if (objectList[cur_obj_idx].type_f == 5) SetHexagonPos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
+		}
 	}
 
 	glutPostRedisplay();
