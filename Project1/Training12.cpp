@@ -16,6 +16,7 @@
 #define BYTE_SIZE_TRIANGLE 36
 #define BYTE_SIZE_RECTANGLE 72
 #define BYTE_SIZE_PENTAGON 108
+#define BYTE_SIZE_HEXAGON 144
 
 #define MAX_TRI_ROW 3
 #define MAX_TRI_COL 3
@@ -47,6 +48,8 @@ void DrawAllLine();
 void DrawAllTriangle();
 void DrawAllRectangle();
 void DrawAllPentagon();
+void DrawAllHexagon();
+void DrawObjects(int DRAW_TYPE, int BYTE_SIZE, int vertex, int NUM, void* posList, void* colList);
 
 GLchar* vertexSource, * fragmentSource; //--- 소스코드 저장 변수
 GLuint vertexShader, fragmentShader; //--- 세이더 객체
@@ -85,6 +88,12 @@ GLfloat colorPenta[MAX_NUM_OBJECT][9][3];
 GLvoid SetPentagonPos(int shape_idx, int pivot_idx);
 bool isChangingToPenta = false;
 
+// 육각형
+GLfloat hexaShape[MAX_NUM_OBJECT][12][3];
+GLfloat hexaShapeScale[MAX_NUM_OBJECT][12][3];
+GLfloat colorHexa[MAX_NUM_OBJECT][12][3];
+GLvoid SetHexagonPos(int shape_idx, int pivot_idx);
+
 GLuint vao, vbo[2], ebo[2];
 
 // 도형 정보를 담고있는 구조체
@@ -108,6 +117,7 @@ int NUM_LINE = 0;
 int NUM_TRIANGLE = 0;
 int NUM_RECTANGLE = 0;
 int NUM_PENTAGON = 0;
+int NUM_HEXAGON = 0;
 
 // 마우스
 bool g_left_button = false;
@@ -152,11 +162,12 @@ GLvoid drawScene()
 	glBindVertexArray(vao);
 
 	// 각 사분면에 있는 도형 그리기
-	DrawAllPoint();
-	DrawAllLine();
-	DrawAllTriangle();
-	DrawAllRectangle();
-	DrawAllPentagon();
+	DrawObjects(GL_POINTS, BYTE_SIZE_POINT, 1, NUM_POINT, pointShape, colorPoint);
+	DrawObjects(GL_LINES, BYTE_SIZE_LINE, 2, NUM_LINE, lineShape, colorLine);
+	DrawObjects(GL_TRIANGLES, BYTE_SIZE_TRIANGLE, 3, NUM_TRIANGLE, triShape, colorTri);
+	DrawObjects(GL_TRIANGLES, BYTE_SIZE_RECTANGLE, 6, NUM_RECTANGLE, rectShape, colorRect);
+	DrawObjects(GL_TRIANGLES, BYTE_SIZE_PENTAGON, 9, NUM_PENTAGON, pentaShape, colorPenta);
+	DrawObjects(GL_TRIANGLES, BYTE_SIZE_HEXAGON, 12, NUM_HEXAGON, hexaShape, colorHexa);
 
 	glutSwapBuffers(); //--- 화면에 출력하기
 }
@@ -230,6 +241,7 @@ void ResetObjectNum()
 	NUM_TRIANGLE = 0;
 	NUM_RECTANGLE = 0;
 	NUM_PENTAGON = 0;
+	NUM_HEXAGON = 0;
 }
 
 GLvoid UpdateObjects()
@@ -281,64 +293,77 @@ void ResetAllShape()
 		colorPoint[i][0] = 1.f;
 		colorPoint[i][1] = 0.f;
 		colorPoint[i][2] = 0.f;
+
+		pointShape[i][0] = 0.f;
+		pointShape[i][1] = 1.f;
+		pointShape[i][2] = 0.f;
+
 		for (int j = 0; j < 3; j++)
 		{
-			pointShape[i][j] = 0.f;
 			if (j == 0)
 			{
+				// 선
 				lineShape[i][j][0] = 0.f;
 				lineShape[i][j][1] = 0.f;
 				lineShape[i][j][2] = 0.f;
 
-				colorLine[i][j][0] = 0.f;
-				colorLine[i][j][1] = 0.f;
-				colorLine[i][j][2] = 1.f;
-
+				// 삼각형
 				triShape[i][j][0] = -0.1f;
 				triShape[i][j][1] = -0.1f;
+				triShape[i][j][2] = 0.f;
 
 				triShapeScale[i][j][0] = -0.1f;
 				triShapeScale[i][j][1] = -0.1f;
+				triShapeScale[i][j][2] = 0.f;
 
-				colorTri[i][j][0] = 1.0f;
-				colorTri[i][j][1] = 1.0f;
-				colorTri[i][j][2] = 0.0f;
+				// 사각형
+				rectShape[i][j][0] = 0.1f;
+				rectShape[i][j][1] = 0.1f;
+
+				rectShapeScale[i][j][0] = 0.1f;
+				rectShapeScale[i][j][1] = 0.1f;
 			}
 			else if (j == 1)
 			{
+				// 선
 				lineShape[i][j][0] = 0.f;
 				lineShape[i][j][1] = 0.f;
 				lineShape[i][j][2] = 0.f;
 
-				colorLine[i][j][0] = 0.f;
-				colorLine[i][j][1] = 0.f;
-				colorLine[i][j][2] = 1.f;
-
+				// 삼각형
 				triShape[i][j][0] = 0.1f;
 				triShape[i][j][1] = -0.1f;
+				triShape[i][j][2] = 0.f;
 
 				triShapeScale[i][j][0] = 0.1f;
 				triShapeScale[i][j][1] = -0.1f;
-
-				colorTri[i][j][0] = 1.0f;
-				colorTri[i][j][1] = 1.0f;
-				colorTri[i][j][2] = 0.0f;
+				triShapeScale[i][j][2] = 0.f;
 			}
 			else if (j == 2)
 			{
+				// 삼각형
 				triShape[i][j][0] = 0.f;
 				triShape[i][j][1] = 0.1f;
+				triShape[i][j][2] = 0.f;
 
 				triShapeScale[i][j][0] = 0.f;
 				triShapeScale[i][j][1] = 0.1f;
+				triShapeScale[i][j][2] = 0.f;
+			}
 
+			// 색상
+			if (j < 2)
+			{
+				colorLine[i][j][0] = 0.f;
+				colorLine[i][j][1] = 0.f;
+				colorLine[i][j][2] = 1.f;
+			}
+			if (j < 3)
+			{
 				colorTri[i][j][0] = 1.0f;
 				colorTri[i][j][1] = 1.0f;
 				colorTri[i][j][2] = 0.0f;
 			}
-
-			triShape[i][j][2] = 0.f;
-			triShapeScale[i][j][2] = 0.f;
 		}
 
 		// 사각형
@@ -351,10 +376,6 @@ void ResetAllShape()
 
 				rectShapeScale[i][j][0] = 0.1f;
 				rectShapeScale[i][j][1] = 0.1f;
-
-				colorRect[i][j][0] = 160.0f / 255.0f;
-				colorRect[i][j][1] = 212.0f / 255.0f;
-				colorRect[i][j][2] = 104.0f / 255.0f;
 			}
 			else if (j == 1 || j == 3)
 			{
@@ -394,6 +415,9 @@ void ResetAllShape()
 			}
 
 			rectShape[i][j][2] = 0.f;
+			colorRect[i][j][0] = 160.0f / 255.0f;
+			colorRect[i][j][1] = 212.0f / 255.0f;
+			colorRect[i][j][2] = 104.0f / 255.0f;
 		}
 
 		// 오각형
@@ -404,55 +428,85 @@ void ResetAllShape()
 			colorPenta[i][j][1] = 0.0f;
 			colorPenta[i][j][2] = 0.0f;
 
+			pentaShape[i][j][0] = 0.f;
+			pentaShape[i][j][1] = 0.f;
+			pentaShape[i][j][2] = 0.f;
+
 			if (j == 0)
 			{
-				pentaShape[i][j][0] = 0.f;
-				pentaShape[i][j][1] = 0.f;
-				pentaShape[i][j][2] = 0.f;
-
 				pentaShapeScale[i][j][0] = 0.f;
 				pentaShapeScale[i][j][1] = 0.1f;
 				pentaShapeScale[i][j][2] = 0.f;
 			}
 			else if (j == 1 || j == 4)
 			{
-				pentaShape[i][j][0] = 0.f;
-				pentaShape[i][j][1] = 0.f;
-				pentaShape[i][j][2] = 0.f;
-
 				pentaShapeScale[i][j][0] = -0.1f;
 				pentaShapeScale[i][j][1] = 0.03f;
 				pentaShapeScale[i][j][2] = 0.f;
 			}
 			else if (j == 2 || j == 3 || j == 7)
 			{
-				pentaShape[i][j][0] = 0.f;
-				pentaShape[i][j][1] = 0.f;
-				pentaShape[i][j][2] = 0.f;
-
 				pentaShapeScale[i][j][0] = 0.1f;
 				pentaShapeScale[i][j][1] = 0.03f;
 				pentaShapeScale[i][j][2] = 0.f;
 			}
 			else if (j == 5 || j == 6)
 			{
-				pentaShape[i][j][0] = 0.f;
-				pentaShape[i][j][1] = 0.f;
-				pentaShape[i][j][2] = 0.f;
-
 				pentaShapeScale[i][j][0] = -0.06f;
 				pentaShapeScale[i][j][1] = -0.1f;
 				pentaShapeScale[i][j][2] = 0.f;
 			}
 			else if (j == 8)
 			{
-				pentaShape[i][j][0] = 0.f;
-				pentaShape[i][j][1] = 0.f;
-				pentaShape[i][j][2] = 0.f;
-
 				pentaShapeScale[i][j][0] = 0.06f;
 				pentaShapeScale[i][j][1] = -0.1f;
 				pentaShapeScale[i][j][2] = 0.f;
+			}
+		}
+
+		// 육각형 
+		for (int j = 0; j < 12; j++)
+		{
+			// 색상
+			colorHexa[i][j][0] = 0.0f;
+			colorHexa[i][j][1] = 1.0f;
+			colorHexa[i][j][2] = 0.0f;
+
+			hexaShape[i][j][0] = 0.f;
+			hexaShape[i][j][1] = 0.f;
+
+			hexaShape[i][j][2] = 0.f;
+			hexaShapeScale[i][j][2] = 0.f;
+
+			if (j == 0)
+			{
+				hexaShapeScale[i][j][0] = -0.1f;
+				hexaShapeScale[i][j][1] = 0.f;
+			}
+			else if (j == 1 || j == 3 || j == 7)
+			{
+				hexaShapeScale[i][j][0] = -0.05f;
+				hexaShapeScale[i][j][1] = 0.1f;
+			}
+			else if (j == 2 || j == 4)
+			{
+				hexaShapeScale[i][j][0] = -0.05f;
+				hexaShapeScale[i][j][1] = -0.1f;
+			}
+			else if (j == 5 || j == 6 || j==10)
+			{
+				hexaShapeScale[i][j][0] = 0.05f;
+				hexaShapeScale[i][j][1] = -0.1f;
+			}
+			else if (j == 8 || j == 9)
+			{
+				hexaShapeScale[i][j][0] = 0.05f;
+				hexaShapeScale[i][j][1] = 0.1f;
+			}
+			else if (j == 11)
+			{
+				hexaShapeScale[i][j][0] = 0.1f;
+				hexaShapeScale[i][j][1] = 0.f;
 			}
 		}
 	}
@@ -508,90 +562,34 @@ GLvoid SetPentagonPos(int shape_idx, int pivot_idx)
 	}
 }
 
-void DrawAllPoint()
+GLvoid SetHexagonPos(int shape_idx, int pivot_idx)
+{
+	for (int i = 0; i < 12; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			if (j == 0) hexaShape[shape_idx][i][j] = objectList[pivot_idx].pivot[0] - hexaShapeScale[shape_idx][i][j];
+			if (j == 1) hexaShape[shape_idx][i][j] = objectList[pivot_idx].pivot[1] + hexaShapeScale[shape_idx][i][j];
+		}
+	}
+}
+
+void DrawObjects(int DRAW_TYPE, int BYTE_SIZE, int vertex, int NUM, void* posList, void* colList)
 {
 	glBindVertexArray(vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_POINT * NUM_POINT, pointShape, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE * NUM, posList, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_POINT * NUM_POINT, colorPoint, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE * NUM, colList, GL_STATIC_DRAW);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(1);
 
 	glPointSize(5.0);
-	glDrawArrays(GL_POINTS, 0, 1 * NUM_POINT);
-}
-
-void DrawAllLine()
-{
-	glBindVertexArray(vao);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_LINE * NUM_LINE, lineShape, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-	glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_LINE * NUM_LINE, colorLine, GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-	glEnableVertexAttribArray(1);
-
-	glDrawArrays(GL_LINES, 0, 2 * NUM_LINE);
-}
-
-void DrawAllTriangle()
-{
-	glBindVertexArray(vao);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_TRIANGLE * NUM_TRIANGLE, triShape, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-	glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_TRIANGLE * NUM_TRIANGLE, colorTri, GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-	glEnableVertexAttribArray(1);
-
-	glDrawArrays(GL_TRIANGLES, 0, 3 * NUM_TRIANGLE);
-}
-
-void DrawAllRectangle()
-{
-	glBindVertexArray(vao);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_RECTANGLE * NUM_RECTANGLE, rectShape, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-	glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_RECTANGLE * NUM_RECTANGLE, colorRect, GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-	glEnableVertexAttribArray(1);
-
-	glDrawArrays(GL_TRIANGLES, 0, 6 * NUM_RECTANGLE);
-}
-
-void DrawAllPentagon()
-{
-	glBindVertexArray(vao);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_PENTAGON * NUM_PENTAGON, pentaShape, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-	glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, BYTE_SIZE_PENTAGON * NUM_PENTAGON, colorPenta, GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-	glEnableVertexAttribArray(1);
-
-	glDrawArrays(GL_TRIANGLES, 0, 9 * NUM_PENTAGON);
+	glDrawArrays(DRAW_TYPE, 0, vertex * NUM);
 }
 
 GLvoid Reshape(int w, int h)
