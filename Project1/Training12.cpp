@@ -37,7 +37,8 @@ GLvoid Keyboard(unsigned char key, int x, int y);
 
 GLvoid InitBuffer();
 GLvoid Reset();
-GLvoid ResetPivot();
+GLvoid ResetObjects();
+GLvoid UpdateObjects();
 void StopAllAnim();
 void ResetAllShape();
 void DrawAllPoint();
@@ -85,8 +86,15 @@ bool isChangingToPenta = false;
 
 GLuint vao, vbo[2], ebo[2];
 
-// 피봇
-vector<vector<float>> pivot_list;
+// 도형 정보를 담고있는 구조체
+typedef struct Object
+{
+	vector<float> pivot;
+	int type_f;				// 도형 타입 : 점(1) / 선(2) / 삼각형(3) / 사각형(4) / 오각형(5)
+};
+
+vector<Object> objectList;
+Object obj;
 vector<float> pivot;
 
 // 글로벌 변수
@@ -94,6 +102,7 @@ bool isActive[4] = { false, false, false, false };
 int g_cur_area = 0;
 bool g_left_button = false;
 int CONDITION = 1;
+int NUM_OBJECT = 0;
 int NUM_POINT = 0;
 int NUM_LINE = 0;
 int NUM_TRIANGLE = 0;
@@ -181,44 +190,76 @@ GLvoid InitBuffer()
 
 GLvoid Reset()
 {
-	CONDITION = 0;
-	NUM_POINT = 3;
-	NUM_LINE = 3;
-	NUM_TRIANGLE = 3;
-	NUM_RECTANGLE = 3;
-	NUM_PENTAGON = 3;
-
-	// 15개의 피봇점을 랜덤하게 생성한 후 점/선/삼각형/사각형/오각형 각각 그리기
-	ResetPivot();
-
 	StopAllAnim();
 	ResetAllShape();
 
-	for (int idx = 0; idx < 3; idx++)
-	{
-		int pivot_idx = idx * 5;
-		SetPointPos(idx, pivot_idx);
-		SetLinePos(idx, pivot_idx+1);
-		SetTrianglePos(idx, pivot_idx + 2);
-		SetRectanglePos(idx, pivot_idx + 3);
-		SetPentagonPos(idx, pivot_idx + 4);
-	}
+	// 15개의 피봇점을 랜덤하게 생성한 후 점/선/삼각형/사각형/오각형 각각 그리기
+	ResetObjects();
+	UpdateObjects();
 }
 
-GLvoid ResetPivot()
+GLvoid ResetObjects()
 {
-	pivot_list.clear();
-
+	objectList.clear();
 	for (int i = 0; i < MAX_NUM_OBJECT; i++)
 	{
 		float x = GetRandomFloatValue(-1.0f, 1.0f);
 		float y = GetRandomFloatValue(-1.0f, 1.0f);
 
-		pivot.clear();
-		pivot.emplace_back(x);
-		pivot.emplace_back(y);
-		pivot_list.emplace_back(pivot);
+		obj.pivot.clear();
+		obj.pivot.emplace_back(x);
+		obj.pivot.emplace_back(y);
+		obj.type_f = (i % 5);
+
+		objectList.emplace_back(obj);
 	}
+}
+
+void ResetObjectNum()
+{
+	NUM_OBJECT = 0;
+	NUM_POINT = 0;
+	NUM_LINE = 0;
+	NUM_TRIANGLE = 0;
+	NUM_RECTANGLE = 0;
+	NUM_PENTAGON = 0;
+}
+
+GLvoid UpdateObjects()
+{
+	ResetObjectNum();
+
+	NUM_OBJECT = objectList.size();
+	// 현재 남아있는 오브젝트들을 type_f 변수에 따라 변수를 업데이트한다.
+	for (int i = 0; i < NUM_OBJECT; i++)
+	{
+		if (objectList[i].type_f == 0)
+		{
+			NUM_POINT += 1;
+			SetPointPos(NUM_POINT - 1, i);
+		}
+		else if (objectList[i].type_f == 1)
+		{
+			NUM_LINE += 1;
+			SetLinePos(NUM_LINE - 1, i);
+		}
+		else if (objectList[i].type_f == 2)
+		{
+			NUM_TRIANGLE += 1;
+			SetTrianglePos(NUM_TRIANGLE - 1, i);
+		}
+		else if (objectList[i].type_f == 3)
+		{
+			NUM_RECTANGLE += 1;
+			SetRectanglePos(NUM_RECTANGLE - 1, i);
+		}
+		else if (objectList[i].type_f == 4)
+		{
+			NUM_PENTAGON += 1;
+			SetPentagonPos(NUM_PENTAGON - 1, i);
+		}
+	}
+
 }
 
 void ResetAllShape()
@@ -413,10 +454,10 @@ GLvoid SetPointPos(int shape_idx, int pivot_idx)
 
 GLvoid SetLinePos(int shape_idx, int pivot_idx)
 {
-	lineShape[shape_idx][0][0] = pivot_list[pivot_idx][0] - 0.1f;
-	lineShape[shape_idx][0][1] = pivot_list[pivot_idx][1] - 0.06f;
-	lineShape[shape_idx][1][0] = pivot_list[pivot_idx][0] + 0.1f;
-	lineShape[shape_idx][1][1] = pivot_list[pivot_idx][1] + 0.06f;
+	lineShape[shape_idx][0][0] = objectList[pivot_idx].pivot[0] - 0.1f;
+	lineShape[shape_idx][0][1] = objectList[pivot_idx].pivot[1] - 0.06f;
+	lineShape[shape_idx][1][0] = objectList[pivot_idx].pivot[0] + 0.1f;
+	lineShape[shape_idx][1][1] = objectList[pivot_idx].pivot[1] + 0.06f;
 }
 
 GLvoid SetTrianglePos(int shape_idx, int pivot_idx)
@@ -425,8 +466,8 @@ GLvoid SetTrianglePos(int shape_idx, int pivot_idx)
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			if (j == 0) triShape[shape_idx][i][j] = pivot_list[pivot_idx][0] - triShapeScale[shape_idx][i][j];
-			if (j == 1) triShape[shape_idx][i][j] = pivot_list[pivot_idx][1] + triShapeScale[shape_idx][i][j];
+			if (j == 0) triShape[shape_idx][i][j] = objectList[pivot_idx].pivot[0] - triShapeScale[shape_idx][i][j];
+			if (j == 1) triShape[shape_idx][i][j] = objectList[pivot_idx].pivot[1] + triShapeScale[shape_idx][i][j];
 		}
 	}
 }
@@ -437,8 +478,8 @@ GLvoid SetRectanglePos(int shape_idx, int pivot_idx)
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			if (j == 0) rectShape[shape_idx][i][j] = pivot_list[pivot_idx][0] - rectShapeScale[shape_idx][i][j];
-			if (j == 1) rectShape[shape_idx][i][j] = pivot_list[pivot_idx][1] + rectShapeScale[shape_idx][i][j];
+			if (j == 0) rectShape[shape_idx][i][j] = objectList[pivot_idx].pivot[0] - rectShapeScale[shape_idx][i][j];
+			if (j == 1) rectShape[shape_idx][i][j] = objectList[pivot_idx].pivot[1] + rectShapeScale[shape_idx][i][j];
 		}
 	}
 }
@@ -449,24 +490,10 @@ GLvoid SetPentagonPos(int shape_idx, int pivot_idx)
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			if (j == 0) pentaShape[shape_idx][i][j] = pivot_list[pivot_idx][0] - pentaShapeScale[shape_idx][i][j];
-			if (j == 1) pentaShape[shape_idx][i][j] = pivot_list[pivot_idx][1] + pentaShapeScale[shape_idx][i][j];
+			if (j == 0) pentaShape[shape_idx][i][j] = objectList[pivot_idx].pivot[0] - pentaShapeScale[shape_idx][i][j];
+			if (j == 1) pentaShape[shape_idx][i][j] = objectList[pivot_idx].pivot[1] + pentaShapeScale[shape_idx][i][j];
 		}
 	}
-}
-
-void ChangeTriRandom(int idx)
-{
-	// 색상 변경
-
-	GLfloat color_r = GetRandomFloatValue(0.f, 1.0f);
-	GLfloat color_g = GetRandomFloatValue(0.f, 1.0f);
-	GLfloat color_b = GetRandomFloatValue(0.f, 1.0f);
-
-	GLfloat rand_size = GetRandomFloatValue(0.2f, 3.0f);
-
-	DrawAllLine();
-	DrawAllTriangle();
 }
 
 void DrawAllPoint()
