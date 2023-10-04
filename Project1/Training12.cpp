@@ -113,6 +113,7 @@ int NUM_PENTAGON = 0;
 bool g_left_button = false;
 float mx, my;
 int cur_obj_idx = -1;
+int pre_obj_idx = -1;
 
 int main(int argc, char** argv)
 {
@@ -695,9 +696,12 @@ GLvoid CheckClickObject()
 {
 	cur_obj_idx = -1;
 
-	// 마우스로 클릭한 곳이 오브젝트인지 판별하기
+	// 마우스 버튼을 클릭하거나 놓았을 때 그 지점에 오브젝트가 있는지 판별하기
 	for (int i = 0; i < NUM_OBJECT; i++)
 	{
+		// 현재 드래그하고 있는 도형은 넘어가기
+		if (pre_obj_idx != -1 && pre_obj_idx == i) continue;
+
 		if (objectList[i].type_f == 0)
 		{
 			if (CheckCollisinWithMouse(objectList[i].pivot[0] - 0.03f, objectList[i].pivot[1] - 0.03f, objectList[i].pivot[0] + 0.03f, objectList[i].pivot[1] + 0.03f))
@@ -725,6 +729,15 @@ GLvoid CheckClickObject()
 	}
 }
 
+GLvoid CombineObject(int comb1_idx, int comb2_idx)
+{
+	cout << "도형 " << comb1_idx << "번과 도형 " << comb2_idx << "번을 섞는다!" << endl;
+
+	int vetex = (objectList[comb1_idx].type_f + 1) + (objectList[comb2_idx].type_f + 1);
+
+	cout << "새로운 도형의 꼭짓점 :" << vetex << endl;
+}
+
 GLvoid MouseClick(int button, int state, int x, int y)
 {
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
@@ -737,6 +750,11 @@ GLvoid MouseClick(int button, int state, int x, int y)
 
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
 	{
+		mx = GetClickPos(x, 0.0f, 800.0f, -1.0f, 1.0f);
+		my = GetClickPos(y, 0.0f, 600.0f, 1.0f, -1.0f);
+		pre_obj_idx = cur_obj_idx;
+		CheckClickObject();
+		if (cur_obj_idx != -1) CombineObject(pre_obj_idx, cur_obj_idx);
 		g_left_button = false;
 	}
 
