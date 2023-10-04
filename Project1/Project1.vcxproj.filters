@@ -54,6 +54,9 @@
     <ClCompile Include="Training11.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Training12.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="fragment.glsl">
