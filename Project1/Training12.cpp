@@ -297,6 +297,15 @@ GLvoid UpdateObjects()
 
 }
 
+// 행과 열이 다른 배열을 모두 받기 위해 템플릿 사용
+template <typename T, size_t Depth, size_t Rows, size_t Cols>
+GLvoid InitBufferByIdx(T (&buffer)[Depth][Rows][Cols], int i, int j, float x, float y, float z)
+{
+	buffer[i][j][0] = x;
+	buffer[i][j][1] = y;
+	buffer[i][j][2] = z;
+}
+
 void ResetAllShape()
 {
 	for (int i = 0; i < MAX_NUM_OBJECT; i++)
@@ -309,215 +318,60 @@ void ResetAllShape()
 		pointShape[i][1] = 1.f;
 		pointShape[i][2] = 0.f;
 
-		for (int j = 0; j < 3; j++)
+		for (int j = 0; j < 12; j++)
 		{
-			if (j == 0)
-			{
-				// 선
-				lineShape[i][j][0] = 0.f;
-				lineShape[i][j][1] = 0.f;
-				lineShape[i][j][2] = 0.f;
+			// 삼각형
+			if (j == 0)								InitBufferByIdx(triShapeScale, i, j, -0.1f, -0.1f, 0.f);
+			else if (j == 1)						InitBufferByIdx(triShapeScale, i, j, 0.1f, -0.1f, 0.f);
+			else if (j == 2)						InitBufferByIdx(triShapeScale, i, j, 0.f, 0.1f, 0.f);
 
-				// 삼각형
-				triShape[i][j][0] = -0.1f;
-				triShape[i][j][1] = -0.1f;
-				triShape[i][j][2] = 0.f;
+			// 사각형
+			if (j == 0)								InitBufferByIdx(rectShapeScale, i, j, 0.1f, 0.1f, 0.f);
+			else if (j == 1 || j == 3)				InitBufferByIdx(rectShapeScale, i, j, 0.1f, -0.1f, 0.f);
+			else if (j == 2 || j == 5)				InitBufferByIdx(rectShapeScale, i, j, -0.1f, 0.1f, 0.f);
+			else if (j == 4)						InitBufferByIdx(rectShapeScale, i, j, -0.1f, -0.1f, 0.f);
 
-				triShapeScale[i][j][0] = -0.1f;
-				triShapeScale[i][j][1] = -0.1f;
-				triShapeScale[i][j][2] = 0.f;
+			// 오각형
+			if (j == 0)								InitBufferByIdx(pentaShapeScale, i, j, 0.f, 0.1f, 0.f);
+			else if (j == 1 || j == 4)				InitBufferByIdx(pentaShapeScale, i, j, -0.1f, 0.03f, 0.f);
+			else if (j == 2 || j == 3 || j == 7)	InitBufferByIdx(pentaShapeScale, i, j, 0.1f, 0.03f, 0.f);
+			else if (j == 5 || j == 6)				InitBufferByIdx(pentaShapeScale, i, j, -0.06f, -0.1f, 0.f);
+			else if (j == 8)						InitBufferByIdx(pentaShapeScale, i, j, 0.06f, -0.1f, 0.f);
 
-				// 사각형
-				rectShape[i][j][0] = 0.1f;
-				rectShape[i][j][1] = 0.1f;
+			// 육각형
+			if (j == 0)								InitBufferByIdx(hexaShapeScale, i, j, -0.1f, 0.f, 0.f);
+			else if (j == 1 || j == 3 || j == 7)	InitBufferByIdx(hexaShapeScale, i, j, -0.05f, 0.1f, 0.f);
+			else if (j == 2 || j == 4)				InitBufferByIdx(hexaShapeScale, i, j, -0.05f, -0.1f, 0.f);
+			else if (j == 5 || j == 6 || j == 10)	InitBufferByIdx(hexaShapeScale, i, j, 0.05f, -0.1f, 0.f);
+			else if (j == 8 || j == 9)				InitBufferByIdx(hexaShapeScale, i, j, 0.05f, 0.1f, 0.f);
+			else if (j == 11)						InitBufferByIdx(hexaShapeScale, i, j, 0.1f, 0.f, 0.f);
 
-				rectShapeScale[i][j][0] = 0.1f;
-				rectShapeScale[i][j][1] = 0.1f;
-			}
-			else if (j == 1)
-			{
-				// 선
-				lineShape[i][j][0] = 0.f;
-				lineShape[i][j][1] = 0.f;
-				lineShape[i][j][2] = 0.f;
 
-				// 삼각형
-				triShape[i][j][0] = 0.1f;
-				triShape[i][j][1] = -0.1f;
-				triShape[i][j][2] = 0.f;
-
-				triShapeScale[i][j][0] = 0.1f;
-				triShapeScale[i][j][1] = -0.1f;
-				triShapeScale[i][j][2] = 0.f;
-			}
-			else if (j == 2)
-			{
-				// 삼각형
-				triShape[i][j][0] = 0.f;
-				triShape[i][j][1] = 0.1f;
-				triShape[i][j][2] = 0.f;
-
-				triShapeScale[i][j][0] = 0.f;
-				triShapeScale[i][j][1] = 0.1f;
-				triShapeScale[i][j][2] = 0.f;
-			}
-
-			// 색상
+			// 기본 버퍼 위치&색상 초기화
 			if (j < 2)
 			{
-				colorLine[i][j][0] = 0.f;
-				colorLine[i][j][1] = 0.f;
-				colorLine[i][j][2] = 1.f;
+				InitBufferByIdx(lineShape, i, j, 0.f, 0.f, 0.f);
+				InitBufferByIdx(colorLine, i, j, 0.f, 0.f, 1.0f);
 			}
 			if (j < 3)
 			{
-				colorTri[i][j][0] = 1.0f;
-				colorTri[i][j][1] = 1.0f;
-				colorTri[i][j][2] = 0.0f;
+				InitBufferByIdx(triShape, i, j, 0.f, 0.f, 0.f);
+				InitBufferByIdx(colorTri, i, j, 1.0f, 1.0f, 0.f);
 			}
-		}
-
-		// 사각형
-		for (int j = 0; j < 6; j++)
-		{
-			if (j == 0)
+			if (j < 6)
 			{
-				rectShape[i][j][0] = 0.1f;
-				rectShape[i][j][1] = 0.1f;
-
-				rectShapeScale[i][j][0] = 0.1f;
-				rectShapeScale[i][j][1] = 0.1f;
+				InitBufferByIdx(rectShape, i, j, 0.f, 0.f, 0.f);
+				InitBufferByIdx(colorRect, i, j, 160.0f / 255.0f, 212.0f / 255.0f, 104.0f / 255.0f);
 			}
-			else if (j == 1 || j == 3)
+			if (j < 9)
 			{
-				rectShape[i][j][0] = 0.1f;
-				rectShape[i][j][1] = -0.1f;
-
-				rectShapeScale[i][j][0] = 0.1f;
-				rectShapeScale[i][j][1] = -0.1f;
-
-				colorRect[i][j][0] = 160.0f / 255.0f;
-				colorRect[i][j][1] = 212.0f / 255.0f;
-				colorRect[i][j][2] = 104.0f / 255.0f;
+				InitBufferByIdx(pentaShape, i, j, 0.f, 0.f, 0.f);
+				InitBufferByIdx(colorPenta, i, j, 1.0f, 0.f, 0.f);
 			}
-			else if (j == 2 || j == 5)
+			if (j < 12)
 			{
-				rectShape[i][j][0] = -0.1f;
-				rectShape[i][j][1] = 0.1f;
-
-				rectShapeScale[i][j][0] = -0.1f;
-				rectShapeScale[i][j][1] = 0.1f;
-
-				colorRect[i][j][0] = 160.0f / 255.0f;
-				colorRect[i][j][1] = 212.0f / 255.0f;
-				colorRect[i][j][2] = 104.0f / 255.0f;
-			}
-			else if (j == 4)
-			{
-				rectShape[i][j][0] = -0.1f;
-				rectShape[i][j][1] = -0.1f;
-
-				rectShapeScale[i][j][0] = -0.1f;
-				rectShapeScale[i][j][1] = -0.1f;
-
-				colorRect[i][j][0] = 160.0f / 255.0f;
-				colorRect[i][j][1] = 212.0f / 255.0f;
-				colorRect[i][j][2] = 104.0f / 255.0f;
-			}
-
-			rectShape[i][j][2] = 0.f;
-			colorRect[i][j][0] = 160.0f / 255.0f;
-			colorRect[i][j][1] = 212.0f / 255.0f;
-			colorRect[i][j][2] = 104.0f / 255.0f;
-		}
-
-		// 오각형
-		for (int j = 0; j < 9; j++)
-		{
-			// 색상
-			colorPenta[i][j][0] = 1.0f;
-			colorPenta[i][j][1] = 0.0f;
-			colorPenta[i][j][2] = 0.0f;
-
-			pentaShape[i][j][0] = 0.f;
-			pentaShape[i][j][1] = 0.f;
-			pentaShape[i][j][2] = 0.f;
-
-			if (j == 0)
-			{
-				pentaShapeScale[i][j][0] = 0.f;
-				pentaShapeScale[i][j][1] = 0.1f;
-				pentaShapeScale[i][j][2] = 0.f;
-			}
-			else if (j == 1 || j == 4)
-			{
-				pentaShapeScale[i][j][0] = -0.1f;
-				pentaShapeScale[i][j][1] = 0.03f;
-				pentaShapeScale[i][j][2] = 0.f;
-			}
-			else if (j == 2 || j == 3 || j == 7)
-			{
-				pentaShapeScale[i][j][0] = 0.1f;
-				pentaShapeScale[i][j][1] = 0.03f;
-				pentaShapeScale[i][j][2] = 0.f;
-			}
-			else if (j == 5 || j == 6)
-			{
-				pentaShapeScale[i][j][0] = -0.06f;
-				pentaShapeScale[i][j][1] = -0.1f;
-				pentaShapeScale[i][j][2] = 0.f;
-			}
-			else if (j == 8)
-			{
-				pentaShapeScale[i][j][0] = 0.06f;
-				pentaShapeScale[i][j][1] = -0.1f;
-				pentaShapeScale[i][j][2] = 0.f;
-			}
-		}
-
-		// 육각형 
-		for (int j = 0; j < 12; j++)
-		{
-			// 색상
-			colorHexa[i][j][0] = 0.0f;
-			colorHexa[i][j][1] = 1.0f;
-			colorHexa[i][j][2] = 0.0f;
-
-			hexaShape[i][j][0] = 0.f;
-			hexaShape[i][j][1] = 0.f;
-
-			hexaShape[i][j][2] = 0.f;
-			hexaShapeScale[i][j][2] = 0.f;
-
-			if (j == 0)
-			{
-				hexaShapeScale[i][j][0] = -0.1f;
-				hexaShapeScale[i][j][1] = 0.f;
-			}
-			else if (j == 1 || j == 3 || j == 7)
-			{
-				hexaShapeScale[i][j][0] = -0.05f;
-				hexaShapeScale[i][j][1] = 0.1f;
-			}
-			else if (j == 2 || j == 4)
-			{
-				hexaShapeScale[i][j][0] = -0.05f;
-				hexaShapeScale[i][j][1] = -0.1f;
-			}
-			else if (j == 5 || j == 6 || j==10)
-			{
-				hexaShapeScale[i][j][0] = 0.05f;
-				hexaShapeScale[i][j][1] = -0.1f;
-			}
-			else if (j == 8 || j == 9)
-			{
-				hexaShapeScale[i][j][0] = 0.05f;
-				hexaShapeScale[i][j][1] = 0.1f;
-			}
-			else if (j == 11)
-			{
-				hexaShapeScale[i][j][0] = 0.1f;
-				hexaShapeScale[i][j][1] = 0.f;
+				InitBufferByIdx(hexaShape, i, j, 0.f, 0.f, 0.f);
+				InitBufferByIdx(colorHexa, i, j, 0.f, 1.f, 0.f);
 			}
 		}
 	}
