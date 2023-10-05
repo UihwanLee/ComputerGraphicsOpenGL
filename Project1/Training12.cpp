@@ -41,15 +41,11 @@ GLvoid InitBuffer();
 GLvoid Reset();
 GLvoid ResetObjects();
 GLvoid UpdateObjects();
-void StopAllAnim();
 void ResetAllShape();
-void DrawAllPoint();
-void DrawAllLine();
-void DrawAllTriangle();
-void DrawAllRectangle();
-void DrawAllPentagon();
-void DrawAllHexagon();
 void DrawObjects(int DRAW_TYPE, int BYTE_SIZE, int vertex, int NUM, void* posList, void* colList);
+
+// 애니메이션
+GLvoid MovingDiagonal(int idx);
 
 GLchar* vertexSource, * fragmentSource; //--- 소스코드 저장 변수
 GLuint vertexShader, fragmentShader; //--- 세이더 객체
@@ -102,6 +98,10 @@ typedef struct Object
 	vector<float> pivot;
 	int type_f;				// 도형 타입 : 점(0) / 선(1) / 삼각형(2) / 사각형(3) / 오각형(4)
 	int shape_idx;
+	float speed;
+	float dir_x;
+	float dir_y;
+	bool isAnim;
 	bool isActive;
 };
 
@@ -209,7 +209,6 @@ GLvoid InitBuffer()
 
 GLvoid Reset()
 {
-	StopAllAnim();
 	ResetAllShape();
 
 	// 15개의 피봇점을 랜덤하게 생성한 후 점/선/삼각형/사각형/오각형 각각 그리기
@@ -229,6 +228,10 @@ GLvoid ResetObjects()
 		obj.pivot.emplace_back(x);
 		obj.pivot.emplace_back(y);
 		obj.type_f = (i % 5);
+		obj.speed = 0.01f;
+		obj.dir_x = 0.0f;
+		obj.dir_y = 0.0f;
+		obj.isAnim = false;
 		obj.isActive = true;
 
 		objectList.emplace_back(obj);
@@ -310,13 +313,8 @@ void ResetAllShape()
 {
 	for (int i = 0; i < MAX_NUM_OBJECT; i++)
 	{
-		colorPoint[i][0] = 1.f;
-		colorPoint[i][1] = 0.f;
-		colorPoint[i][2] = 0.f;
-
-		pointShape[i][0] = 0.f;
-		pointShape[i][1] = 1.f;
-		pointShape[i][2] = 0.f;
+		colorPoint[i][0] = 1.f; colorPoint[i][1] = 0.f; colorPoint[i][2] = 0.f;
+		pointShape[i][0] = 0.f; pointShape[i][1] = 1.f; pointShape[i][2] = 0.f;
 
 		for (int j = 0; j < 12; j++)
 		{
@@ -437,6 +435,16 @@ GLvoid SetHexagonPos(int shape_idx, int pivot_idx)
 			if (j == 1) hexaShape[shape_idx][i][j] = objectList[pivot_idx].pivot[1] + hexaShapeScale[shape_idx][i][j];
 		}
 	}
+}
+
+GLvoid SetObjectPosByIdx(int idx)
+{
+	if (objectList[idx].type_f == 0) SetPointPos(objectList[idx].shape_idx, idx);
+	else if (objectList[idx].type_f == 1) SetLinePos(objectList[idx].shape_idx, idx);
+	else if (objectList[idx].type_f == 2) SetTrianglePos(objectList[idx].shape_idx, idx);
+	else if (objectList[idx].type_f == 3) SetRectanglePos(objectList[idx].shape_idx, idx);
+	else if (objectList[idx].type_f == 4) SetPentagonPos(objectList[idx].shape_idx, idx);
+	else if (objectList[idx].type_f == 5) SetHexagonPos(objectList[idx].shape_idx, idx);
 }
 
 void DrawObjects(int DRAW_TYPE, int BYTE_SIZE, int vertex, int NUM, void* posList, void* colList)
@@ -589,7 +597,6 @@ GLvoid CheckClickObject()
 			if (CheckCollisinWithMouse(objectList[i].pivot[0] - 0.1f, objectList[i].pivot[1] - 0.1f, objectList[i].pivot[0] + 0.1f, objectList[i].pivot[1] + 0.1f))
 			{
 				cur_obj_idx = i;
-				cout << "Hello" << cur_obj_idx << endl;
 				return;
 			}
 		}
@@ -609,6 +616,9 @@ GLvoid GenerateNewObject(int vertex, float pivot_x, float pivot_y)
 	obj.type_f = vertex;
 	obj.pivot[0] = pivot_x;
 	obj.pivot[1] = pivot_y;
+	obj.speed = 0.01f;
+	obj.dir_x = 1.0f;
+	obj.dir_y = 1.0f;
 	obj.isActive = true;
 	objectList.push_back(obj);
 }
@@ -628,8 +638,66 @@ GLvoid CombineObject(int comb1_idx, int comb2_idx)
 
 	UpdateObjects();
 
+	// 생성된 도형 애니메이션 동작
+	int idx = NUM_OBJECT - 1;
+	objectList[idx].isAnim = true;
+	if (objectList[idx].isAnim) glutTimerFunc(30, MovingDiagonal, idx);
+
 	pre_obj_idx = -1;
 	cur_obj_idx = -1;
+}
+
+// 이동하는 오브젝트 벽과 충돌 체크 후 방향 바꾸기
+GLvoid CheckCollision(int idx)
+{
+	float OBJECT_TOP = objectList[idx].pivot[1] + 0.1f;
+	float OBJECT_LEFT = objectList[idx].pivot[0] - 0.1f;
+	float OBJECT_RIGHT = objectList[idx].pivot[0] + 0.1f;
+	float OBJECT_BOTTOM = objectList[idx].pivot[1] - 0.1f;
+
+	// 위쪽 벽에 닿은 경우
+	if (OBJECT_TOP > 1.0f)
+	{
+		objectList[idx].dir_y = -1.0f;
+	}
+
+	// 아래쪽 벽에 닿은 경우
+	if (OBJECT_BOTTOM < -1.0f)
+	{
+		objectList[idx].dir_y = 1.0f;
+	}
+
+	// 오른쪽 벽에 닿은 경우
+	if (OBJECT_RIGHT > 1.0f)
+	{
+		objectList[idx].dir_x = -1.0f;
+	}
+
+	// 왼쪽 벽에 닿은 경우
+	if (OBJECT_LEFT < -1.0f)
+	{
+		objectList[idx].dir_x = 1.0f;
+	}
+}
+
+GLvoid MovingDiagonal(int idx)
+{
+	// 벽과 충돌하는지 체크
+	CheckCollision(idx);
+
+	// pivot pos 변경
+	objectList[idx].pivot[0] += objectList[idx].speed * objectList[idx].dir_x;
+	objectList[idx].pivot[1] += objectList[idx].speed * objectList[idx].dir_y;
+	SetObjectPosByIdx(idx);
+
+	if (objectList[idx].isActive == false)
+	{
+		objectList[idx].isAnim = false;;
+	}
+
+	glutPostRedisplay();
+
+	if(objectList[idx].isAnim) glutTimerFunc(30, MovingDiagonal, idx);
 }
 
 GLvoid MouseClick(int button, int state, int x, int y)
@@ -670,21 +738,11 @@ GLvoid MouseDrag(int x, int y)
 			objectList[cur_obj_idx].pivot[0] = (2.0f * x) / glutGet(GLUT_WINDOW_WIDTH) - 1.0f;
 			objectList[cur_obj_idx].pivot[1] = 1.0f - (2.0f * y) / glutGet(GLUT_WINDOW_HEIGHT);
 
-			if (objectList[cur_obj_idx].type_f == 0) SetPointPos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
-			else if (objectList[cur_obj_idx].type_f == 1) SetLinePos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
-			else if (objectList[cur_obj_idx].type_f == 2) SetTrianglePos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
-			else if (objectList[cur_obj_idx].type_f == 3) SetRectanglePos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
-			else if (objectList[cur_obj_idx].type_f == 4) SetPentagonPos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
-			else if (objectList[cur_obj_idx].type_f == 5) SetHexagonPos(objectList[cur_obj_idx].shape_idx, cur_obj_idx);
+			SetObjectPosByIdx(cur_obj_idx);
 		}
 	}
 
 	glutPostRedisplay();
-}
-
-void StopAllAnim()
-{
-
 }
 
 GLvoid Keyboard(unsigned char key, int x, int y)
