@@ -52,7 +52,6 @@ GLfloat coordinatePlane_Color[4][3];
 
 // 사각형
 GLfloat rectShape[4][3];
-GLfloat rectShapeScale[4][3];
 GLfloat colorRect[4][3];
 
 GLuint vao, vbo[2], ebo[2];
@@ -62,8 +61,6 @@ int g_cur_area = 0;
 int CONDITION = 1;
 int NUM_OBJECT = 0;
 int NUM_RECTANGLE = 0;
-bool is_click_rect;
-float pivot[2] = { 0.f, 0.f };
 
 // 마우스
 bool g_left_button = false;
@@ -182,11 +179,6 @@ void ResetAllShape()
 	InitBufferByIdx(rectShape, 2, 0.5f, 0.5f, 0.f);
 	InitBufferByIdx(rectShape, 3, -0.5f, 0.5f, 0.f);
 
-	InitBufferByIdx(rectShapeScale, 0, -0.5f, -0.5f, 0.f);
-	InitBufferByIdx(rectShapeScale, 1, 0.5f, -0.5f, 0.f);
-	InitBufferByIdx(rectShapeScale, 2, 0.5f, 0.5f, 0.f);
-	InitBufferByIdx(rectShapeScale, 3, -0.5f, 0.5f, 0.f);
-
 	// 색상
 	InitBufferByIdx(colorRect, 0, 0.f, 1.0f, 0.f);
 	InitBufferByIdx(colorRect, 1, 0.f, 0.f, 1.0f);
@@ -194,19 +186,9 @@ void ResetAllShape()
 	InitBufferByIdx(colorRect, 3, 1.f, 0.f, 0.f);
 }
 
-GLvoid UpdateVertex(int idx, float x, float y)
+GLvoid SetObjectPosByIdx(int idx)
 {
-	rectShapeScale[idx][0] = x;
-	rectShapeScale[idx][1] = y;
-}
-
-GLvoid UpdateRect()
-{
-	for (int i = 0; i < 4; i++)
-	{
-		rectShape[i][0] = pivot[0] + rectShapeScale[i][0];
-		rectShape[i][1] = pivot[1] + rectShapeScale[i][1];
-	}
+	
 }
 
 void DrawObjects(int DRAW_TYPE, int BYTE_SIZE, int vertex, int NUM, void* posList, void* colList)
@@ -324,42 +306,17 @@ bool CheckCollisinWithMouse(float min_x, float min_y, float max_x, float max_y)
 	return isCollision;
 }
 
-// 두 점 사이의 거리를 계산하는 함수
-float distance(float x1, float y1, float x2, float y2)
-{
-	return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
-}
-
-bool CheckPointInRect()
-{
-	float d1 = distance(mx, my, rectShape[0][0], rectShape[0][1]);
-	float d2 = distance(mx, my, rectShape[1][0], rectShape[1][1]);
-	float d3 = distance(mx, my, rectShape[2][0], rectShape[2][1]);
-	float d4 = distance(mx, my, rectShape[3][0], rectShape[3][1]);
-
-	float comp_dist = distance(rectShape[0][0], rectShape[0][1], rectShape[1][0], rectShape[1][1]) + distance(rectShape[1][0], rectShape[1][1], rectShape[2][0], rectShape[2][1]) +
-			          distance(rectShape[2][0], rectShape[2][1], rectShape[3][0], rectShape[3][1]) + distance(rectShape[3][0], rectShape[3][1], rectShape[0][0], rectShape[0][1]);
-
-	return (d1 + d2 + d3 + d4) <= comp_dist;
-}
-
 GLvoid CheckClickObject()
 {
 	cur_obj_idx = -1;
-	is_click_rect = false;
 	
 	for (int i = 0; i < 4; i++)
 	{
-		if (CheckCollisinWithMouse(rectShape[i][0] - 0.03f, rectShape[i][1] - 0.03f, rectShape[i][0] + 0.03f, rectShape[i][1] + 0.03f))
+		if (CheckCollisinWithMouse(rectShape[i][0] - 0.01f, rectShape[i][1] - 0.01f, rectShape[i][0] + 0.01f, rectShape[i][1] + 0.01f))
 		{
 			cur_obj_idx = i;
 			return;
 		}
-	}
-
-	if (CheckPointInRect())
-	{
-		is_click_rect = true;
 	}
 }
 
@@ -379,8 +336,6 @@ GLvoid MouseClick(int button, int state, int x, int y)
 		g_left_button = false;
 		mx = GetClickPos(x, 0.0f, 800.0f, -1.0f, 1.0f);
 		my = GetClickPos(y, 0.0f, 600.0f, 1.0f, -1.0f);
-		CheckClickObject();
-		if (cur_obj_idx != -1) UpdateVertex(cur_obj_idx, mx, my);
 	}
 
 	glutPostRedisplay();
@@ -389,24 +344,11 @@ GLvoid MouseClick(int button, int state, int x, int y)
 GLvoid MouseDrag(int x, int y)
 {
 	// && g_cur_rect != -1
-	if (g_left_button)
+	if (g_left_button && cur_obj_idx != -1)
 	{
 		// 마우스 드래그에 따른 꼭짓점 이동
-		if (cur_obj_idx != -1)
-		{
-			rectShape[cur_obj_idx][0] = (2.0f * x) / glutGet(GLUT_WINDOW_WIDTH) - 1.0f;
-			rectShape[cur_obj_idx][1] = 1.0f - (2.0f * y) / glutGet(GLUT_WINDOW_HEIGHT);
-		}
-
-		if (cur_obj_idx == -1 && is_click_rect)
-		{
-			for (int i = 0; i < 4; i++)
-			{
-				pivot[0] = ((2.0f * x) / glutGet(GLUT_WINDOW_WIDTH) - 1.0f);
-				pivot[1] = (1.0f - (2.0f * y) / glutGet(GLUT_WINDOW_HEIGHT));
-			}
-			UpdateRect();
-		}
+		rectShape[cur_obj_idx][0] = (2.0f * x) / glutGet(GLUT_WINDOW_WIDTH) - 1.0f;
+		rectShape[cur_obj_idx][1] = 1.0f - (2.0f * y) / glutGet(GLUT_WINDOW_HEIGHT);
 	}
 
 	glutPostRedisplay();
