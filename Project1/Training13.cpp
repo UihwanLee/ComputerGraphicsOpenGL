@@ -309,6 +309,15 @@ bool CheckCollisinWithMouse(float min_x, float min_y, float max_x, float max_y)
 GLvoid CheckClickObject()
 {
 	cur_obj_idx = -1;
+	
+	for (int i = 0; i < 4; i++)
+	{
+		if (CheckCollisinWithMouse(rectShape[i][0] - 0.01f, rectShape[i][1] - 0.01f, rectShape[i][0] + 0.01f, rectShape[i][1] + 0.01f))
+		{
+			cur_obj_idx = i;
+			return;
+		}
+	}
 }
 
 
@@ -337,7 +346,9 @@ GLvoid MouseDrag(int x, int y)
 	// && g_cur_rect != -1
 	if (g_left_button && cur_obj_idx != -1)
 	{
-
+		// 마우스 드래그에 따른 꼭짓점 이동
+		rectShape[cur_obj_idx][0] = (2.0f * x) / glutGet(GLUT_WINDOW_WIDTH) - 1.0f;
+		rectShape[cur_obj_idx][1] = 1.0f - (2.0f * y) / glutGet(GLUT_WINDOW_HEIGHT);
 	}
 
 	glutPostRedisplay();
