@@ -48,24 +48,9 @@ GLchar* vertexSource, * fragmentSource; //--- 소스코드 저장 변수
 GLuint vertexShader, fragmentShader; //--- 세이더 객체
 GLuint shaderProgramID; //--- 셰이더 프로그램
 
-// 점
-GLfloat pointShape[MAX_NUM_OBJECT][3];
-GLfloat colorPoint[MAX_NUM_OBJECT][3];
-GLvoid SetPointPos(int shape_idx, int pivot_idx);
-bool isChangingToPoint = false;
-
-// 선
-GLfloat lineShape[MAX_NUM_OBJECT][2][3];
-GLfloat colorLine[MAX_NUM_OBJECT][2][3];
-GLvoid SetLinePos(int idx, int pivot_idx);
-bool isChangingToLine = false;
-
-// 삼각형
-GLfloat triShape[MAX_NUM_OBJECT][MAX_TRI_ROW][MAX_TRI_COL]; //--- 삼각형 위치 값
-GLfloat triShapeScale[MAX_NUM_OBJECT][MAX_TRI_ROW][MAX_TRI_COL];
-GLfloat colorTri[MAX_NUM_OBJECT][MAX_TRI_ROW][MAX_TRI_COL];
-GLvoid SetTrianglePos(int shape_idx, int pivot_idx);
-bool isChangingToTri = false;
+// 좌표평면
+GLfloat coordinatePlane[4][3];
+GLfloat coordinatePlane_Color[4][3];
 
 // 사각형
 GLfloat rectShape[MAX_NUM_OBJECT][6][3];
@@ -73,19 +58,6 @@ GLfloat rectShapeScale[MAX_NUM_OBJECT][6][3];
 GLfloat colorRect[MAX_NUM_OBJECT][6][3];
 GLvoid SetRectanglePos(int shape_idx, int pivot_idx);
 bool isChangingToRect = false;
-
-// 오각형
-GLfloat pentaShape[MAX_NUM_OBJECT][9][3];
-GLfloat pentaShapeScale[MAX_NUM_OBJECT][9][3];
-GLfloat colorPenta[MAX_NUM_OBJECT][9][3];
-GLvoid SetPentagonPos(int shape_idx, int pivot_idx);
-bool isChangingToPenta = false;
-
-// 육각형
-GLfloat hexaShape[MAX_NUM_OBJECT][12][3];
-GLfloat hexaShapeScale[MAX_NUM_OBJECT][12][3];
-GLfloat colorHexa[MAX_NUM_OBJECT][12][3];
-GLvoid SetHexagonPos(int shape_idx, int pivot_idx);
 
 GLuint vao, vbo[2], ebo[2];
 
@@ -110,12 +82,7 @@ vector<float> pivot;
 int g_cur_area = 0;
 int CONDITION = 1;
 int NUM_OBJECT = 0;
-int NUM_POINT = 0;
-int NUM_LINE = 0;
-int NUM_TRIANGLE = 0;
 int NUM_RECTANGLE = 0;
-int NUM_PENTAGON = 0;
-int NUM_HEXAGON = 0;
 
 // 마우스
 bool g_left_button = false;
@@ -159,7 +126,10 @@ GLvoid drawScene()
 	////--- 사용할 VAO 불러오기
 	glBindVertexArray(vao);
 
-	// 각 사분면에 있는 도형 그리기
+	// 좌표평면 그리기
+	DrawObjects(GL_LINES, BYTE_SIZE_LINE, 2, 2, coordinatePlane, coordinatePlane_Color);
+
+	// 사각형 도형 그리기
 	DrawObjects(GL_TRIANGLES, BYTE_SIZE_RECTANGLE, 6, NUM_RECTANGLE, rectShape, colorRect);
 
 	glutSwapBuffers(); //--- 화면에 출력하기
@@ -226,12 +196,7 @@ GLvoid ResetObjects()
 void ResetObjectNum()
 {
 	NUM_OBJECT = 0;
-	NUM_POINT = 0;
-	NUM_LINE = 0;
-	NUM_TRIANGLE = 0;
 	NUM_RECTANGLE = 0;
-	NUM_PENTAGON = 0;
-	NUM_HEXAGON = 0;
 }
 
 GLvoid UpdateObjects()
@@ -245,42 +210,9 @@ GLvoid UpdateObjects()
 		// 비활성화된 오브젝트는 넘어감
 		if (objectList[i].isActive == false) continue;
 
-		if (objectList[i].type_f == 0)
-		{
-			NUM_POINT += 1;
-			objectList[i].shape_idx = NUM_POINT - 1;
-			SetPointPos(NUM_POINT - 1, i);
-		}
-		else if (objectList[i].type_f == 1)
-		{
-			NUM_LINE += 1;
-			objectList[i].shape_idx = NUM_LINE - 1;
-			SetLinePos(NUM_LINE - 1, i);
-		}
-		else if (objectList[i].type_f == 2)
-		{
-			NUM_TRIANGLE += 1;
-			objectList[i].shape_idx = NUM_TRIANGLE - 1;
-			SetTrianglePos(NUM_TRIANGLE - 1, i);
-		}
-		else if (objectList[i].type_f == 3)
-		{
-			NUM_RECTANGLE += 1;
-			objectList[i].shape_idx = NUM_RECTANGLE - 1;
-			SetRectanglePos(NUM_RECTANGLE - 1, i);
-		}
-		else if (objectList[i].type_f == 4)
-		{
-			NUM_PENTAGON += 1;
-			objectList[i].shape_idx = NUM_PENTAGON - 1;
-			SetPentagonPos(NUM_PENTAGON - 1, i);
-		}
-		else if (objectList[i].type_f == 5)
-		{
-			NUM_HEXAGON += 1;
-			objectList[i].shape_idx = NUM_HEXAGON - 1;
-			SetHexagonPos(NUM_HEXAGON - 1, i);
-		}
+		NUM_RECTANGLE += 1;
+		objectList[i].shape_idx = NUM_RECTANGLE - 1;
+		SetRectanglePos(NUM_RECTANGLE - 1, i);
 	}
 
 }
@@ -294,94 +226,43 @@ GLvoid InitBufferByIdx(T(&buffer)[Depth][Rows][Cols], int i, int j, float x, flo
 	buffer[i][j][2] = z;
 }
 
+GLvoid InitBufferByIdx2(float buffer[][3], int i, float x, float y, float z)
+{
+	buffer[i][0] = x;
+	buffer[i][1] = y;
+	buffer[i][2] = z;
+}
+
 void ResetAllShape()
 {
+	// 좌표평면 갱신
+	for (int i = 0; i < 4; i++)
+	{
+		if (i == 0)			InitBufferByIdx2(coordinatePlane, i, -1.0f, 0.f, 0.f);
+		else if (i == 1)	InitBufferByIdx2(coordinatePlane, i, 1.0f, 0.f, 0.f);
+		else if (i == 2)	InitBufferByIdx2(coordinatePlane, i, 0.f, -1.0f, 0.f);
+		else if (i == 3)	InitBufferByIdx2(coordinatePlane, i, 0.f, 1.0f, 0.f);
+
+		InitBufferByIdx2(coordinatePlane_Color, i, 0.f, 0.f, 0.f);
+	}
+
 	for (int i = 0; i < MAX_NUM_OBJECT; i++)
 	{
-		colorPoint[i][0] = 1.f; colorPoint[i][1] = 0.f; colorPoint[i][2] = 0.f;
-		pointShape[i][0] = 0.f; pointShape[i][1] = 1.f; pointShape[i][2] = 0.f;
-
-		for (int j = 0; j < 12; j++)
+		for (int j = 0; j < 6; j++)
 		{
-			// 삼각형
-			if (j == 0)								InitBufferByIdx(triShapeScale, i, j, -0.1f, -0.1f, 0.f);
-			else if (j == 1)						InitBufferByIdx(triShapeScale, i, j, 0.1f, -0.1f, 0.f);
-			else if (j == 2)						InitBufferByIdx(triShapeScale, i, j, 0.f, 0.1f, 0.f);
-
 			// 사각형
-			if (j == 0)								InitBufferByIdx(rectShapeScale, i, j, 0.1f, 0.1f, 0.f);
-			else if (j == 1 || j == 3)				InitBufferByIdx(rectShapeScale, i, j, 0.1f, -0.1f, 0.f);
-			else if (j == 2 || j == 5)				InitBufferByIdx(rectShapeScale, i, j, -0.1f, 0.1f, 0.f);
-			else if (j == 4)						InitBufferByIdx(rectShapeScale, i, j, -0.1f, -0.1f, 0.f);
-
-			// 오각형
-			if (j == 0)								InitBufferByIdx(pentaShapeScale, i, j, 0.f, 0.1f, 0.f);
-			else if (j == 1 || j == 4)				InitBufferByIdx(pentaShapeScale, i, j, -0.1f, 0.03f, 0.f);
-			else if (j == 2 || j == 3 || j == 7)	InitBufferByIdx(pentaShapeScale, i, j, 0.1f, 0.03f, 0.f);
-			else if (j == 5 || j == 6)				InitBufferByIdx(pentaShapeScale, i, j, -0.06f, -0.1f, 0.f);
-			else if (j == 8)						InitBufferByIdx(pentaShapeScale, i, j, 0.06f, -0.1f, 0.f);
-
-			// 육각형
-			if (j == 0)								InitBufferByIdx(hexaShapeScale, i, j, -0.1f, 0.f, 0.f);
-			else if (j == 1 || j == 3 || j == 7)	InitBufferByIdx(hexaShapeScale, i, j, -0.05f, 0.1f, 0.f);
-			else if (j == 2 || j == 4)				InitBufferByIdx(hexaShapeScale, i, j, -0.05f, -0.1f, 0.f);
-			else if (j == 5 || j == 6 || j == 10)	InitBufferByIdx(hexaShapeScale, i, j, 0.05f, -0.1f, 0.f);
-			else if (j == 8 || j == 9)				InitBufferByIdx(hexaShapeScale, i, j, 0.05f, 0.1f, 0.f);
-			else if (j == 11)						InitBufferByIdx(hexaShapeScale, i, j, 0.1f, 0.f, 0.f);
+			if (j == 0)								InitBufferByIdx(rectShapeScale, i, j, 0.5f, 0.5f, 0.f);
+			else if (j == 1 || j == 3)				InitBufferByIdx(rectShapeScale, i, j, 0.5f, -0.5f, 0.f);
+			else if (j == 2 || j == 5)				InitBufferByIdx(rectShapeScale, i, j, -0.5f, 0.5f, 0.f);
+			else if (j == 4)						InitBufferByIdx(rectShapeScale, i, j, -0.5f, -0.5f, 0.f);
 
 
 			// 기본 버퍼 위치&색상 초기화
-			if (j < 2)
-			{
-				InitBufferByIdx(lineShape, i, j, 0.f, 0.f, 0.f);
-				InitBufferByIdx(colorLine, i, j, 0.f, 0.f, 1.0f);
-			}
-			if (j < 3)
-			{
-				InitBufferByIdx(triShape, i, j, 0.f, 0.f, 0.f);
-				InitBufferByIdx(colorTri, i, j, 1.0f, 1.0f, 0.f);
-			}
 			if (j < 6)
 			{
 				InitBufferByIdx(rectShape, i, j, 0.f, 0.f, 0.f);
 				InitBufferByIdx(colorRect, i, j, 160.0f / 255.0f, 212.0f / 255.0f, 104.0f / 255.0f);
 			}
-			if (j < 9)
-			{
-				InitBufferByIdx(pentaShape, i, j, 0.f, 0.f, 0.f);
-				InitBufferByIdx(colorPenta, i, j, 1.0f, 0.f, 0.f);
-			}
-			if (j < 12)
-			{
-				InitBufferByIdx(hexaShape, i, j, 0.f, 0.f, 0.f);
-				InitBufferByIdx(colorHexa, i, j, 0.f, 1.f, 0.f);
-			}
-		}
-	}
-}
-
-GLvoid SetPointPos(int shape_idx, int pivot_idx)
-{
-	pointShape[shape_idx][0] = objectList[pivot_idx].pivot[0];
-	pointShape[shape_idx][1] = objectList[pivot_idx].pivot[1];
-}
-
-GLvoid SetLinePos(int shape_idx, int pivot_idx)
-{
-	lineShape[shape_idx][0][0] = objectList[pivot_idx].pivot[0] - 0.1f;
-	lineShape[shape_idx][0][1] = objectList[pivot_idx].pivot[1] - 0.06f;
-	lineShape[shape_idx][1][0] = objectList[pivot_idx].pivot[0] + 0.1f;
-	lineShape[shape_idx][1][1] = objectList[pivot_idx].pivot[1] + 0.06f;
-}
-
-GLvoid SetTrianglePos(int shape_idx, int pivot_idx)
-{
-	for (int i = 0; i < 3; i++)
-	{
-		for (int j = 0; j < 3; j++)
-		{
-			if (j == 0) triShape[shape_idx][i][j] = objectList[pivot_idx].pivot[0] - triShapeScale[shape_idx][i][j];
-			if (j == 1) triShape[shape_idx][i][j] = objectList[pivot_idx].pivot[1] + triShapeScale[shape_idx][i][j];
 		}
 	}
 }
@@ -398,38 +279,9 @@ GLvoid SetRectanglePos(int shape_idx, int pivot_idx)
 	}
 }
 
-GLvoid SetPentagonPos(int shape_idx, int pivot_idx)
-{
-	for (int i = 0; i < 9; i++)
-	{
-		for (int j = 0; j < 3; j++)
-		{
-			if (j == 0) pentaShape[shape_idx][i][j] = objectList[pivot_idx].pivot[0] - pentaShapeScale[shape_idx][i][j];
-			if (j == 1) pentaShape[shape_idx][i][j] = objectList[pivot_idx].pivot[1] + pentaShapeScale[shape_idx][i][j];
-		}
-	}
-}
-
-GLvoid SetHexagonPos(int shape_idx, int pivot_idx)
-{
-	for (int i = 0; i < 12; i++)
-	{
-		for (int j = 0; j < 3; j++)
-		{
-			if (j == 0) hexaShape[shape_idx][i][j] = objectList[pivot_idx].pivot[0] - hexaShapeScale[shape_idx][i][j];
-			if (j == 1) hexaShape[shape_idx][i][j] = objectList[pivot_idx].pivot[1] + hexaShapeScale[shape_idx][i][j];
-		}
-	}
-}
-
 GLvoid SetObjectPosByIdx(int idx)
 {
-	if (objectList[idx].type_f == 0) SetPointPos(objectList[idx].shape_idx, idx);
-	else if (objectList[idx].type_f == 1) SetLinePos(objectList[idx].shape_idx, idx);
-	else if (objectList[idx].type_f == 2) SetTrianglePos(objectList[idx].shape_idx, idx);
-	else if (objectList[idx].type_f == 3) SetRectanglePos(objectList[idx].shape_idx, idx);
-	else if (objectList[idx].type_f == 4) SetPentagonPos(objectList[idx].shape_idx, idx);
-	else if (objectList[idx].type_f == 5) SetHexagonPos(objectList[idx].shape_idx, idx);
+	
 }
 
 void DrawObjects(int DRAW_TYPE, int BYTE_SIZE, int vertex, int NUM, void* posList, void* colList)
