@@ -9,7 +9,7 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#define MAX_NUM_OBJECT 15
+#define MAX_NUM_OBJECT 1
 
 #define BYTE_SIZE_POINT 12
 #define BYTE_SIZE_LINE 24
@@ -39,8 +39,6 @@ GLvoid MouseDrag(int x, int y);
 
 GLvoid InitBuffer();
 GLvoid Reset();
-GLvoid ResetObjects();
-GLvoid UpdateObjects();
 void ResetAllShape();
 void DrawObjects(int DRAW_TYPE, int BYTE_SIZE, int vertex, int NUM, void* posList, void* colList);
 
@@ -53,30 +51,10 @@ GLfloat coordinatePlane[4][3];
 GLfloat coordinatePlane_Color[4][3];
 
 // 사각형
-GLfloat rectShape[MAX_NUM_OBJECT][6][3];
-GLfloat rectShapeScale[MAX_NUM_OBJECT][6][3];
-GLfloat colorRect[MAX_NUM_OBJECT][6][3];
-GLvoid SetRectanglePos(int shape_idx, int pivot_idx);
-bool isChangingToRect = false;
+GLfloat rectShape[4][3];
+GLfloat colorRect[4][3];
 
 GLuint vao, vbo[2], ebo[2];
-
-// 도형 정보를 담고있는 구조체
-typedef struct Object
-{
-	vector<float> pivot;
-	int type_f;				// 도형 타입 : 점(0) / 선(1) / 삼각형(2) / 사각형(3) / 오각형(4)
-	int shape_idx;
-	float speed;
-	float dir_x;
-	float dir_y;
-	bool isAnim;
-	bool isActive;
-};
-
-vector<Object> objectList;
-Object obj;
-vector<float> pivot;
 
 // 글로벌 변수
 int g_cur_area = 0;
@@ -130,7 +108,7 @@ GLvoid drawScene()
 	DrawObjects(GL_LINES, BYTE_SIZE_LINE, 2, 2, coordinatePlane, coordinatePlane_Color);
 
 	// 사각형 도형 그리기
-	DrawObjects(GL_TRIANGLES, BYTE_SIZE_RECTANGLE, 6, NUM_RECTANGLE, rectShape, colorRect);
+	DrawObjects(GL_LINE_LOOP, 60, 4, 1, rectShape, colorRect);
 
 	glutSwapBuffers(); //--- 화면에 출력하기
 }
@@ -172,61 +150,10 @@ GLvoid InitBuffer()
 GLvoid Reset()
 {
 	ResetAllShape();
-
-	ResetObjects();
-	UpdateObjects();
 }
 
-GLvoid ResetObjects()
-{
-	objectList.clear();
-	obj.pivot.clear();
-	obj.pivot.emplace_back(0.f);
-	obj.pivot.emplace_back(0.f);
-	obj.type_f = 3;
-	obj.speed = 0.01f;
-	obj.dir_x = 0.0f;
-	obj.dir_y = 0.0f;
-	obj.isAnim = false;
-	obj.isActive = true;
 
-	objectList.emplace_back(obj);
-}
-
-void ResetObjectNum()
-{
-	NUM_OBJECT = 0;
-	NUM_RECTANGLE = 0;
-}
-
-GLvoid UpdateObjects()
-{
-	ResetObjectNum();
-
-	NUM_OBJECT = objectList.size();
-	// 현재 남아있는 오브젝트들을 type_f 변수에 따라 변수를 업데이트한다.
-	for (int i = 0; i < NUM_OBJECT; i++)
-	{
-		// 비활성화된 오브젝트는 넘어감
-		if (objectList[i].isActive == false) continue;
-
-		NUM_RECTANGLE += 1;
-		objectList[i].shape_idx = NUM_RECTANGLE - 1;
-		SetRectanglePos(NUM_RECTANGLE - 1, i);
-	}
-
-}
-
-// 행과 열이 다른 배열을 모두 받기 위해 템플릿 사용
-template <typename T, size_t Depth, size_t Rows, size_t Cols>
-GLvoid InitBufferByIdx(T(&buffer)[Depth][Rows][Cols], int i, int j, float x, float y, float z)
-{
-	buffer[i][j][0] = x;
-	buffer[i][j][1] = y;
-	buffer[i][j][2] = z;
-}
-
-GLvoid InitBufferByIdx2(float buffer[][3], int i, float x, float y, float z)
+GLvoid InitBufferByIdx(float buffer[][3], int i, float x, float y, float z)
 {
 	buffer[i][0] = x;
 	buffer[i][1] = y;
@@ -238,45 +165,25 @@ void ResetAllShape()
 	// 좌표평면 갱신
 	for (int i = 0; i < 4; i++)
 	{
-		if (i == 0)			InitBufferByIdx2(coordinatePlane, i, -1.0f, 0.f, 0.f);
-		else if (i == 1)	InitBufferByIdx2(coordinatePlane, i, 1.0f, 0.f, 0.f);
-		else if (i == 2)	InitBufferByIdx2(coordinatePlane, i, 0.f, -1.0f, 0.f);
-		else if (i == 3)	InitBufferByIdx2(coordinatePlane, i, 0.f, 1.0f, 0.f);
+		if (i == 0)			InitBufferByIdx(coordinatePlane, i, -1.0f, 0.f, 0.f);
+		else if (i == 1)	InitBufferByIdx(coordinatePlane, i, 1.0f, 0.f, 0.f);
+		else if (i == 2)	InitBufferByIdx(coordinatePlane, i, 0.f, -1.0f, 0.f);
+		else if (i == 3)	InitBufferByIdx(coordinatePlane, i, 0.f, 1.0f, 0.f);
 
-		InitBufferByIdx2(coordinatePlane_Color, i, 0.f, 0.f, 0.f);
+		InitBufferByIdx(coordinatePlane_Color, i, 0.f, 0.f, 0.f);
 	}
 
-	for (int i = 0; i < MAX_NUM_OBJECT; i++)
-	{
-		for (int j = 0; j < 6; j++)
-		{
-			// 사각형
-			if (j == 0)								InitBufferByIdx(rectShapeScale, i, j, 0.5f, 0.5f, 0.f);
-			else if (j == 1 || j == 3)				InitBufferByIdx(rectShapeScale, i, j, 0.5f, -0.5f, 0.f);
-			else if (j == 2 || j == 5)				InitBufferByIdx(rectShapeScale, i, j, -0.5f, 0.5f, 0.f);
-			else if (j == 4)						InitBufferByIdx(rectShapeScale, i, j, -0.5f, -0.5f, 0.f);
+	// 사각형
+	InitBufferByIdx(rectShape, 0, -0.5f, -0.5f, 0.f);
+	InitBufferByIdx(rectShape, 1, 0.5f, -0.5f, 0.f);
+	InitBufferByIdx(rectShape, 2, 0.5f, 0.5f, 0.f);
+	InitBufferByIdx(rectShape, 3, -0.5f, 0.5f, 0.f);
 
-
-			// 기본 버퍼 위치&색상 초기화
-			if (j < 6)
-			{
-				InitBufferByIdx(rectShape, i, j, 0.f, 0.f, 0.f);
-				InitBufferByIdx(colorRect, i, j, 160.0f / 255.0f, 212.0f / 255.0f, 104.0f / 255.0f);
-			}
-		}
-	}
-}
-
-GLvoid SetRectanglePos(int shape_idx, int pivot_idx)
-{
-	for (int i = 0; i < 6; i++)
-	{
-		for (int j = 0; j < 3; j++)
-		{
-			if (j == 0) rectShape[shape_idx][i][j] = objectList[pivot_idx].pivot[0] - rectShapeScale[shape_idx][i][j];
-			if (j == 1) rectShape[shape_idx][i][j] = objectList[pivot_idx].pivot[1] + rectShapeScale[shape_idx][i][j];
-		}
-	}
+	// 색상
+	InitBufferByIdx(colorRect, 0, 0.f, 1.0f, 0.f);
+	InitBufferByIdx(colorRect, 1, 0.f, 0.f, 1.0f);
+	InitBufferByIdx(colorRect, 2, 1.f, 1.f, 0.f);
+	InitBufferByIdx(colorRect, 3, 1.f, 0.f, 0.f);
 }
 
 GLvoid SetObjectPosByIdx(int idx)
@@ -298,7 +205,6 @@ void DrawObjects(int DRAW_TYPE, int BYTE_SIZE, int vertex, int NUM, void* posLis
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(1);
 
-	glPointSize(5.0);
 	glDrawArrays(DRAW_TYPE, 0, vertex * NUM);
 }
 
@@ -403,49 +309,6 @@ bool CheckCollisinWithMouse(float min_x, float min_y, float max_x, float max_y)
 GLvoid CheckClickObject()
 {
 	cur_obj_idx = -1;
-
-	// 마우스 버튼을 클릭하거나 놓았을 때 그 지점에 오브젝트가 있는지 판별하기
-	for (int i = 0; i < NUM_OBJECT; i++)
-	{
-		// 현재 드래그하고 있는 도형은 넘어가기
-		if (pre_obj_idx != -1 && pre_obj_idx == i) continue;
-
-		// 비활성화된 도형은 넘어가기
-		if (objectList[i].isActive == false) continue;
-
-		if (objectList[i].type_f == 0)
-		{
-			if (CheckCollisinWithMouse(objectList[i].pivot[0] - 0.03f, objectList[i].pivot[1] - 0.03f, objectList[i].pivot[0] + 0.03f, objectList[i].pivot[1] + 0.03f))
-			{
-				cur_obj_idx = i;
-				return;
-			}
-		}
-		else if (objectList[i].type_f == 1)
-		{
-			if (CheckCollisinWithMouse(objectList[i].pivot[0] - 0.1f, objectList[i].pivot[1] - 0.06f, objectList[i].pivot[0] + 0.1f, objectList[i].pivot[1] + 0.06f))
-			{
-				cur_obj_idx = i;
-				return;
-			}
-		}
-		else if (objectList[i].type_f == 5)
-		{
-			if (CheckCollisinWithMouse(objectList[i].pivot[0] - 0.1f, objectList[i].pivot[1] - 0.1f, objectList[i].pivot[0] + 0.1f, objectList[i].pivot[1] + 0.1f))
-			{
-				cur_obj_idx = i;
-				return;
-			}
-		}
-		else
-		{
-			if (CheckCollisinWithMouse(objectList[i].pivot[0] - 0.1f, objectList[i].pivot[1] - 0.1f, objectList[i].pivot[0] + 0.1f, objectList[i].pivot[1] + 0.1f))
-			{
-				cur_obj_idx = i;
-				return;
-			}
-		}
-	}
 }
 
 
@@ -474,14 +337,7 @@ GLvoid MouseDrag(int x, int y)
 	// && g_cur_rect != -1
 	if (g_left_button && cur_obj_idx != -1)
 	{
-		if (objectList[cur_obj_idx].isActive)
-		{
-			// 마우스 드래그에 따른 도형 이동
-			objectList[cur_obj_idx].pivot[0] = (2.0f * x) / glutGet(GLUT_WINDOW_WIDTH) - 1.0f;
-			objectList[cur_obj_idx].pivot[1] = 1.0f - (2.0f * y) / glutGet(GLUT_WINDOW_HEIGHT);
 
-			SetObjectPosByIdx(cur_obj_idx);
-		}
 	}
 
 	glutPostRedisplay();
