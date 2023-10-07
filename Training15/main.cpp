@@ -22,16 +22,25 @@ GLvoid drawScene(GLvoid);
 GLvoid Reshape(int w, int h);
 GLuint ShaderProgram;
 GLuint VBO[2], EBO;
+bool isDepthTest = false;
 
 GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL);
 GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_color, int NUM_VETEX, int SIZE_COL, int SIZE_IDX);
+
+// 회전 애니메이션
+bool isRotating_X = false;
+bool isRotating_Y = false;
+GLfloat rotate_X = 30.0f;
+GLfloat rotate_Y = 30.0f;
+GLvoid RotatingAnimationX(int isAinm);
+GLvoid RotatingAnimationY(int isAinm);
 
 void InputKey(unsigned char key, int x, int y);
 
 int main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(WIDTH, HEIGHT);
 	glutCreateWindow("Training");
@@ -69,6 +78,9 @@ GLvoid drawScene()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(ShaderProgram);
+
+	if(isDepthTest)	glEnable(GL_DEPTH_TEST);
+	else glDisable(GL_DEPTH_TEST);
 
 	for (int i = 0; i < ObjMgr.m_ObjectList.size(); i++)
 	{
@@ -142,8 +154,8 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 
 	scale = glm::scale(scale, glm::vec3(0.5f, 0.6f, 0.5f));
 
-	rot = glm::rotate(rot, glm::radians(30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	rot = glm::rotate(rot, glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	rot = glm::rotate(rot, glm::radians(rotate_Y), glm::vec3(1.0f, 0.0f, 0.0f));
+	rot = glm::rotate(rot, glm::radians(rotate_X), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	move = glm::translate(move, glm::vec3(0.0f, 0.0f, 0.0f));
 
@@ -160,12 +172,51 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	glDrawElements(DRAW_TYPE, NUM_VETEX, GL_UNSIGNED_INT, 0);
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
+}
+
+GLvoid RotatingAnimationX(int dir)
+{
+	if (dir == 0) rotate_X += 5.0f;
+	else rotate_X -= 5.0f;
+
+	glutPostRedisplay();
+
+	if (isRotating_X) glutTimerFunc(30, RotatingAnimationX, dir);
+}
+
+GLvoid RotatingAnimationY(int dir)
+{
+	if (dir == 0) rotate_Y += 5.0f;
+	else rotate_Y -= 5.0f;
+
+	glutPostRedisplay();
+
+	if (isRotating_Y) glutTimerFunc(30, RotatingAnimationY, dir);
+}
+
+GLvoid StopAllAnim()
+{
+	isRotating_X = false;
+	isRotating_Y = false;
+
+	Sleep(1000);
+
+	return;
+}
+
+GLvoid Reset()
+{
+	isRotating_X = false;
+	isRotating_Y = false;
+	rotate_X = 30.0f;
+	rotate_Y = 30.0f;
+	ObjMgr.Reset();
 }
 
 void InputKey(unsigned char key, int x, int y)
@@ -180,18 +231,42 @@ void InputKey(unsigned char key, int x, int y)
 	case 'p':
 		ObjMgr.SetChangeActive(1);
 		break;
+	case 'H':
+	case 'h':
+		if (isDepthTest) isDepthTest = false;
+		else isDepthTest = true;
+		break;
 	case 'w':
 	case 'W':
 		ObjMgr.ChangeWireSolidType();
 		break;
+	case 'X':
+		StopAllAnim();
+		isRotating_X = true;
+		if(isRotating_X) glutTimerFunc(30, RotatingAnimationX, 1);
+		break;
+	case 'x':
+		StopAllAnim();
+		isRotating_X = true;
+		glutTimerFunc(30, RotatingAnimationX, 0);
+		break;
+	case 'Y':
+		StopAllAnim();
+		isRotating_Y = true;
+		glutTimerFunc(30, RotatingAnimationY, 1);
+		break;
+	case 'y':
+		StopAllAnim();
+		isRotating_Y = true;
+		glutTimerFunc(30, RotatingAnimationY, 0);
+		break;
 	case 'S':
 	case 's':
-		ObjMgr.Reset();
+		Reset();
 		break;
 	case 'q':
 		glutLeaveMainLoop();
 		break;
-
 	default:
 		break;
 	}
