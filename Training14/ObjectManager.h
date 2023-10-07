@@ -2,6 +2,7 @@
 #include "OpenGL.h"
 #include "Object.h"
 #include <vector>
+#include <random>
 
 using namespace std;
 
@@ -29,6 +30,9 @@ public:
 	ObjectManager();
 	~ObjectManager();
 
+	int GetRandomIntValue(GLfloat min, GLfloat max);
+	GLfloat GetRandomFloatValue(GLfloat min, GLfloat max);
+
 	void CreateCoordinate();
 	void CreateCube();
 	void CreateTetrahedron();
@@ -36,4 +40,6 @@ public:
 	void SetChangeActive(int mode);
 	void ShowCubeShapeface(int idx, int face);
 	void ShowTetrahedronShapeface(int idx, int face);
+	void ShowRandomCubeFace();
+	void ShowRandomTetrahedronFace();
 };

@@ -1,3 +1,3 @@
 ﻿  ObjectManager.cpp
-C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Training14\ObjectManager.h(20,2): warning C4091: 'typedef ': 변수를 선언하지 않으면 'ObjectInfo' 왼쪽은 무시됩니다.
+C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\Training14\ObjectManager.h(21,2): warning C4091: 'typedef ': 변수를 선언하지 않으면 'ObjectInfo' 왼쪽은 무시됩니다.
   Training14.vcxproj -> C:\Users\user\Documents\GitHub\ComputerGraphicsOpenGL\x64\Debug\Training14.exe

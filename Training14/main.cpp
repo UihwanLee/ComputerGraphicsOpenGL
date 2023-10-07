@@ -176,9 +176,19 @@ void InputKey(unsigned char key, int x, int y)
 	case 'r':
 		ObjMgr.SetChangeActive(0);
 		break;
+	case 'M':
+	case 'm':
+		ObjMgr.SetChangeActive(1);
+		break;
+	case 'C':
+	case 'c':
+		ObjMgr.SetChangeActive(0);
+		ObjMgr.ShowRandomCubeFace();
+		break;
 	case 'T':
 	case 't':
 		ObjMgr.SetChangeActive(1);
+		ObjMgr.ShowRandomTetrahedronFace();
 		break;
 	case '1':
 	case '2':

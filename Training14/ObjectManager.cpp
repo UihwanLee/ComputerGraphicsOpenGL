@@ -15,6 +15,34 @@ ObjectManager::~ObjectManager()
 	}
 }
 
+int ObjectManager::GetRandomIntValue(GLfloat min, GLfloat max)
+{
+	GLfloat value;
+
+	random_device rd;
+	mt19937 gen(rd());
+
+	uniform_real_distribution<GLfloat> dis(min, max);
+
+	value = dis(gen);
+
+	return int(value);
+}
+
+GLfloat ObjectManager::GetRandomFloatValue(GLfloat min, GLfloat max)
+{
+	GLfloat value;
+
+	random_device rd;
+	mt19937 gen(rd());
+
+	uniform_real_distribution<GLfloat> dis(min, max);
+
+	value = dis(gen);
+
+	return value;
+}
+
 GLvoid InitBufferByIdx(GLfloat* buffer, int i, float x, float y, float z)
 {
 	buffer[i] = x;
@@ -157,4 +185,66 @@ void ObjectManager::ShowTetrahedronShapeface(int idx, int face)
 	}
 
 	m_ObjectList[idx].m_size_idx = 12;
+}
+
+void ObjectManager::ShowRandomCubeFace()
+{
+	// 겹치지 않는 2개의 숫자 뽑아내기
+	int idx1, idx2;
+	
+	do
+	{
+		idx1 = rand() % 6;
+		idx2 = rand() % 6;
+	} while (idx1 == idx2);
+
+	// 2개의 면의 인덱스를 뽑아내서 저장하기
+	idx1 = idx1 * 6;
+	idx2 = idx2 * 6;
+	int idx = 0;
+
+	for (int i = idx1; i < idx1 + 6; i++)
+	{
+		m_ObjectList[1].m_inex[idx] = Object::CubeIndexs[i];
+		idx += 1;
+	}
+
+	for (int i = idx2; i < idx2 + 6; i++)
+	{
+		m_ObjectList[1].m_inex[idx] = Object::CubeIndexs[i];
+		idx += 1;
+	}
+
+	m_ObjectList[1].m_size_idx = 48;
+}
+
+void ObjectManager::ShowRandomTetrahedronFace()
+{
+	// 겹치지 않는 2개의 숫자 뽑아내기
+	int idx1, idx2;
+
+	do
+	{
+		idx1 = rand() % 4;
+		idx2 = rand() % 4;
+	} while (idx1 == idx2);
+
+	// 2개의 면의 인덱스를 뽑아내서 저장하기
+	idx1 = idx1 * 3;
+	idx2 = idx2 * 3;
+	int idx = 0;
+
+	for (int i = idx1; i < idx1 + 3; i++)
+	{
+		m_ObjectList[2].m_inex[idx] = Object::TetrahedronIndexs[i];
+		idx += 1;
+	}
+
+	for (int i = idx2; i < idx2 + 3; i++)
+	{
+		m_ObjectList[2].m_inex[idx] = Object::TetrahedronIndexs[i];
+		idx += 1;
+	}
+
+	m_ObjectList[2].m_size_idx = 24;
 }
