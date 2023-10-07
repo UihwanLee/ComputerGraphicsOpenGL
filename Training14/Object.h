@@ -13,4 +13,7 @@ public:
 	static GLint CubeIndexs[36];
 
 	// 정사면체
+	static GLfloat TetrahedronVertexs[12];
+	static GLfloat TetrahedronColors[12];
+	static GLint TetrahedronIndexs[12];
 };

@@ -70,6 +70,51 @@ void ObjectManager::CreateCube()
 void ObjectManager::CreateTetrahedron()
 {
 	// 사면체
+	temp.m_pos = new GLfloat[12];
+	temp.m_inex = new GLint[12];
+	temp.m_col = new GLfloat[12];
+
+	for (int i = 0; i < 12; i++)	temp.m_pos[i] = Object::TetrahedronVertexs[i];
+	for (int i = 0; i < 12; i++)	temp.m_inex[i] = Object::TetrahedronIndexs[i];
+	for (int i = 0; i < 12; i++)	temp.m_col[i] = Object::TetrahedronColors[i];
+
+	temp.m_num_vertex = 12;
+	temp.m_size_pos = 48;
+	temp.m_size_idx = 48;
+	temp.m_DRAW_TYPE = GL_TRIANGLES;
+
+	temp.m_pivot[0] = 0.f;
+	temp.m_pivot[1] = 0.f;
+	temp.m_isModeIDX = true;
+	temp.m_isActive = true;
+
+	m_ObjectList.emplace_back(temp);
+}
+
+void ObjectManager::SetChangeActive(int mode)
+{
+	if (m_ObjectList.size() <= 2) return;
+
+	// 다시 리셋
+	for (int i = 0; i < 36; i++)	m_ObjectList[1].m_inex[i] = Object::CubeIndexs[i];
+	for (int i = 0; i < 12; i++)	m_ObjectList[2].m_inex[i] = Object::TetrahedronIndexs[i];
+
+	m_ObjectList[1].m_size_idx = 144;
+	m_ObjectList[2].m_size_idx = 48;
+
+	// 정육면체를 보이게 하고 정사면체 비활성화
+	if (mode == 0)
+	{
+		m_ObjectList[1].m_isActive = true;
+		m_ObjectList[2].m_isActive = false;
+	}
+	else if(mode == 1)
+	{
+		m_ObjectList[1].m_isActive = false;
+		m_ObjectList[2].m_isActive = true;
+	}
+
+	return;
 }
 
 void ObjectManager::ShowCubeShapeface(int idx, int face)

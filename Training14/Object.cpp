@@ -58,3 +58,27 @@ GLint Object::CubeIndexs[36] =
 	0,7,4, //µÞ¸é
 	0,3,7
 };
+
+GLfloat Object::TetrahedronVertexs[12] =
+{
+	0.0f, 0.5f, 0.0f,
+	-0.5f, -0.5f, 0.0f,
+	0.5f, -0.5f, 0.0f,
+	0.0f, -0.5f, 0.5f,
+};
+
+GLfloat Object::TetrahedronColors[12] =
+{
+	135.f / 255.f,206.f / 255.f,235.f / 255.f,
+	135.f / 255.f,206.f / 255.f,235.f / 255.f,
+	135.f / 255.f,206.f / 255.f,235.f / 255.f,
+	135.f / 255.f,206.f / 255.f,235.f / 255.f,
+};
+
+GLint Object::TetrahedronIndexs[12] =
+{
+	0, 1, 2,
+	0, 2, 3,
+	0, 1, 3,
+	1, 2, 3
+};

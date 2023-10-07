@@ -33,5 +33,6 @@ public:
 	void CreateCube();
 	void CreateTetrahedron();
 
+	void SetChangeActive(int mode);
 	void ShowCubeShapeface(int idx, int face);
 };

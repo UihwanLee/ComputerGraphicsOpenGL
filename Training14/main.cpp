@@ -59,6 +59,8 @@ GLvoid Init()
 
 	ObjMgr.CreateCoordinate();
 	ObjMgr.CreateCube();
+	ObjMgr.CreateTetrahedron();
+	ObjMgr.SetChangeActive(0);
 }
 
 GLvoid drawScene()
@@ -70,15 +72,18 @@ GLvoid drawScene()
 
 	for (int i = 0; i < ObjMgr.m_ObjectList.size(); i++)
 	{
-		if (ObjMgr.m_ObjectList[i].m_isModeIDX)
+		if (ObjMgr.m_ObjectList[i].m_isActive)
 		{
-			DrawObjectByIDX(ObjMgr.m_ObjectList[i].m_pos, ObjMgr.m_ObjectList[i].m_inex, ObjMgr.m_ObjectList[i].m_col,
-				ObjMgr.m_ObjectList[i].m_num_vertex, ObjMgr.m_ObjectList[i].m_size_pos, ObjMgr.m_ObjectList[i].m_size_idx);
-		}
-		else
-		{
-			DrawObjectByArray(ObjMgr.m_ObjectList[i].m_DRAW_TYPE, ObjMgr.m_ObjectList[i].m_pos, ObjMgr.m_ObjectList[i].m_col, 
-						      ObjMgr.m_ObjectList[i].m_num_vertex, ObjMgr.m_ObjectList[i].m_size_pos);
+			if (ObjMgr.m_ObjectList[i].m_isModeIDX)
+			{
+				DrawObjectByIDX(ObjMgr.m_ObjectList[i].m_pos, ObjMgr.m_ObjectList[i].m_inex, ObjMgr.m_ObjectList[i].m_col,
+					ObjMgr.m_ObjectList[i].m_num_vertex, ObjMgr.m_ObjectList[i].m_size_pos, ObjMgr.m_ObjectList[i].m_size_idx);
+			}
+			else
+			{
+				DrawObjectByArray(ObjMgr.m_ObjectList[i].m_DRAW_TYPE, ObjMgr.m_ObjectList[i].m_pos, ObjMgr.m_ObjectList[i].m_col,
+					ObjMgr.m_ObjectList[i].m_num_vertex, ObjMgr.m_ObjectList[i].m_size_pos);
+			}
 		}
 	}
 
@@ -167,23 +172,29 @@ void InputKey(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
+	case 'R':
+	case 'r':
+		ObjMgr.SetChangeActive(0);
+		break;
+	case 'T':
+	case 't':
+		ObjMgr.SetChangeActive(1);
+		break;
 	case '1':
-		ObjMgr.ShowCubeShapeface(1, 0);
-		break;
 	case '2':
-		ObjMgr.ShowCubeShapeface(1, 1);
-		break;
 	case '3':
-		ObjMgr.ShowCubeShapeface(1, 2);
-		break;
 	case '4':
-		ObjMgr.ShowCubeShapeface(1, 3);
-		break;
 	case '5':
-		ObjMgr.ShowCubeShapeface(1, 4);
-		break;
 	case '6':
-		ObjMgr.ShowCubeShapeface(1, 5);
+		ObjMgr.SetChangeActive(0);
+		ObjMgr.ShowCubeShapeface(1, key-'0' - 1);
+		break;
+	case '0':
+	case '7':
+	case '8':
+	case '9':
+		ObjMgr.SetChangeActive(1);
+		//ObjMgr.ShowCubeShapeface(1, key - '0' - 1);
 		break;
 	case 'q':
 		glutLeaveMainLoop();
