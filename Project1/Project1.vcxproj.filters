@@ -65,10 +65,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="vertex.glsl">
+    <None Include="vertex_shader.glsl">
       <Filter>Shader</Filter>
     </None>
-    <None Include="vertex_shader.glsl">
+    <None Include="basic.vert">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="basic.frag">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>
