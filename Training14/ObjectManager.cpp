@@ -138,3 +138,23 @@ void ObjectManager::ShowCubeShapeface(int idx, int face)
 
 	m_ObjectList[idx].m_size_idx = 24;
 }
+
+void ObjectManager::ShowTetrahedronShapeface(int idx, int face)
+{
+	if (m_ObjectList.size() <= idx) return;
+
+	int start_idx = 0;
+
+	if (face == -1)		start_idx = 0; // ÁÂÃø¸é 
+	else if (face == 6)	start_idx = 3; // ¿ìÃø¸é
+	else if (face == 7)	start_idx = 6; // µÞ¸é
+	else if (face == 8)	start_idx = 9; // ¾Æ·§¸é
+
+	for (int i = 0; i < 3; i++)
+	{
+		m_ObjectList[idx].m_inex[i] = Object::TetrahedronIndexs[start_idx];
+		start_idx += 1;
+	}
+
+	m_ObjectList[idx].m_size_idx = 12;
+}

@@ -194,7 +194,7 @@ void InputKey(unsigned char key, int x, int y)
 	case '8':
 	case '9':
 		ObjMgr.SetChangeActive(1);
-		//ObjMgr.ShowCubeShapeface(1, key - '0' - 1);
+		ObjMgr.ShowTetrahedronShapeface(2, key - '0' - 1);
 		break;
 	case 'q':
 		glutLeaveMainLoop();
