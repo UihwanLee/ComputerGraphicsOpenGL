@@ -1,10 +1,11 @@
 #include <iostream>
 #include "OpenGL.h"
+#include "Object.h"
 #include <vector>
 
 using namespace std;
 
-typedef struct Object
+typedef struct ObjectInfo
 {
 	float		m_pivot[2];
 	GLfloat*	m_pos;
@@ -21,8 +22,8 @@ typedef struct Object
 class ObjectManager
 {
 public:
-	Object			temp;
-	vector<Object>	m_ObjectList;
+	ObjectInfo			temp;
+	vector<ObjectInfo>	m_ObjectList;
 
 public:
 	ObjectManager();
@@ -30,4 +31,7 @@ public:
 
 	void CreateCoordinate();
 	void CreateCube();
+	void CreateTetrahedron();
+
+	void ShowCubeShapeface(int idx, int face);
 };

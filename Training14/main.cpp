@@ -93,7 +93,6 @@ GLvoid Reshape(int w, int h)
 
 GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL)
 {
-	cout << SIZE_COL << endl;
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
 	glBufferData(GL_ARRAY_BUFFER, SIZE_COL, posList, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
@@ -168,6 +167,24 @@ void InputKey(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
+	case '1':
+		ObjMgr.ShowCubeShapeface(1, 0);
+		break;
+	case '2':
+		ObjMgr.ShowCubeShapeface(1, 1);
+		break;
+	case '3':
+		ObjMgr.ShowCubeShapeface(1, 2);
+		break;
+	case '4':
+		ObjMgr.ShowCubeShapeface(1, 3);
+		break;
+	case '5':
+		ObjMgr.ShowCubeShapeface(1, 4);
+		break;
+	case '6':
+		ObjMgr.ShowCubeShapeface(1, 5);
+		break;
 	case 'q':
 		glutLeaveMainLoop();
 		break;

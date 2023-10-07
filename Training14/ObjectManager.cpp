@@ -24,26 +24,11 @@ GLvoid InitBufferByIdx(GLfloat* buffer, int i, float x, float y, float z)
 
 void ObjectManager::CreateCoordinate()
 {
-	// 좌표계
-	GLfloat CoordinateVertex[] = {
-		-1.0f, 0.f, 0.f,
-		1.0f, 0.f, 0.f,
-		0.0f, -1.0f, 0.f,
-		0.0f, 1.0f, 0.f
-	};
-
-	GLfloat CoordinateColors[] = {
-		0.0f, 1.f, 0.f,
-		0.0f, 1.f, 0.f,
-		1.0f, 0.f, 0.f,
-		1.0f, 0.f, 0.f
-	};
-
 	temp.m_pos = new GLfloat[12];
 	temp.m_col = new GLfloat[12];
 
-	for (int i = 0; i < 12; i++)	temp.m_pos[i] = CoordinateVertex[i];
-	for (int i = 0; i < 12; i++)	temp.m_col[i] = CoordinateColors[i];
+	for (int i = 0; i < 12; i++)	temp.m_pos[i] = Object::CoordinateVertexs[i];
+	for (int i = 0; i < 12; i++)	temp.m_col[i] = Object::CoordinateColors[i];
 
 	temp.m_num_vertex = 4;
 	temp.m_size_pos = 48;
@@ -61,60 +46,13 @@ void ObjectManager::CreateCoordinate()
 
 void ObjectManager::CreateCube()
 {
-	// 사각형
-	GLfloat CubeVertexs[] = {
-			-0.5f, 0.5f, -0.5f,  //0번점
-			-0.5f, 0.5f, 0.5f,  //1번점
-			0.5f, 0.5f, 0.5f,  //2번점
-			0.5f, 0.5f, -0.5f,  //3번점
-
-			-0.5f, -0.5f, -0.5f,  //4번점
-			-0.5f, -0.5f, 0.5f,  //5번점
-			0.5f, -0.5f, 0.5f,  //6번점
-			0.5f, -0.5f, -0.5f,  //7번점
-	};
-
-	GLint CubeIndexs[] =
-	{
-		0,1,2,
-		0,2,3,  //윗면
-
-		1,5,6,
-		1,6,2, //앞면
-
-		2,6,7,
-		2,7,3, //우측면
-
-		0,4,5,
-		0,5,1, //좌측면
-
-		5,4,6,
-		4,7,6,// 밑면
-
-		0,7,4, //뒷면
-		0,3,7
-	};
-
-	// RGB 135, 206, 235
-	GLfloat CubeColors[] = {
-			135.f / 255.f,206.f / 255.f,235.f / 255.f,  //0번점
-			135.f / 255.f,206.f / 255.f,235.f / 255.f,  //1번점
-			135.f / 255.f,206.f / 255.f,235.f / 255.f,  //2번점
-			135.f / 255.f,206.f / 255.f,235.f / 255.f,  //3번점
-
-			135.f / 255.f,206.f / 255.f,235.f / 255.f,  //4번점
-			135.f / 255.f,206.f / 255.f,235.f / 255.f,  //5번점
-			135.f / 255.f,206.f / 255.f,235.f / 255.f,  //6번점
-			135.f / 255.f,206.f / 255.f,235.f / 255.f,  //7번점
-	};
-
 	temp.m_pos = new GLfloat[24];
 	temp.m_inex = new GLint[36];
 	temp.m_col = new GLfloat[24];
 
-	for (int i = 0; i < 24; i++)	temp.m_pos[i] = CubeVertexs[i];
-	for (int i = 0; i < 36; i++)	temp.m_inex[i] = CubeIndexs[i];
-	for (int i = 0; i < 24; i++)	temp.m_col[i] = CubeColors[i];
+	for (int i = 0; i < 24; i++)	temp.m_pos[i] = Object::CubeVertexs[i];
+	for (int i = 0; i < 36; i++)	temp.m_inex[i] = Object::CubeIndexs[i];
+	for (int i = 0; i < 24; i++)	temp.m_col[i] = Object::CubeColors[i];
 
 	temp.m_num_vertex = 36;
 	temp.m_size_pos = 96;
@@ -127,4 +65,31 @@ void ObjectManager::CreateCube()
 	temp.m_isActive = true;
 
 	m_ObjectList.emplace_back(temp);
+}
+
+void ObjectManager::CreateTetrahedron()
+{
+	// 사면체
+}
+
+void ObjectManager::ShowCubeShapeface(int idx, int face)
+{
+	if (m_ObjectList.size() <= idx) return;
+
+	int start_idx = 0;
+
+	if (face == 0)		start_idx = 0; // 윗면 
+	else if (face == 1)	start_idx = 6; // 앞면
+	else if (face == 2)	start_idx = 12; // 우측면
+	else if (face == 3)	start_idx = 18; // 좌측면
+	else if (face == 4)	start_idx = 24; // 밑면
+	else if (face == 5)	start_idx = 30; // 밑면
+
+	for (int i = 0; i < 6; i++)
+	{
+		m_ObjectList[idx].m_inex[i] = Object::CubeIndexs[start_idx];
+		start_idx += 1;
+	}
+
+	m_ObjectList[idx].m_size_idx = 24;
 }
