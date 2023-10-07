@@ -127,20 +127,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="filebuf.cpp" />
-    <ClCompile Include="Init.cpp" />
+    <ClCompile Include="InitShder.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ObjectManager.cpp" />
-    <ClCompile Include="Object.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="fragment.glsl" />
     <None Include="vertex.glsl" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="filebuf.h" />
-    <ClInclude Include="Init.h" />
-    <ClInclude Include="Object.h" />
+    <ClInclude Include="InitShder.h" />
     <ClInclude Include="ObjectManager.h" />
     <ClInclude Include="OpenGL.h" />
   </ItemGroup>

@@ -21,13 +21,7 @@
     <ClCompile Include="main.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="Init.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="filebuf.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="Object.cpp">
+    <ClCompile Include="InitShder.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="ObjectManager.cpp">
@@ -43,13 +37,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Init.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="filebuf.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Object.h">
+    <ClInclude Include="InitShder.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="ObjectManager.h">

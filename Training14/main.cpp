@@ -1,8 +1,7 @@
 #include <iostream>
 #include "OpenGL.h"
 #include <random>
-#include "Init.h"
-#include "filebuf.h"
+#include "InitShder.h"
 #include "ObjectManager.h"
 
 #pragma comment(lib, "glew32.lib")
@@ -24,7 +23,8 @@ GLvoid Reshape(int w, int h);
 GLuint ShaderProgram;
 GLuint VBO[2], EBO;
 
-GLvoid DrawObject(void* obj_pos, void* obj_index, void* obj_color);
+GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL);
+GLvoid DrawObjectByIDX(void* obj_pos, void* obj_index, void* obj_color, int NUM_VETEX, int SIZE_COL, int SIZE_IDX);
 
 void InputKey(unsigned char key, int x, int y);
 
@@ -57,19 +57,29 @@ GLvoid Init()
 	glGenBuffers(2, VBO);
 	glGenBuffers(1, &EBO);
 
+	ObjMgr.CreateCoordinate();
 	ObjMgr.CreateCube();
 }
 
 GLvoid drawScene()
 {
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(ShaderProgram);
 
 	for (int i = 0; i < ObjMgr.m_ObjectList.size(); i++)
 	{
-		DrawObject(ObjMgr.m_ObjectList[i].m_pos, ObjMgr.m_ObjectList[i].m_inex, ObjMgr.m_ObjectList[i].m_col);
+		if (ObjMgr.m_ObjectList[i].m_isModeIDX)
+		{
+			DrawObjectByIDX(ObjMgr.m_ObjectList[i].m_pos, ObjMgr.m_ObjectList[i].m_inex, ObjMgr.m_ObjectList[i].m_col,
+				ObjMgr.m_ObjectList[i].m_num_vertex, ObjMgr.m_ObjectList[i].m_size_pos, ObjMgr.m_ObjectList[i].m_size_idx);
+		}
+		else
+		{
+			DrawObjectByArray(ObjMgr.m_ObjectList[i].m_DRAW_TYPE, ObjMgr.m_ObjectList[i].m_pos, ObjMgr.m_ObjectList[i].m_col, 
+						      ObjMgr.m_ObjectList[i].m_num_vertex, ObjMgr.m_ObjectList[i].m_size_pos);
+		}
 	}
 
 	glutSwapBuffers();
@@ -81,17 +91,47 @@ GLvoid Reshape(int w, int h)
 
 }
 
-GLvoid DrawObject(void* obj_pos, void* obj_index, void* obj_color)
+GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL)
 {
+	cout << SIZE_COL << endl;
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	glBufferData(GL_ARRAY_BUFFER, 96, obj_pos, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 144, obj_index, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, SIZE_COL, posList, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(0);
 
 	unsigned int modelLocation = glGetUniformLocation(ShaderProgram, "trans");
 
-	glm::mat4 model = glm::mat4(1.0f);		// ¸ðµ¨º¯È¯
+	glm::mat4 model = glm::mat4(1.0f);
+	glm::mat4 scale = glm::mat4(1.0f);
+	glm::mat4 rot = glm::mat4(1.0f);
+	glm::mat4 move = glm::mat4(1.0f);
+
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));		// ¸ðµ¨º¯È¯
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
+	glBufferData(GL_ARRAY_BUFFER, SIZE_COL, colList, GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(1);
+
+
+	glDrawArrays(GL_LINES, 0, NUM_VETEX);
+
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
+}
+
+GLvoid DrawObjectByIDX(void* obj_pos, void* obj_index, void* obj_color, int NUM_VETEX, int SIZE_COL, int SIZE_IDX)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+	glBufferData(GL_ARRAY_BUFFER, SIZE_COL, obj_pos, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, SIZE_IDX, obj_index, GL_STATIC_DRAW);
+
+	unsigned int modelLocation = glGetUniformLocation(ShaderProgram, "trans");
+
+	glm::mat4 model = glm::mat4(1.0f);	
 	glm::mat4 scale = glm::mat4(1.0f);
 	glm::mat4 rot = glm::mat4(1.0f);
 	glm::mat4 move = glm::mat4(1.0f);
@@ -111,14 +151,14 @@ GLvoid DrawObject(void* obj_pos, void* obj_index, void* obj_color)
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
-	glBufferData(GL_ARRAY_BUFFER, 96, obj_color, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, SIZE_COL, obj_color, GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, NUM_VETEX, GL_UNSIGNED_INT, 0);
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
