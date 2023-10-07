@@ -54,52 +54,6 @@ void Camera_Timer(int a);
 void InputKey(unsigned char key, int x, int y);
 void SpecialKey(int key, int x, int y);
 
-// 사각형
-GLfloat vertex[] = {
-		-0.5f, 1.0f, -0.5f,  //0번점
-		-0.5f, 1.0f, 0.5f,  //1번점
-		0.5f, 1.0f, 0.5f,  //2번점
-		0.5f, 1.0f, -0.5f,  //3번점
-
-		-0.5f, 0.0f, -0.5f,  //4번점
-		-0.5f, 0.0f, 0.5f,  //5번점
-		0.5f, 0.0f, 0.5f,  //6번점
-		0.5f, 0.0f, -0.5f,  //7번점
-};
-
-GLint gIndices[] = 
-{
-	0,1,2,
-	0,2,3,  //윗면
-
-	1,5,6,
-	1,6,2, //앞면
-
-	2,6,7,
-	2,7,3, //우측면
-
-	0,4,5,
-	0,5,1, //좌측면
-
-	5,4,6,
-	4,7,6,// 밑면
-
-	0,7,4, //뒷면
-	0,3,7
-};
-
-GLfloat colors[] = {
-		1.0f,0.0f,0.0f,  //0번점
-		0.0f,1.0f,0.0f,  //1번점
-		0.0f,0.0f,1.0f,  //2번점
-		1.0f,0.0f,0.0f,  //3번점
-
-		0.0f,1.0f,0.0f,  //4번점
-		0.0f,0.0f,1.0f,  //5번점
-		1.0f,0.0f,0.0f,  //6번점
-		0.0f,1.0f,0.0f,  //7번점
-};
-
 int main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
@@ -260,10 +214,9 @@ GLvoid drawScene()
 
 	//DrawObject(vertex, gIndices, colors);
 
-	for (auto obj : ObjMgr.m_ObjectList)
+	for (int i = 0; i < ObjMgr.m_ObjectList.size(); i++)
 	{
-		cout << obj.m_pos[0] << endl;
-		DrawObject(obj.m_pos, obj.m_inex, obj.m_col);
+		DrawObject(ObjMgr.m_ObjectList[i].m_pos, ObjMgr.m_ObjectList[i].m_inex, ObjMgr.m_ObjectList[i].m_col);
 	}
 
 	glutSwapBuffers();

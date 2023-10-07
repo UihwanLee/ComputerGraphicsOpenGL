@@ -7,6 +7,14 @@ ObjectManager::ObjectManager()
 
 ObjectManager::~ObjectManager()
 {
+
+}
+
+GLvoid InitBufferByIdx(GLfloat* buffer, int i, float x, float y, float z)
+{
+	buffer[i] = x;
+	buffer[i+1] = y;
+	buffer[i+2] = z;
 }
 
 void ObjectManager::CreateCube()
@@ -57,11 +65,16 @@ void ObjectManager::CreateCube()
 			0.0f,1.0f,0.0f,  //7¹øÁ¡
 	};
 
+	temp.m_pos = new GLfloat[24];
+	temp.m_inex = new GLint[36];
+	temp.m_col = new GLfloat[24];
+
+	for (int i = 0; i < 24; i++)	temp.m_pos[i] = vertex[i];
+	for (int i = 0; i < 36; i++)	temp.m_inex[i] = Indices[i];
+	for (int i = 0; i < 24; i++)	temp.m_col[i] = colors[i];
+
 	temp.m_pivot[0] = 0.f;
 	temp.m_pivot[1] = 0.f;
-	temp.m_pos = vertex;
-	temp.m_inex = Indices;
-	temp.m_col = colors;
 	temp.m_isActive = true;
 
 	m_ObjectList.emplace_back(temp);
