@@ -27,6 +27,10 @@ bool isDepthTest = false;
 GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL);
 GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_color, int NUM_VETEX, int SIZE_COL, int SIZE_IDX);
 
+// 이동
+GLfloat move_X = 0.0f;
+GLfloat move_Y = 0.0f;
+
 // 회전 애니메이션
 bool isRotating_X = false;
 bool isRotating_Y = false;
@@ -35,7 +39,8 @@ GLfloat rotate_Y = 30.0f;
 GLvoid RotatingAnimationX(int isAinm);
 GLvoid RotatingAnimationY(int isAinm);
 
-void InputKey(unsigned char key, int x, int y);
+void Keyboard(unsigned char key, int x, int y);
+void KeyboardSpecial(int key, int x, int y);
 
 int main(int argc, char** argv)
 {
@@ -56,7 +61,8 @@ int main(int argc, char** argv)
 
 	InitProgram(ShaderProgram);
 	glutDisplayFunc(drawScene);
-	glutKeyboardFunc(InputKey);
+	glutKeyboardFunc(Keyboard);
+	glutSpecialFunc(KeyboardSpecial);
 	glutReshapeFunc(Reshape);
 	glutMainLoop();
 }
@@ -154,12 +160,12 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 
 	scale = glm::scale(scale, glm::vec3(0.5f, 0.6f, 0.5f));
 
+	move = glm::translate(move, glm::vec3(move_X, move_Y, 0.0f));
+
 	rot = glm::rotate(rot, glm::radians(rotate_Y), glm::vec3(1.0f, 0.0f, 0.0f));
 	rot = glm::rotate(rot, glm::radians(rotate_X), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	move = glm::translate(move, glm::vec3(0.0f, 0.0f, 0.0f));
-
-	model = model * scale * rot * move;
+	model = model * scale * move * rot;
 
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));		// 모델변환
 
@@ -205,7 +211,7 @@ GLvoid StopAllAnim()
 	isRotating_X = false;
 	isRotating_Y = false;
 
-	Sleep(1000);
+	Sleep(500);
 
 	return;
 }
@@ -214,12 +220,17 @@ GLvoid Reset()
 {
 	isRotating_X = false;
 	isRotating_Y = false;
+
+	Sleep(500);
+
+	move_X = 0.0f;
+	move_Y = 0.0f;
 	rotate_X = 30.0f;
 	rotate_Y = 30.0f;
 	ObjMgr.Reset();
 }
 
-void InputKey(unsigned char key, int x, int y)
+void Keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
@@ -268,6 +279,27 @@ void InputKey(unsigned char key, int x, int y)
 		glutLeaveMainLoop();
 		break;
 	default:
+		break;
+	}
+
+	glutPostRedisplay();
+}
+
+void KeyboardSpecial(int key, int x, int y)
+{
+	switch (key)
+	{
+	case GLUT_KEY_UP:
+		move_Y += 0.1f;
+		break;
+	case GLUT_KEY_DOWN:
+		move_Y -= 0.1f;
+		break;
+	case GLUT_KEY_LEFT:
+		move_X -= 0.1f;
+		break;
+	case GLUT_KEY_RIGHT:
+		move_X += 0.1f;
 		break;
 	}
 

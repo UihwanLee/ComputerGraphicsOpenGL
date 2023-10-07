@@ -16,6 +16,7 @@ typedef struct ObjectInfo
 	int			m_num_vertex;
 	int			m_size_pos;
 	int			m_size_idx;
+	int			m_num_idx;
 	int			m_DRAW_TYPE;
 	bool		m_isAnimRotating;
 	bool		m_isActive;
