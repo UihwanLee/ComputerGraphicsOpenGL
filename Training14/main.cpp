@@ -1,12 +1,9 @@
 #include <iostream>
-#include <gl/glew.h> 
-#include <gl/freeglut.h>
-#include <gl/freeglut_ext.h>
-#include <gl/glm/glm/glm.hpp>
-#include <gl/glm/glm/gtc/matrix_transform.hpp>
+#include "OpenGL.h"
 #include <random>
 #include "Init.h"
 #include "filebuf.h"
+#include "ObjectManager.h"
 
 #pragma comment(lib, "glew32.lib")
 #pragma comment(lib, "freeglut.lib")
@@ -18,7 +15,10 @@
 
 using namespace std;
 
-GLvoid InitBuffer();
+// 클래스
+ObjectManager ObjMgr;
+
+GLvoid Init();
 GLvoid drawScene(GLvoid);
 GLvoid Reshape(int w, int h);
 GLuint ShaderProgram;
@@ -115,7 +115,7 @@ int main(int argc, char** argv)
 	else
 		std::cout << "GLEW Initialized\n";
 
-	InitBuffer();
+	Init();
 
 	InitProgram(ShaderProgram);
 	glutDisplayFunc(drawScene);
@@ -126,10 +126,12 @@ int main(int argc, char** argv)
 	glutMainLoop();
 }
 
-GLvoid InitBuffer()
+GLvoid Init()
 {
 	glGenBuffers(2, VBO);
 	glGenBuffers(1, &EBO);
+
+	ObjMgr.CreateCube();
 }
 
 void Timer(int a)
@@ -256,7 +258,13 @@ GLvoid drawScene()
 	projection = glm::perspective(glm::radians(60.0f), (float)WIDTH / (float)HEIGHT, 1.0f, 200.0f);	// 뷰잉각도, 종횡비, 가까운거리, 먼거리
 	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, &projection[0][0]);		// 투영변환
 
-	DrawObject(vertex, gIndices, colors);
+	//DrawObject(vertex, gIndices, colors);
+
+	for (auto obj : ObjMgr.m_ObjectList)
+	{
+		cout << obj.m_pos[0] << endl;
+		DrawObject(obj.m_pos, obj.m_inex, obj.m_col);
+	}
 
 	glutSwapBuffers();
 }
