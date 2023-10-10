@@ -69,7 +69,7 @@ GLvoid Init()
 	ObjMgr.CreateCoordinate();
 	ObjMgr.CreateCube();
 	ObjMgr.MoveObject(1, 0.0f, 0.0f, 1.0f);
-	ObjMgr.CreateSqhere();
+	ObjMgr.CreateCone();
 	ObjMgr.MoveObject(2, 0.0f, 0.0f, -1.0f);
 
 	ObjMgr.RotateAllObjects(-30.0f, -30.0f, 0.0f);

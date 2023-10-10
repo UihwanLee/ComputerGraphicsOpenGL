@@ -44,7 +44,7 @@ public:
 	void CreateCube();
 	void CreateTetrahedron();
 	void CreateSquarePyramid();
-
+	void CreateCone();
 	void CreateSqhere();
 
 	void SetChangeActive(int mode);

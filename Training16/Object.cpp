@@ -115,6 +115,10 @@ GLint Object::SquarePyramidIndexs[18] =
 	3, 4, 1
 };
 
+GLfloat Object::ConeVertexs[SIZE_CONE_VERTEX] = { 0.0f };
+GLfloat Object::ConeColors[SIZE_CONE_VERTEX] = { 0.0f };
+GLint Object::ConeIndexs[SIZE_CONE_INDEX] = { 0.0f };
+
 GLfloat Object::SqhereVertexs[SIZE_SQHERE_VERTEX] = { 0.0f };
 GLfloat Object::SqhereColors[SIZE_SQHERE_VERTEX] = { 0.0f };
 GLint Object::SqhereIndexs[SIZE_SQHERE_INDEX] = { 0 };

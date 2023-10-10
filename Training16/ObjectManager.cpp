@@ -128,32 +128,68 @@ void ObjectManager::CreateSquarePyramid()
 	m_ObjectList.emplace_back(temp);
 }
 
+void ObjectManager::CreateCone()
+{
+	std::vector<float> vertices;
+	std::vector<unsigned int> indices;
+
+	// 원뿔의 정점과 인덱스 생성
+	vertices.push_back(0.0f);  // 원뿔의 꼭대기
+	vertices.push_back(CONE_HEIGHT);
+	vertices.push_back(0.0f);
+
+	for (int i = 0; i <= SLICES; ++i) {
+		float theta = static_cast<float>(i) * 2.0f * PI / SLICES;
+		float x = RADIUS * cos(theta);
+		float z = RADIUS * sin(theta);
+		vertices.push_back(x);
+		vertices.push_back(0.0f);
+		vertices.push_back(z);
+
+		if (i < SLICES) {
+			indices.push_back(0);
+			indices.push_back(i + 1);
+			indices.push_back(i + 2);
+		}
+	}
+
+	// 원뿔
+	temp.m_pos = new GLfloat[SIZE_CONE_VERTEX];
+	temp.m_inex = new GLint[SIZE_CONE_INDEX];
+	temp.m_col = new GLfloat[SIZE_CONE_VERTEX];
+
+	for (int i = 0; i < vertices.size(); i++)	temp.m_pos[i] = vertices[i];
+	for (int i = 0; i < vertices.size(); i++)	temp.m_col[i] = Object::ConeColors[i];
+	for (int i = 0; i < indices.size(); i++)	temp.m_inex[i] = indices[i];
+
+	InitObjectStruct(&temp, SIZE_CONE_INDEX, 12 * (SIZE_CONE_VERTEX / 3), 12 * (SIZE_CONE_INDEX / 3), 0, GL_LINE_LOOP, true, false, true);
+
+	m_ObjectList.emplace_back(temp);
+}
+
 void ObjectManager::CreateSqhere()
 {
-	int stacks = 20;
-	int slices = 20;
-	float radius = 0.7f;
 	std::vector<float> vertices;
 	std::vector<unsigned int> indices;
 
 	// 구의 정점과 인덱스 생성
-	for (int i = 0; i <= stacks; ++i) {
-		float phi = static_cast<float>(i) * PI / stacks;
-		for (int j = 0; j <= slices; ++j) {
-			float theta = static_cast<float>(j) * 2.0f * PI / slices;
-			float x = radius * sin(phi) * cos(theta);
-			float y = radius * cos(phi);
-			float z = radius * sin(phi) * sin(theta);
+	for (int i = 0; i <= STACKS; ++i) {
+		float phi = static_cast<float>(i) * PI / STACKS;
+		for (int j = 0; j <= SLICES; ++j) {
+			float theta = static_cast<float>(j) * 2.0f * PI / SLICES;
+			float x = RADIUS * sin(phi) * cos(theta);
+			float y = RADIUS * cos(phi);
+			float z = RADIUS * sin(phi) * sin(theta);
 			vertices.push_back(x);
 			vertices.push_back(y);
 			vertices.push_back(z);
 		}
 	}
 
-	for (int i = 0; i < stacks; ++i) {
-		for (int j = 0; j < slices; ++j) {
-			int first = i * (slices + 1) + j;
-			int second = first + slices + 1;
+	for (int i = 0; i < STACKS; ++i) {
+		for (int j = 0; j < STACKS; ++j) {
+			int first = i * (SLICES + 1) + j;
+			int second = first + SLICES + 1;
 			indices.push_back(first);
 			indices.push_back(second);
 			indices.push_back(first + 1);
@@ -173,7 +209,7 @@ void ObjectManager::CreateSqhere()
 	for (int i = 0; i < vertices.size(); i++)	temp.m_col[i] = Object::SqhereColors[i];
 	for (int i = 0; i < indices.size(); i++)	temp.m_inex[i] = indices[i];
 
-	InitObjectStruct(&temp, 2400, 12 * 441, 12 * 800, 800, GL_LINE_LOOP, true, false, true);
+	InitObjectStruct(&temp, SIZE_SQHERE_INDEX, 12 * (SIZE_SQHERE_VERTEX/3), 12 * (SIZE_SQHERE_INDEX/3), 0, GL_LINE_LOOP, true, false, true);
 
 	m_ObjectList.emplace_back(temp);
 }
