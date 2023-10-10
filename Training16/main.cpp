@@ -18,6 +18,7 @@ using namespace std;
 ObjectManager ObjMgr;
 
 GLvoid Init();
+GLvoid Reset();
 GLvoid drawScene(GLvoid);
 GLvoid Reshape(int w, int h);
 GLuint ShaderProgram;
@@ -66,14 +67,21 @@ GLvoid Init()
 	glGenBuffers(2, VBO);
 	glGenBuffers(1, &EBO);
 
+	Reset();
+}
+
+GLvoid Reset()
+{
+	ObjMgr.Reset();
+
 	ObjMgr.CreateCoordinate();
 	ObjMgr.CreateCube();
-	ObjMgr.MoveObject(1, 0.0f, 0.0f, 1.0f);
 	ObjMgr.CreateCone();
-	ObjMgr.MoveObject(2, 0.0f, 0.0f, -1.0f);
 
-	ObjMgr.RotateAllObjects(-30.0f, -30.0f, 0.0f);
-	ObjMgr.ScaleAllObjects(0.3f, 0.4f, 0.3f);
+	ObjMgr.SetPosition(1, 0.0f, 0.0f, 1.0f);
+	ObjMgr.SetPosition(2, 0.0f, 0.0f, -1.0f);
+	ObjMgr.SetAllRotate(-30.0f, -30.0f, 0.0f);
+	ObjMgr.SetAllScale(0.3f, 0.4f, 0.3f);
 }
 
 GLvoid drawScene()
@@ -220,18 +228,6 @@ GLvoid StopAllAnim()
 	Sleep(500);
 
 	return;
-}
-
-GLvoid Reset()
-{
-	isRotating_X = false;
-	isRotating_Y = false;
-
-	Sleep(500);
-
-	rotate_X = 30.0f;
-	rotate_Y = 30.0f;
-	ObjMgr.Reset();
 }
 
 void Keyboard(unsigned char key, int x, int y)

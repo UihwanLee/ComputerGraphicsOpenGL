@@ -50,13 +50,13 @@ public:
 	void SetChangeActive(int mode);
 	void ChangeWireSolidType();
 
-	void MoveObject(int idx, float x, float y, float z);
-	void RotateObject(int idx, float x, float y, float z);
-	void ScaleObject(int idx, float x, float y, float z);
+	void SetPosition(int idx, float x, float y, float z);
+	void SetRotate(int idx, float x, float y, float z);
+	void SetScale(int idx, float x, float y, float z);
 
-	void MoveAllObjects(float x, float y, float z);
-	void RotateAllObjects(float x, float y, float z);
-	void ScaleAllObjects(float x, float y, float z);
+	void SetAllPositon(float x, float y, float z);
+	void SetAllRotate(float x, float y, float z);
+	void SetAllScale(float x, float y, float z);
 
 	void Reset();
 };

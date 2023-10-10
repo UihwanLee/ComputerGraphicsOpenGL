@@ -254,25 +254,25 @@ void ObjectManager::ChangeWireSolidType()
 	}
 }
 
-void ObjectManager::MoveObject(int idx, float x, float y, float z)
+void ObjectManager::SetPosition(int idx, float x, float y, float z)
 {
 	if (m_ObjectList.empty() || idx == 0) return;
 
-	m_ObjectList[idx].m_pivot[0] += x;
-	m_ObjectList[idx].m_pivot[1] += y;
-	m_ObjectList[idx].m_pivot[2] += z;
+	m_ObjectList[idx].m_pivot[0] = x;
+	m_ObjectList[idx].m_pivot[1] = y;
+	m_ObjectList[idx].m_pivot[2] = z;
 }
 
-void ObjectManager::RotateObject(int idx, float x, float y, float z)
+void ObjectManager::SetRotate(int idx, float x, float y, float z)
 {
 	if (m_ObjectList.empty() || idx == 0) return;
 
-	m_ObjectList[idx].m_rotate[0] += x;
-	m_ObjectList[idx].m_rotate[1] += y;
-	m_ObjectList[idx].m_rotate[2] += z;
+	m_ObjectList[idx].m_rotate[0] = x;
+	m_ObjectList[idx].m_rotate[1] = y;
+	m_ObjectList[idx].m_rotate[2] = z;
 }
 
-void ObjectManager::ScaleObject(int idx, float x, float y, float z)
+void ObjectManager::SetScale(int idx, float x, float y, float z)
 {
 	if (m_ObjectList.empty() || idx == 0) return;
 
@@ -281,7 +281,7 @@ void ObjectManager::ScaleObject(int idx, float x, float y, float z)
 	m_ObjectList[idx].m_scale[2] = z;
 }
 
-void ObjectManager::MoveAllObjects(float x, float y, float z)
+void ObjectManager::SetAllPositon(float x, float y, float z)
 {
 	if (m_ObjectList.empty()) return;
 
@@ -293,7 +293,7 @@ void ObjectManager::MoveAllObjects(float x, float y, float z)
 	}
 }
 
-void ObjectManager::RotateAllObjects(float x, float y, float z)
+void ObjectManager::SetAllRotate(float x, float y, float z)
 {
 	if (m_ObjectList.empty()) return;
 
@@ -305,7 +305,7 @@ void ObjectManager::RotateAllObjects(float x, float y, float z)
 	}
 }
 
-void ObjectManager::ScaleAllObjects(float x, float y, float z)
+void ObjectManager::SetAllScale(float x, float y, float z)
 {
 	if (m_ObjectList.empty()) return;
 
@@ -329,12 +329,6 @@ void MoveAxisObject(GLfloat* posList, int SIZE, int startIDX, float moveDist)
 void ObjectManager::Reset()
 {
 	m_ObjectList.clear();
-
-	CreateCoordinate();
-	CreateCube();
-	CreateSquarePyramid();
-
-	SetChangeActive(0);
 }
 
 
