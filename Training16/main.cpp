@@ -34,8 +34,8 @@ GLfloat move_Y = 0.0f;
 // 회전 애니메이션
 bool isRotating_X = false;
 bool isRotating_Y = false;
-GLfloat rotate_X = 30.0f;
-GLfloat rotate_Y = 30.0f;
+GLfloat rotate_X = -30.0f;
+GLfloat rotate_Y = -30.0f;
 GLvoid RotatingAnimationX(int isAinm);
 GLvoid RotatingAnimationY(int isAinm);
 
@@ -123,8 +123,16 @@ GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VE
 	glm::mat4 rot = glm::mat4(1.0f);
 	glm::mat4 move = glm::mat4(1.0f);
 
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));		// 모델변환
+	scale = glm::scale(scale, glm::vec3(1.0f, 1.0f, 1.0f));
 
+	move = glm::translate(move, glm::vec3(0.0f, 0.0f, 0.0f));
+
+	rot = glm::rotate(rot, glm::radians(-30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	rot = glm::rotate(rot, glm::radians(-30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+	model = model * scale * move * rot;
+
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));		// 모델변환
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
 	glBufferData(GL_ARRAY_BUFFER, SIZE_COL, colList, GL_STATIC_DRAW);

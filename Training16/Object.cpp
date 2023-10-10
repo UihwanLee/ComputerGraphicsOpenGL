@@ -1,13 +1,17 @@
 #include "Object.h"
 
-GLfloat Object::CoordinateVertexs[12] = {
+GLfloat Object::CoordinateVertexs[18] = {
 	1.0f, 0.0f, 0.0f,
 	-1.0f, 0.0f, 0.0f,
 	0.0f, -1.0f, 0.0f,
-	0.0f, 1.0f, 0.0f
+	0.0f, 1.0f, 0.0f,
+	0.0f, 0.0f, -1.0f,
+	0.0f, 0.0f, 1.0f
 };
 
-GLfloat Object::CoordinateColors[12] = {
+GLfloat Object::CoordinateColors[18] = {
+		0.0f, 0.f, 0.f,
+		0.0f, 0.f, 0.f,
 		0.0f, 0.f, 0.f,
 		0.0f, 0.f, 0.f,
 		0.0f, 0.f, 0.f,

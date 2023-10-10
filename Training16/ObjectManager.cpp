@@ -61,13 +61,13 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 
 void ObjectManager::CreateCoordinate()
 {
-	temp.m_pos = new GLfloat[12];
-	temp.m_col = new GLfloat[12];
+	temp.m_pos = new GLfloat[18];
+	temp.m_col = new GLfloat[18];
 
-	for (int i = 0; i < 12; i++)	temp.m_pos[i] = Object::CoordinateVertexs[i];
-	for (int i = 0; i < 12; i++)	temp.m_col[i] = Object::CoordinateColors[i];
+	for (int i = 0; i < 18; i++)	temp.m_pos[i] = Object::CoordinateVertexs[i];
+	for (int i = 0; i < 18; i++)	temp.m_col[i] = Object::CoordinateColors[i];
 
-	InitObjectStruct(&temp, 4, 48, 0, 0, GL_LINES, 0.f, 0.f, false, false, true);
+	InitObjectStruct(&temp, 6, 72, 0, 0, GL_LINES, 0.f, 0.f, false, false, true);
 
 	m_ObjectList.emplace_back(temp);
 }

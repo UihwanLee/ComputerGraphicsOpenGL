@@ -4,8 +4,8 @@ class Object
 {
 public:
 	// ÁÂÇ¥Æò¸é
-	static GLfloat	CoordinateVertexs[12];
-	static GLfloat	CoordinateColors[12];
+	static GLfloat	CoordinateVertexs[18];
+	static GLfloat	CoordinateColors[18];
 
 	// Á¤À°¸éÃ¼
 	static GLfloat	CubeVertexs[24];
