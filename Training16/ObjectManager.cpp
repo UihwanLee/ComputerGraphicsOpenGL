@@ -43,7 +43,7 @@ GLfloat ObjectManager::GetRandomFloatValue(GLfloat min, GLfloat max)
 	return value;
 }
 
-GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni, int drawType, float pivotX, float pivotY, bool modeIDX, bool isAinm, bool isActive)
+GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni, int drawType, bool modeIDX, bool isAinm, bool isActive)
 {
 	objInfo->m_num_vertex = num_ver;
 	objInfo->m_size_pos = sp;
@@ -51,8 +51,13 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 	objInfo->m_num_idx = ni;
 	objInfo->m_DRAW_TYPE = drawType;
 
-	objInfo->m_pivot[0] = pivotX;
-	objInfo->m_pivot[1] = pivotY;
+	objInfo->m_pivot[0] = 0.0f;
+	objInfo->m_pivot[1] = 0.0f;
+	objInfo->m_pivot[2] = 0.0f;
+
+	objInfo->m_rotate[0] = 0.0f;
+	objInfo->m_rotate[1] = 0.0f;
+	objInfo->m_rotate[2] = 0.0f;
 
 	objInfo->m_isModeIDX = modeIDX;
 	objInfo->m_isAnimRotating = isAinm;
@@ -67,7 +72,7 @@ void ObjectManager::CreateCoordinate()
 	for (int i = 0; i < 18; i++)	temp.m_pos[i] = Object::CoordinateVertexs[i];
 	for (int i = 0; i < 18; i++)	temp.m_col[i] = Object::CoordinateColors[i];
 
-	InitObjectStruct(&temp, 6, 72, 0, 0, GL_LINES, 0.f, 0.f, false, false, true);
+	InitObjectStruct(&temp, 6, 72, 0, 0, GL_LINES, false, false, true);
 
 	m_ObjectList.emplace_back(temp);
 }
@@ -82,7 +87,7 @@ void ObjectManager::CreateCube()
 	for (int i = 0; i < 36; i++)	temp.m_inex[i] = Object::CubeIndexs[i];
 	for (int i = 0; i < 24; i++)	temp.m_col[i] = Object::CubeColors[i];
 
-	InitObjectStruct(&temp, 36, 96, 144, 8, GL_TRIANGLES, 0.f, 0.f, true, false, true);
+	InitObjectStruct(&temp, 36, 96, 144, 8, GL_LINE_LOOP, true, false, true);
 
 	m_ObjectList.emplace_back(temp);
 }
@@ -98,7 +103,7 @@ void ObjectManager::CreateTetrahedron()
 	for (int i = 0; i < 12; i++)	temp.m_inex[i] = Object::TetrahedronIndexs[i];
 	for (int i = 0; i < 12; i++)	temp.m_col[i] = Object::TetrahedronColors[i];
 
-	InitObjectStruct(&temp, 12, 48, 48, 4, GL_TRIANGLES, 0.f, 0.f, true, false, true);
+	InitObjectStruct(&temp, 12, 48, 48, 4, GL_TRIANGLES, true, false, true);
 
 	m_ObjectList.emplace_back(temp);
 }
@@ -114,7 +119,7 @@ void ObjectManager::CreateSquarePyramid()
 	for (int i = 0; i < 18; i++)	temp.m_inex[i] = Object::SquarePyramidIndexs[i];
 	for (int i = 0; i < 15; i++)	temp.m_col[i] = Object::SquarePyramidColors[i];
 
-	InitObjectStruct(&temp, 18, 72, 72, 5, GL_TRIANGLES, 0.f, 0.f, true, false, true);
+	InitObjectStruct(&temp, 18, 72, 72, 5, GL_TRIANGLES, true, false, true);
 
 	m_ObjectList.emplace_back(temp);
 }

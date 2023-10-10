@@ -9,10 +9,11 @@ using namespace std;
 
 typedef struct ObjectInfo
 {
-	float		m_pivot[2];
-	GLfloat* m_pos;
-	GLfloat* m_col;
-	GLint* m_inex;
+	float		m_pivot[3];
+	float		m_rotate[3];
+	GLfloat*	m_pos;
+	GLfloat*	m_col;
+	GLint*		m_inex;
 	int			m_num_vertex;
 	int			m_size_pos;
 	int			m_size_idx;
