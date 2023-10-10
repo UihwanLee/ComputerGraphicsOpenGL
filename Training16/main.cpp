@@ -25,7 +25,7 @@ GLuint VBO[2], EBO;
 bool isDepthTest = false;
 
 GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL);
-GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_color, float* pivot, float* rotateInfo, int NUM_VETEX, int SIZE_COL, int SIZE_IDX);
+GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_color, float* pivot, float* rotateInfo, float* scaleInfo, int NUM_VETEX, int SIZE_COL, int SIZE_IDX);
 
 // 회전 애니메이션
 bool isRotating_X = false;
@@ -70,8 +70,10 @@ GLvoid Init()
 	ObjMgr.CreateCube();
 	ObjMgr.MoveObject(1, 0.0f, 0.0f, 1.0f);
 	ObjMgr.CreateSqhere();
+	ObjMgr.MoveObject(2, 0.0f, 0.0f, -1.0f);
 
 	ObjMgr.RotateAllObjects(-30.0f, -30.0f, 0.0f);
+	ObjMgr.ScaleAllObjects(0.3f, 0.4f, 0.3f);
 }
 
 GLvoid drawScene()
@@ -91,7 +93,7 @@ GLvoid drawScene()
 			if (ObjMgr.m_ObjectList[i].m_isModeIDX)
 			{
 				DrawObjectByIDX(ObjMgr.m_ObjectList[i].m_DRAW_TYPE, ObjMgr.m_ObjectList[i].m_pos, ObjMgr.m_ObjectList[i].m_inex, ObjMgr.m_ObjectList[i].m_col,
-					ObjMgr.m_ObjectList[i].m_pivot, ObjMgr.m_ObjectList[i].m_rotate, ObjMgr.m_ObjectList[i].m_num_vertex, ObjMgr.m_ObjectList[i].m_size_pos, ObjMgr.m_ObjectList[i].m_size_idx);
+					ObjMgr.m_ObjectList[i].m_pivot, ObjMgr.m_ObjectList[i].m_rotate, ObjMgr.m_ObjectList[i].m_scale, ObjMgr.m_ObjectList[i].m_num_vertex, ObjMgr.m_ObjectList[i].m_size_pos, ObjMgr.m_ObjectList[i].m_size_idx);
 			}
 			else
 			{
@@ -147,7 +149,7 @@ GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VE
 	glDisableVertexAttribArray(1);
 }
 
-GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_color, float* pivot, float* rotateInfo, int NUM_VETEX, int SIZE_COL, int SIZE_IDX)
+GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_color, float* pivot, float* rotateInfo, float* scaleInfo, int NUM_VETEX, int SIZE_COL, int SIZE_IDX)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
 	glBufferData(GL_ARRAY_BUFFER, SIZE_COL, obj_pos, GL_STATIC_DRAW);
@@ -162,7 +164,7 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 	glm::mat4 rot = glm::mat4(1.0f);
 	glm::mat4 move = glm::mat4(1.0f);
 
-	scale = glm::scale(scale, glm::vec3(0.3f, 0.4f, 0.3f));
+	scale = glm::scale(scale, glm::vec3(scaleInfo[0], scaleInfo[1], scaleInfo[2]));
 
 	move = glm::translate(move, glm::vec3(pivot[0], pivot[1], pivot[2]));
 

@@ -11,6 +11,7 @@ typedef struct ObjectInfo
 {
 	float		m_pivot[3];
 	float		m_rotate[3];
+	float		m_scale[3];
 	GLfloat*	m_pos;
 	GLfloat*	m_col;
 	GLint*		m_inex;
@@ -51,9 +52,11 @@ public:
 
 	void MoveObject(int idx, float x, float y, float z);
 	void RotateObject(int idx, float x, float y, float z);
+	void ScaleObject(int idx, float x, float y, float z);
 
 	void MoveAllObjects(float x, float y, float z);
 	void RotateAllObjects(float x, float y, float z);
+	void ScaleAllObjects(float x, float y, float z);
 
 	void Reset();
 };

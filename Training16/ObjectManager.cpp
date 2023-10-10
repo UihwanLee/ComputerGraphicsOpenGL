@@ -59,6 +59,10 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 	objInfo->m_rotate[1] = 0.0f;
 	objInfo->m_rotate[2] = 0.0f;
 
+	objInfo->m_scale[0] = 0.5f;
+	objInfo->m_scale[1] = 0.5f;
+	objInfo->m_scale[2] = 0.5f;
+
 	objInfo->m_isModeIDX = modeIDX;
 	objInfo->m_isAnimRotating = isAinm;
 	objInfo->m_isActive = isActive;
@@ -232,6 +236,15 @@ void ObjectManager::RotateObject(int idx, float x, float y, float z)
 	m_ObjectList[idx].m_rotate[2] += z;
 }
 
+void ObjectManager::ScaleObject(int idx, float x, float y, float z)
+{
+	if (m_ObjectList.empty() || idx == 0) return;
+
+	m_ObjectList[idx].m_scale[0] = x;
+	m_ObjectList[idx].m_scale[1] = y;
+	m_ObjectList[idx].m_scale[2] = z;
+}
+
 void ObjectManager::MoveAllObjects(float x, float y, float z)
 {
 	if (m_ObjectList.empty()) return;
@@ -253,6 +266,18 @@ void ObjectManager::RotateAllObjects(float x, float y, float z)
 		m_ObjectList[i].m_rotate[0] += x;
 		m_ObjectList[i].m_rotate[1] += y;
 		m_ObjectList[i].m_rotate[2] += z;
+	}
+}
+
+void ObjectManager::ScaleAllObjects(float x, float y, float z)
+{
+	if (m_ObjectList.empty()) return;
+
+	for (int i = 1; i < m_ObjectList.size(); i++)
+	{
+		m_ObjectList[i].m_scale[0] = x;
+		m_ObjectList[i].m_scale[1] = y;
+		m_ObjectList[i].m_scale[2] = z;
 	}
 }
 
