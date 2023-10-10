@@ -1,4 +1,10 @@
 #include "OpenGL.h"
+#include <iostream>
+
+#define SIZE_SQHERE_VERTEX 1323
+#define SIZE_SQHERE_INDEX 2400
+
+#define PI 3.1415926535
 
 class Object
 {
@@ -21,4 +27,9 @@ public:
 	static GLfloat	SquarePyramidVertexs[15];
 	static GLfloat	SquarePyramidColors[15];
 	static GLint	SquarePyramidIndexs[18];
+
+	// ¿ø
+	static GLfloat	SqhereVertexs[SIZE_SQHERE_VERTEX];
+	static GLfloat	SqhereColors[SIZE_SQHERE_VERTEX];
+	static GLint	SqhereIndexs[SIZE_SQHERE_INDEX];
 };

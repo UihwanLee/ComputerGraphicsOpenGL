@@ -44,6 +44,8 @@ public:
 	void CreateTetrahedron();
 	void CreateSquarePyramid();
 
+	void CreateSqhere();
+
 	void SetChangeActive(int mode);
 	void ChangeWireSolidType();
 

@@ -68,8 +68,10 @@ GLvoid Init()
 
 	ObjMgr.CreateCoordinate();
 	ObjMgr.CreateCube();
-	ObjMgr.RotateObject(1, -30.0f, -30.0f, 0.0f);
 	ObjMgr.MoveObject(1, 0.0f, 0.0f, 1.0f);
+	ObjMgr.CreateSqhere();
+
+	ObjMgr.RotateAllObjects(-30.0f, -30.0f, 0.0f);
 }
 
 GLvoid drawScene()

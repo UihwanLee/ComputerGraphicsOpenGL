@@ -114,3 +114,7 @@ GLint Object::SquarePyramidIndexs[18] =
 	1, 2, 3,
 	3, 4, 1
 };
+
+GLfloat Object::SqhereVertexs[SIZE_SQHERE_VERTEX] = { 0.0f };
+GLfloat Object::SqhereColors[SIZE_SQHERE_VERTEX] = { 0.0f };
+GLint Object::SqhereIndexs[SIZE_SQHERE_INDEX] = { 0 };
