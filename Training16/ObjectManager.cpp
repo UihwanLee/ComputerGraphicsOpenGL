@@ -164,6 +164,48 @@ void ObjectManager::ChangeWireSolidType()
 	}
 }
 
+void ObjectManager::MoveObject(int idx, float x, float y, float z)
+{
+	if (m_ObjectList.empty() || idx == 0) return;
+
+	m_ObjectList[idx].m_pivot[0] += x;
+	m_ObjectList[idx].m_pivot[1] += y;
+	m_ObjectList[idx].m_pivot[2] += z;
+}
+
+void ObjectManager::RotateObject(int idx, float x, float y, float z)
+{
+	if (m_ObjectList.empty() || idx == 0) return;
+
+	m_ObjectList[idx].m_rotate[0] += x;
+	m_ObjectList[idx].m_rotate[1] += y;
+	m_ObjectList[idx].m_rotate[2] += z;
+}
+
+void ObjectManager::MoveAllObjects(float x, float y, float z)
+{
+	if (m_ObjectList.empty()) return;
+
+	for (int i = 1; i < m_ObjectList.size(); i++)
+	{
+		m_ObjectList[i].m_pivot[0] += x;
+		m_ObjectList[i].m_pivot[1] += y;
+		m_ObjectList[i].m_pivot[2] += z;
+	}
+}
+
+void ObjectManager::RotateAllObjects(float x, float y, float z)
+{
+	if (m_ObjectList.empty()) return;
+
+	for (int i = 1; i < m_ObjectList.size(); i++)
+	{
+		m_ObjectList[i].m_rotate[0] += x;
+		m_ObjectList[i].m_rotate[1] += y;
+		m_ObjectList[i].m_rotate[2] += z;
+	}
+}
+
 void MoveAxisObject(GLfloat* posList, int SIZE, int startIDX, float moveDist)
 {
 	for (int i = 0; i < SIZE; i++)

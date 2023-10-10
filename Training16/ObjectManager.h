@@ -47,6 +47,12 @@ public:
 	void SetChangeActive(int mode);
 	void ChangeWireSolidType();
 
+	void MoveObject(int idx, float x, float y, float z);
+	void RotateObject(int idx, float x, float y, float z);
+
+	void MoveAllObjects(float x, float y, float z);
+	void RotateAllObjects(float x, float y, float z);
+
 	void Reset();
 };
 
