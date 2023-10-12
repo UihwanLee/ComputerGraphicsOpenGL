@@ -31,6 +31,8 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 // 회전 애니메이션
 bool isRotating_X = false;
 bool isRotating_Y = false;
+
+bool isTest = true;
 GLfloat rotate_X = -30.0f;
 GLfloat rotate_Y = -30.0f;
 GLvoid RotatingAnimationX(int isAinm);
@@ -78,10 +80,10 @@ GLvoid Reset()
 	ObjMgr.CreateCube();
 	ObjMgr.CreateCone();
 
-	ObjMgr.SetPosition(1, 0.0f, 0.0f, 1.0f);
-	ObjMgr.SetPosition(2, 0.0f, 0.0f, -1.0f);
+	ObjMgr.SetPosition(1, 0.5f, 0.0f, 0.0f);
+	ObjMgr.SetPosition(2, -0.5f, 0.0f, 0.0f);
 	ObjMgr.SetAllRotate(-30.0f, -30.0f, 0.0f);
-	ObjMgr.SetAllScale(0.3f, 0.4f, 0.3f);
+	ObjMgr.SetAllScale(0.5f, 0.5f, 0.5f);
 }
 
 GLvoid drawScene()
@@ -127,7 +129,7 @@ GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VE
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(0);
 
-	unsigned int modelLocation = glGetUniformLocation(ShaderProgram, "trans");
+	unsigned int modelLocation = glGetUniformLocation(ShaderProgram, "modelTransform");
 
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 scale = glm::mat4(1.0f);
@@ -165,7 +167,7 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, SIZE_IDX, obj_index, GL_STATIC_DRAW);
 
-	unsigned int modelLocation = glGetUniformLocation(ShaderProgram, "trans");
+	unsigned int modelLocation = glGetUniformLocation(ShaderProgram, "modelTransform");
 
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 scale = glm::mat4(1.0f);
@@ -174,12 +176,18 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 
 	scale = glm::scale(scale, glm::vec3(scaleInfo[0], scaleInfo[1], scaleInfo[2]));
 
-	move = glm::translate(move, glm::vec3(pivot[0], pivot[1], pivot[2]));
-
 	rot = glm::rotate(rot, glm::radians(rotateInfo[1]), glm::vec3(1.0f, 0.0f, 0.0f));
 	rot = glm::rotate(rot, glm::radians(rotateInfo[0]), glm::vec3(0.0f, 1.0f, 0.0f));
+	//rot = glm::rotate(rot, glm::radians(30.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
-	model = model * scale * rot * move;
+	move = glm::translate(move, glm::vec3(pivot[0], pivot[1], pivot[2]));
+
+	if (isTest)
+	{
+		model = model *  rot * move * scale;
+	}
+	else model = model * move * rot * scale;
+
 
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));		// 모델변환
 
@@ -200,30 +208,32 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 	glDisableVertexAttribArray(1);
 }
 
-GLvoid RotatingAnimationX(int dir)
+GLvoid RotatingAnimationX(int idx)
 {
-	if (dir == 0) rotate_X += 5.0f;
-	else rotate_X -= 5.0f;
+	ObjMgr.SetRotate(idx, ObjMgr.m_ObjectList[idx].m_rotate[0] + 0.5f, ObjMgr.m_ObjectList[idx].m_rotate[1], ObjMgr.m_ObjectList[idx].m_rotate[2]);
 
 	glutPostRedisplay();
 
-	if (isRotating_X) glutTimerFunc(30, RotatingAnimationX, dir);
+	if (ObjMgr.m_ObjectList[idx].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, idx);
 }
 
-GLvoid RotatingAnimationY(int dir)
+GLvoid RotatingAnimationY(int idx)
 {
-	if (dir == 0) rotate_Y += 5.0f;
-	else rotate_Y -= 5.0f;
+	ObjMgr.SetRotate(idx, ObjMgr.m_ObjectList[idx].m_rotate[0], ObjMgr.m_ObjectList[idx].m_rotate[1] + 0.5f, ObjMgr.m_ObjectList[idx].m_rotate[2]);
 
 	glutPostRedisplay();
 
-	if (isRotating_Y) glutTimerFunc(30, RotatingAnimationY, dir);
+	if (ObjMgr.m_ObjectList[idx].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationY, idx);
 }
 
 GLvoid StopAllAnim()
 {
-	isRotating_X = false;
-	isRotating_Y = false;
+	if (ObjMgr.m_ObjectList.size() < 2) return;
+
+	for (int i = 1; i < ObjMgr.m_ObjectList.size(); i++)
+	{
+		ObjMgr.m_ObjectList[i].m_isAnimRotating = false;
+	}
 
 	Sleep(500);
 
@@ -234,6 +244,21 @@ void Keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
+	case 'X':
+	case 'x':
+		StopAllAnim();
+		ObjMgr.m_ObjectList[1].m_isAnimRotating = true;
+		ObjMgr.m_ObjectList[2].m_isAnimRotating = true;
+		if (ObjMgr.m_ObjectList[1].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 1);
+		if (ObjMgr.m_ObjectList[2].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 2);
+		break;
+	case 'Y':
+	case 'y':
+		StopAllAnim();
+		break;
+	case 'r':
+		isTest = !isTest;
+		break;
 	case 'q':
 		glutLeaveMainLoop();
 		break;

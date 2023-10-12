@@ -9,7 +9,7 @@ using namespace std;
 
 typedef struct ObjectInfo
 {
-	float		m_pivot[3];
+	float		m_pivot[3];				
 	float		m_rotate[3];
 	float		m_scale[3];
 	GLfloat*	m_pos;
