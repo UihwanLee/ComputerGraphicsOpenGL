@@ -178,7 +178,6 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 
 	rot = glm::rotate(rot, glm::radians(rotateInfo[1]), glm::vec3(1.0f, 0.0f, 0.0f));
 	rot = glm::rotate(rot, glm::radians(rotateInfo[0]), glm::vec3(0.0f, 1.0f, 0.0f));
-	//rot = glm::rotate(rot, glm::radians(30.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
 	move = glm::translate(move, glm::vec3(pivot[0], pivot[1], pivot[2]));
 
@@ -186,7 +185,10 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 	{
 		model = model *  rot * move * scale;
 	}
-	else model = model * move * rot * scale;
+	else
+	{
+		model = model * move * rot * scale;
+	}
 
 
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));		// ¸ðµ¨º¯È¯
