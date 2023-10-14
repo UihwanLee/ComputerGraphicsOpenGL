@@ -66,6 +66,11 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 	objInfo->m_isModeIDX = modeIDX;
 	objInfo->m_isAnimRotating = isAinm;
 	objInfo->m_isActive = isActive;
+
+	objInfo->m_model[0] = 0.0f;
+	objInfo->m_model[1] = 0.0f;
+	objInfo->m_model[2] = 0.0f;
+	objInfo->m_model[3] = 0.0f;
 }
 
 void ObjectManager::CreateCoordinate()

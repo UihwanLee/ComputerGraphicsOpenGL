@@ -26,7 +26,8 @@ GLuint VBO[2], EBO;
 bool isDepthTest = false;
 
 GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL);
-GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_color, float* pivot, float* rotateInfo, float* scaleInfo, int NUM_VETEX, int SIZE_COL, int SIZE_IDX);
+GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_color, float* pivot, float* rotateInfo, float* scaleInfo, 
+					   int NUM_VETEX, int SIZE_COL, int SIZE_IDX, float* modelInfo, int idx);
 
 // 회전 애니메이션
 bool isRotating_X = false;
@@ -81,11 +82,11 @@ GLvoid Reset()
 	ObjMgr.Reset();
 
 	ObjMgr.CreateCoordinate();
+	ObjMgr.CreateCone();
 	ObjMgr.CreateCube();
-	//ObjMgr.CreateCone();
 
 	ObjMgr.SetPosition(1, 0.0f, 0.0f, 0.5f);
-	//ObjMgr.SetPosition(2, -0.5f, 0.0f, 0.0f);
+	ObjMgr.SetPosition(2, 0.0f, 0.0f, -0.5f);
 	ObjMgr.SetAllRotate(-30.0f, -30.0f, 0.0f);
 	ObjMgr.SetAllScale(0.3f, 0.4f, 0.3f);
 }
@@ -107,7 +108,9 @@ GLvoid drawScene()
 			if (ObjMgr.m_ObjectList[i].m_isModeIDX)
 			{
 				DrawObjectByIDX(ObjMgr.m_ObjectList[i].m_DRAW_TYPE, ObjMgr.m_ObjectList[i].m_pos, ObjMgr.m_ObjectList[i].m_inex, ObjMgr.m_ObjectList[i].m_col,
-					ObjMgr.m_ObjectList[i].m_pivot, ObjMgr.m_ObjectList[i].m_rotate, ObjMgr.m_ObjectList[i].m_scale, ObjMgr.m_ObjectList[i].m_num_vertex, ObjMgr.m_ObjectList[i].m_size_pos, ObjMgr.m_ObjectList[i].m_size_idx);
+					ObjMgr.m_ObjectList[i].m_pivot, ObjMgr.m_ObjectList[i].m_rotate, ObjMgr.m_ObjectList[i].m_scale, 
+					ObjMgr.m_ObjectList[i].m_num_vertex, ObjMgr.m_ObjectList[i].m_size_pos, ObjMgr.m_ObjectList[i].m_size_idx, ObjMgr.m_ObjectList[i].m_model,
+					i);
 			}
 			else
 			{
@@ -163,7 +166,8 @@ GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VE
 	glDisableVertexAttribArray(1);
 }
 
-GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_color, float* pivot, float* rotateInfo, float* scaleInfo, int NUM_VETEX, int SIZE_COL, int SIZE_IDX)
+GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_color, float* pivot, float* rotateInfo, float* scaleInfo, 
+					   int NUM_VETEX, int SIZE_COL, int SIZE_IDX, float* modelInfo, int idx)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
 	glBufferData(GL_ARRAY_BUFFER, SIZE_COL, obj_pos, GL_STATIC_DRAW);
@@ -190,19 +194,19 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 	model2 = move * rot * scale;
 
 	// model 행렬의 요소 출력
-	if (!isTest && isFirst)
+	if (!ObjMgr.m_ObjectList[idx].m_Initmodel)
 	{
 		for (int j = 0; j < 4; j++) {
-			model[3][j] = model1[3][j];
+			modelInfo[j] = model1[3][j];
 		}
-		isFirst = false;
+		ObjMgr.m_ObjectList[idx].m_Initmodel = true;
 	}
 
 	for (int j = 0; j < 4; j++) {
-		model2[3][j] = model[3][j];
+		model2[3][j] = modelInfo[j];
 	}
 
-	if(isTest) glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model1));		// 모델변환
+	if(!isTest) glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model1));		// 모델변환
 	else glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model2));
 
 	glEnableVertexAttribArray(0);
@@ -262,16 +266,19 @@ void Keyboard(unsigned char key, int x, int y)
 	case 'x':
 		StopAllAnim();
 		ObjMgr.m_ObjectList[1].m_isAnimRotating = true;
-		//ObjMgr.m_ObjectList[2].m_isAnimRotating = true;
+		ObjMgr.m_ObjectList[2].m_isAnimRotating = true;
 		if (ObjMgr.m_ObjectList[1].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 1);
-		//if (ObjMgr.m_ObjectList[2].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 2);
+		if (ObjMgr.m_ObjectList[2].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 2);
 		break;
 	case 'Y':
 	case 'y':
 		StopAllAnim();
 		break;
 	case 'r':
-		isFirst = true;
+		for (int i = 1; i < ObjMgr.m_ObjectList.size(); i++)
+		{
+			ObjMgr.m_ObjectList[i].m_Initmodel = !ObjMgr.m_ObjectList[i].m_Initmodel;
+		}
 		isTest = !isTest;
 		break;
 	case 'q':
