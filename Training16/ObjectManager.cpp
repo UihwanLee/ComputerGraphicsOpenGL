@@ -128,7 +128,7 @@ void ObjectManager::CreateSquarePyramid()
 	for (int i = 0; i < 18; i++)	temp.m_inex[i] = Object::SquarePyramidIndexs[i];
 	for (int i = 0; i < 15; i++)	temp.m_col[i] = Object::SquarePyramidColors[i];
 
-	InitObjectStruct(&temp, 18, 72, 72, 5, GL_TRIANGLES, true, false, true);
+	InitObjectStruct(&temp, 18, 72, 72, 5, GL_LINE_LOOP, true, false, true);
 
 	m_ObjectList.emplace_back(temp);
 }

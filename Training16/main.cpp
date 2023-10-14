@@ -33,7 +33,7 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 bool isRotating_X = false;
 bool isRotating_Y = false;
 
-bool isTest = true;
+bool isRotating = true;
 bool isFirst = true;
 
 glm::mat4 model = glm::mat4(1.0f);
@@ -82,13 +82,19 @@ GLvoid Reset()
 	ObjMgr.Reset();
 
 	ObjMgr.CreateCoordinate();
-	ObjMgr.CreateCone();
 	ObjMgr.CreateCube();
+	ObjMgr.CreateCone();
+	ObjMgr.CreateSquarePyramid();
+	ObjMgr.CreateSqhere();
 
 	ObjMgr.SetPosition(1, 0.0f, 0.0f, 0.5f);
 	ObjMgr.SetPosition(2, 0.0f, 0.0f, -0.5f);
+	ObjMgr.SetPosition(3, 0.0f, 0.0f, 0.5f);
+	ObjMgr.SetPosition(4, 0.0f, 0.0f, -0.5f);
 	ObjMgr.SetAllRotate(-30.0f, -30.0f, 0.0f);
 	ObjMgr.SetAllScale(0.3f, 0.4f, 0.3f);
+	ObjMgr.m_ObjectList[3].m_isActive = false;
+	ObjMgr.m_ObjectList[4].m_isActive = false;
 }
 
 GLvoid drawScene()
@@ -206,7 +212,7 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 		model2[3][j] = modelInfo[j];
 	}
 
-	if(!isTest) glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model1));		// ¸ðµ¨º¯È¯
+	if(!isRotating) glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model1));		// ¸ðµ¨º¯È¯
 	else glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model2));
 
 	glEnableVertexAttribArray(0);
@@ -264,22 +270,58 @@ void Keyboard(unsigned char key, int x, int y)
 	{
 	case 'X':
 	case 'x':
+		for (int i = 1; i < ObjMgr.m_ObjectList.size(); i++)
+		{
+			ObjMgr.m_ObjectList[i].m_Initmodel = !ObjMgr.m_ObjectList[i].m_Initmodel;
+		}
+		isRotating = true;
 		StopAllAnim();
 		ObjMgr.m_ObjectList[1].m_isAnimRotating = true;
 		ObjMgr.m_ObjectList[2].m_isAnimRotating = true;
+		ObjMgr.m_ObjectList[3].m_isAnimRotating = true;
+		ObjMgr.m_ObjectList[4].m_isAnimRotating = true;
 		if (ObjMgr.m_ObjectList[1].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 1);
 		if (ObjMgr.m_ObjectList[2].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 2);
+		if (ObjMgr.m_ObjectList[3].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 3);
+		if (ObjMgr.m_ObjectList[4].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 4);
 		break;
 	case 'Y':
 	case 'y':
 		StopAllAnim();
 		break;
+	case 'R':
 	case 'r':
-		for (int i = 1; i < ObjMgr.m_ObjectList.size(); i++)
+		isRotating = false;
+		StopAllAnim();
+		ObjMgr.m_ObjectList[1].m_isAnimRotating = true;
+		ObjMgr.m_ObjectList[2].m_isAnimRotating = true;
+		ObjMgr.m_ObjectList[3].m_isAnimRotating = true;
+		ObjMgr.m_ObjectList[4].m_isAnimRotating = true;
+		if (ObjMgr.m_ObjectList[1].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 1);
+		if (ObjMgr.m_ObjectList[2].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 2);
+		if (ObjMgr.m_ObjectList[3].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 3);
+		if (ObjMgr.m_ObjectList[4].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 4);
+		break;
+	case 'c':
+	{
+		if (ObjMgr.m_ObjectList[1].m_isActive == true)
 		{
-			ObjMgr.m_ObjectList[i].m_Initmodel = !ObjMgr.m_ObjectList[i].m_Initmodel;
+			ObjMgr.m_ObjectList[1].m_isActive = false;
+			ObjMgr.m_ObjectList[2].m_isActive = false;
+			ObjMgr.m_ObjectList[3].m_isActive = true;
+			ObjMgr.m_ObjectList[4].m_isActive = true;
 		}
-		isTest = !isTest;
+		else
+		{
+			ObjMgr.m_ObjectList[1].m_isActive = true;
+			ObjMgr.m_ObjectList[2].m_isActive = true;
+			ObjMgr.m_ObjectList[3].m_isActive = false;
+			ObjMgr.m_ObjectList[4].m_isActive = false;
+		}
+	}
+		break;
+	case 's':
+		Reset();
 		break;
 	case 'q':
 		glutLeaveMainLoop();
