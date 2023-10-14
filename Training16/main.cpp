@@ -33,6 +33,10 @@ bool isRotating_X = false;
 bool isRotating_Y = false;
 
 bool isTest = true;
+bool isFirst = true;
+
+glm::mat4 model = glm::mat4(1.0f);
+
 GLfloat rotate_X = -30.0f;
 GLfloat rotate_Y = -30.0f;
 GLvoid RotatingAnimationX(int isAinm);
@@ -78,12 +82,12 @@ GLvoid Reset()
 
 	ObjMgr.CreateCoordinate();
 	ObjMgr.CreateCube();
-	ObjMgr.CreateCone();
+	//ObjMgr.CreateCone();
 
-	ObjMgr.SetPosition(1, 0.5f, 0.0f, 0.0f);
-	ObjMgr.SetPosition(2, -0.5f, 0.0f, 0.0f);
+	ObjMgr.SetPosition(1, 0.0f, 0.0f, 0.5f);
+	//ObjMgr.SetPosition(2, -0.5f, 0.0f, 0.0f);
 	ObjMgr.SetAllRotate(-30.0f, -30.0f, 0.0f);
-	ObjMgr.SetAllScale(0.5f, 0.5f, 0.5f);
+	ObjMgr.SetAllScale(0.3f, 0.4f, 0.3f);
 }
 
 GLvoid drawScene()
@@ -169,7 +173,8 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 
 	unsigned int modelLocation = glGetUniformLocation(ShaderProgram, "modelTransform");
 
-	glm::mat4 model = glm::mat4(1.0f);
+	glm::mat4 model2 = glm::mat4(1.0f);
+	glm::mat4 model1 = glm::mat4(1.0f);
 	glm::mat4 scale = glm::mat4(1.0f);
 	glm::mat4 rot = glm::mat4(1.0f);
 	glm::mat4 move = glm::mat4(1.0f);
@@ -181,17 +186,24 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 
 	move = glm::translate(move, glm::vec3(pivot[0], pivot[1], pivot[2]));
 
-	if (isTest)
+	model1 = rot * move * scale;
+	model2 = move * rot * scale;
+
+	// model 행렬의 요소 출력
+	if (!isTest && isFirst)
 	{
-		model = model *  rot * move * scale;
-	}
-	else
-	{
-		model = model * move * rot * scale;
+		for (int j = 0; j < 4; j++) {
+			model[3][j] = model1[3][j];
+		}
+		isFirst = false;
 	}
 
+	for (int j = 0; j < 4; j++) {
+		model2[3][j] = model[3][j];
+	}
 
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));		// 모델변환
+	if(isTest) glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model1));		// 모델변환
+	else glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model2));
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
@@ -250,15 +262,16 @@ void Keyboard(unsigned char key, int x, int y)
 	case 'x':
 		StopAllAnim();
 		ObjMgr.m_ObjectList[1].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[2].m_isAnimRotating = true;
+		//ObjMgr.m_ObjectList[2].m_isAnimRotating = true;
 		if (ObjMgr.m_ObjectList[1].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 1);
-		if (ObjMgr.m_ObjectList[2].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 2);
+		//if (ObjMgr.m_ObjectList[2].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 2);
 		break;
 	case 'Y':
 	case 'y':
 		StopAllAnim();
 		break;
 	case 'r':
+		isFirst = true;
 		isTest = !isTest;
 		break;
 	case 'q':
