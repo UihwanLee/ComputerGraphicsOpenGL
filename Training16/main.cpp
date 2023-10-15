@@ -42,6 +42,7 @@ GLfloat rotate_X = -30.0f;
 GLfloat rotate_Y = -30.0f;
 GLvoid RotatingAnimationX(int isAinm);
 GLvoid RotatingAnimationY(int isAinm);
+GLfloat moveDir = 0.5f;
 
 void Keyboard(unsigned char key, int x, int y);
 
@@ -234,7 +235,7 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 
 GLvoid RotatingAnimationX(int idx)
 {
-	ObjMgr.SetRotate(idx, ObjMgr.m_ObjectList[idx].m_rotate[0] + 0.5f, ObjMgr.m_ObjectList[idx].m_rotate[1], ObjMgr.m_ObjectList[idx].m_rotate[2]);
+	ObjMgr.SetRotate(idx, ObjMgr.m_ObjectList[idx].m_rotate[0] + moveDir, ObjMgr.m_ObjectList[idx].m_rotate[1], ObjMgr.m_ObjectList[idx].m_rotate[2]);
 
 	glutPostRedisplay();
 
@@ -243,7 +244,7 @@ GLvoid RotatingAnimationX(int idx)
 
 GLvoid RotatingAnimationY(int idx)
 {
-	ObjMgr.SetRotate(idx, ObjMgr.m_ObjectList[idx].m_rotate[0], ObjMgr.m_ObjectList[idx].m_rotate[1] + 0.5f, ObjMgr.m_ObjectList[idx].m_rotate[2]);
+	ObjMgr.SetRotate(idx, ObjMgr.m_ObjectList[idx].m_rotate[0], ObjMgr.m_ObjectList[idx].m_rotate[1], ObjMgr.m_ObjectList[idx].m_rotate[2] + moveDir);
 
 	glutPostRedisplay();
 
@@ -270,6 +271,7 @@ void Keyboard(unsigned char key, int x, int y)
 	{
 	case 'X':
 	case 'x':
+		moveDir = (key == 'X') ? 0.5f : -0.5f;
 		for (int i = 1; i < ObjMgr.m_ObjectList.size(); i++)
 		{
 			ObjMgr.m_ObjectList[i].m_Initmodel = !ObjMgr.m_ObjectList[i].m_Initmodel;
@@ -287,10 +289,25 @@ void Keyboard(unsigned char key, int x, int y)
 		break;
 	case 'Y':
 	case 'y':
+		moveDir = (key == 'Y') ? 0.5f : -0.5f;
+		for (int i = 1; i < ObjMgr.m_ObjectList.size(); i++)
+		{
+			ObjMgr.m_ObjectList[i].m_Initmodel = !ObjMgr.m_ObjectList[i].m_Initmodel;
+		}
+		isRotating = true;
 		StopAllAnim();
+		ObjMgr.m_ObjectList[1].m_isAnimRotating = true;
+		ObjMgr.m_ObjectList[2].m_isAnimRotating = true;
+		ObjMgr.m_ObjectList[3].m_isAnimRotating = true;
+		ObjMgr.m_ObjectList[4].m_isAnimRotating = true;
+		if (ObjMgr.m_ObjectList[1].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationY, 1);
+		if (ObjMgr.m_ObjectList[2].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationY, 2);
+		if (ObjMgr.m_ObjectList[3].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationY, 3);
+		if (ObjMgr.m_ObjectList[4].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationY, 4);
 		break;
 	case 'R':
 	case 'r':
+		moveDir = (key == 'R') ? 0.5f : -0.5f;
 		isRotating = false;
 		StopAllAnim();
 		ObjMgr.m_ObjectList[1].m_isAnimRotating = true;
