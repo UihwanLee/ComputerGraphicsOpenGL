@@ -3,6 +3,7 @@
 #include <random>
 #include "InitShader.h"
 #include "ObjectManager.h"
+#include <cmath>
 
 #pragma comment(lib, "glew32.lib")
 #pragma comment(lib, "freeglut.lib")
@@ -29,23 +30,32 @@ GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VE
 GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_color, float* pivot, float* rotateInfo, float* scaleInfo,
 	int NUM_VETEX, int SIZE_COL, int SIZE_IDX, float* modelInfo, int idx);
 
-// 회전 애니메이션
-bool isRotating_X = false;
-bool isRotating_Y = false;
+// 애니메이션
+float originPivot_f1[3];
+float originPivot_f2[3];
+float swapPivot_f1[3];
+float swapPivot_f2[3];
+bool animRotatingSwap = false;
+bool animMovingDirectSwap = false;
+GLvoid StopAllAnim();
+GLvoid RotatinSwapAnim(int idx);
+GLvoid MovingDirectOriginAnim(int idx);
+GLvoid MovingDirectSwapAnim(int idx);
 
-bool isRotating = true;
 bool isFirst = true;
 
 // 움직임
+bool move_up = false;
 int move_option = 0;
+int movingSwapOption = 0;
+float movingSpeed = 0.05f;
 
 glm::mat4 model = glm::mat4(1.0f);
 
 GLfloat rotate_X = -30.0f;
 GLfloat rotate_Y = -30.0f;
-GLvoid RotatingAnimationX(int isAinm);
-GLvoid RotatingAnimationY(int isAinm);
-GLfloat moveDir = 0.5f;
+
+GLfloat moveDir = 1.0f;
 
 void Keyboard(unsigned char key, int x, int y);
 void KeyboardSpecial(int key, int x, int y);
@@ -203,6 +213,7 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 	if (!ObjMgr.m_ObjectList[idx].m_Initmodel)
 	{
 		for (int j = 0; j < 4; j++) {
+			ObjMgr.m_ObjectList[idx].m_model_pos[j] = model1[3][j];
 			modelInfo[j] = model1[3][j];
 		}
 		ObjMgr.m_ObjectList[idx].m_Initmodel = true;
@@ -231,22 +242,13 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 	glDisableVertexAttribArray(1);
 }
 
-GLvoid RotatingAnimationX(int idx)
+GLvoid SettingSwap()
 {
-	ObjMgr.SetRotate(idx, ObjMgr.m_ObjectList[idx].m_rotate[0] + moveDir, ObjMgr.m_ObjectList[idx].m_rotate[1], ObjMgr.m_ObjectList[idx].m_rotate[2]);
-
-	glutPostRedisplay();
-
-	if (ObjMgr.m_ObjectList[idx].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, idx);
-}
-
-GLvoid RotatingAnimationY(int idx)
-{
-	ObjMgr.SetRotate(idx, ObjMgr.m_ObjectList[idx].m_rotate[0], ObjMgr.m_ObjectList[idx].m_rotate[1], ObjMgr.m_ObjectList[idx].m_rotate[2] + moveDir);
-
-	glutPostRedisplay();
-
-	if (ObjMgr.m_ObjectList[idx].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationY, idx);
+	for (int i = 0; i < 3; i++)
+	{
+		swapPivot_f1[i] = ObjMgr.m_ObjectList[1].m_pivot[i];
+		swapPivot_f2[i] = ObjMgr.m_ObjectList[2].m_pivot[i];
+	}
 }
 
 GLvoid StopAllAnim()
@@ -263,31 +265,195 @@ GLvoid StopAllAnim()
 	return;
 }
 
+GLvoid MovingOriginAnim(int idx)
+{
+	bool isDone = false;
+
+	float x = ObjMgr.m_ObjectList[idx].m_pivot[0];
+	float y = ObjMgr.m_ObjectList[idx].m_pivot[1];
+	float z = ObjMgr.m_ObjectList[idx].m_pivot[2];
+
+	// 현재 위치에서 원점으로 이동
+	GLfloat distance = sqrt(x * x + y * y + z * z);
+	if (distance > 0.01) {
+		ObjMgr.m_ObjectList[idx].m_pivot[0] -= (x / distance) * movingSpeed;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] -= (y / distance) * movingSpeed;
+		ObjMgr.m_ObjectList[idx].m_pivot[2] -= (z / distance) * movingSpeed;
+	}
+	else
+	{
+		isDone = true;
+	}
+
+	glutPostRedisplay();
+
+	if (isDone == false) glutTimerFunc(30, MovingOriginAnim, idx);
+	if (isDone)
+	{
+		if(movingSwapOption == 0) glutTimerFunc(30, MovingDirectOriginAnim, idx);
+		else if(movingSwapOption == 1) glutTimerFunc(30, MovingDirectSwapAnim, idx);
+	}
+}
+
+GLvoid MovingDirectOriginAnim(int idx)
+{
+	bool isSwap = false;
+
+	float targetX = (idx == 1) ? swapPivot_f1[0] : swapPivot_f2[0];
+	float targetY = (idx == 1) ? swapPivot_f1[1] : swapPivot_f2[1];
+	float targetZ = (idx == 1) ? swapPivot_f1[2] : swapPivot_f2[2];
+
+	float x = ObjMgr.m_ObjectList[idx].m_pivot[0] - targetX;
+	float y = ObjMgr.m_ObjectList[idx].m_pivot[1] - targetY;
+	float z = ObjMgr.m_ObjectList[idx].m_pivot[2] - targetZ;
+
+	// 현재 위치에서 원래 위치로 이동
+	GLfloat distance = sqrt(x * x + y * y + z * z);
+	if (distance > 0.01) {
+		ObjMgr.m_ObjectList[idx].m_pivot[0] -= (x / distance) * movingSpeed;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] -= (y / distance) * movingSpeed;
+		ObjMgr.m_ObjectList[idx].m_pivot[2] -= (z / distance) * movingSpeed;
+	}
+	else
+	{
+		isSwap = true;
+	}
+
+	glutPostRedisplay();
+
+	if (isSwap == false) glutTimerFunc(30, MovingDirectOriginAnim, idx);
+}
+
+GLvoid MovingDirectSwapAnim(int idx)
+{
+	bool isSwap = false;
+
+	float targetX = (idx == 1) ? swapPivot_f2[0] : swapPivot_f1[0];
+	float targetY = (idx == 1) ? swapPivot_f2[1] : swapPivot_f1[1];
+	float targetZ = (idx == 1) ? swapPivot_f2[2] : swapPivot_f1[2];
+
+	float x = ObjMgr.m_ObjectList[idx].m_pivot[0] - targetX;
+	float y = ObjMgr.m_ObjectList[idx].m_pivot[1] - targetY;
+	float z = ObjMgr.m_ObjectList[idx].m_pivot[2] - targetZ;
+
+	// 현재 위치에서 상대 위치로 이동
+	GLfloat distance = sqrt(x * x + y * y + z * z);
+	if (distance > 0.01) {
+		ObjMgr.m_ObjectList[idx].m_pivot[0] -= (x / distance) * movingSpeed;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] -= (y / distance) * movingSpeed;
+		ObjMgr.m_ObjectList[idx].m_pivot[2] -= (z / distance) * movingSpeed;
+	}
+	else
+	{
+		isSwap = true;
+	}
+
+	glutPostRedisplay();
+
+	if (isSwap == false) glutTimerFunc(30, MovingDirectSwapAnim, idx);
+}
+
+GLvoid MoveObjects(bool isX, float dir)
+{
+	if (move_up)
+	{
+		if (isX == false)
+		{
+			if (move_option == 0)
+			{
+				// 모두 이동
+				ObjMgr.SetPosition(1, ObjMgr.m_ObjectList[1].m_pivot[0], ObjMgr.m_ObjectList[1].m_pivot[1] + dir, ObjMgr.m_ObjectList[1].m_pivot[2]);
+				ObjMgr.SetPosition(2, ObjMgr.m_ObjectList[2].m_pivot[0], ObjMgr.m_ObjectList[2].m_pivot[1] + dir, ObjMgr.m_ObjectList[2].m_pivot[2]);
+			}
+			else if (move_option == 1)
+			{
+				// 큐브만 이동
+				ObjMgr.SetPosition(1, ObjMgr.m_ObjectList[1].m_pivot[0], ObjMgr.m_ObjectList[1].m_pivot[1] + dir, ObjMgr.m_ObjectList[1].m_pivot[2]);
+			}
+			else if (move_option == 2)
+			{
+				// 구만 이동
+				ObjMgr.SetPosition(2, ObjMgr.m_ObjectList[2].m_pivot[0], ObjMgr.m_ObjectList[2].m_pivot[1] + dir, ObjMgr.m_ObjectList[2].m_pivot[2]);
+			}
+		}
+	}
+	else
+	{
+		if (move_option == 0)
+		{
+			// 모두 이동
+			if (isX)
+			{
+				ObjMgr.SetPosition(1, ObjMgr.m_ObjectList[1].m_pivot[0] + dir, ObjMgr.m_ObjectList[1].m_pivot[1], ObjMgr.m_ObjectList[1].m_pivot[2]);
+				ObjMgr.SetPosition(2, ObjMgr.m_ObjectList[2].m_pivot[0] + dir, ObjMgr.m_ObjectList[2].m_pivot[1], ObjMgr.m_ObjectList[2].m_pivot[2]);
+			}
+			else
+			{
+				ObjMgr.SetPosition(1, ObjMgr.m_ObjectList[1].m_pivot[0], ObjMgr.m_ObjectList[1].m_pivot[1], ObjMgr.m_ObjectList[1].m_pivot[2] + dir);
+				ObjMgr.SetPosition(2, ObjMgr.m_ObjectList[2].m_pivot[0], ObjMgr.m_ObjectList[2].m_pivot[1], ObjMgr.m_ObjectList[2].m_pivot[2] + dir);
+			}
+		}
+		else if (move_option == 1)
+		{
+			// 큐브만 이동
+			if (isX) ObjMgr.SetPosition(1, ObjMgr.m_ObjectList[1].m_pivot[0] + dir, ObjMgr.m_ObjectList[1].m_pivot[1], ObjMgr.m_ObjectList[1].m_pivot[2]);
+			else ObjMgr.SetPosition(1, ObjMgr.m_ObjectList[1].m_pivot[0], ObjMgr.m_ObjectList[1].m_pivot[1], ObjMgr.m_ObjectList[1].m_pivot[2] + dir);
+		}
+		else if (move_option == 2)
+		{
+			// 구만 이동
+			if (isX) ObjMgr.SetPosition(2, ObjMgr.m_ObjectList[2].m_pivot[0] + dir, ObjMgr.m_ObjectList[2].m_pivot[1], ObjMgr.m_ObjectList[2].m_pivot[2]);
+			else ObjMgr.SetPosition(2, ObjMgr.m_ObjectList[2].m_pivot[0], ObjMgr.m_ObjectList[2].m_pivot[1], ObjMgr.m_ObjectList[2].m_pivot[2] + dir);
+		}
+	}
+}
+
 void Keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
 	case 'A':
 	case 'a':
+		move_up = false;
 		move_option = 0;
 		break;
 	case 'S':
 	case 's':
+		move_up = false;
 		move_option = 1;
 		break;
 	case 'D':
 	case 'd':
+		move_up = false;
 		move_option = 2;
+		break;
+	case 'W':
+	case 'w':
+		move_up = true;
 		break;
 	case 'R':
 	case 'r':
-		moveDir = (key == 'R') ? 0.5f : -0.5f;
-		isRotating = false;
+		break;
+	case 'T':
+	case 't':
+		SettingSwap();
+		movingSwapOption = 0;
+		glutTimerFunc(30, MovingOriginAnim, 1);
+		glutTimerFunc(30, MovingOriginAnim, 2);
+		break;
+	case '1':
+		SettingSwap();
+		movingSwapOption = 1;
+		glutTimerFunc(30, MovingOriginAnim, 1);
+		glutTimerFunc(30, MovingOriginAnim, 2);
+		break;
+	case '2':
+		SettingSwap();
 		StopAllAnim();
 		ObjMgr.m_ObjectList[1].m_isAnimRotating = true;
 		ObjMgr.m_ObjectList[2].m_isAnimRotating = true;
-		if (ObjMgr.m_ObjectList[1].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 1);
-		if (ObjMgr.m_ObjectList[2].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 2);
+		break;
+	case '3':
 		break;
 	case 'c':
 		Reset();
@@ -300,36 +466,6 @@ void Keyboard(unsigned char key, int x, int y)
 	}
 
 	glutPostRedisplay();
-}
-
-GLvoid MoveObjects(bool isX, float dir)
-{
-	if (move_option == 0)
-	{
-		// 모두 이동
-		if (isX)
-		{
-			ObjMgr.SetPosition(1, ObjMgr.m_ObjectList[1].m_pivot[0] + dir, ObjMgr.m_ObjectList[1].m_pivot[1], ObjMgr.m_ObjectList[1].m_pivot[2]);
-			ObjMgr.SetPosition(2, ObjMgr.m_ObjectList[2].m_pivot[0] + dir, ObjMgr.m_ObjectList[2].m_pivot[1], ObjMgr.m_ObjectList[2].m_pivot[2]);
-		}
-		else
-		{
-			ObjMgr.SetPosition(1, ObjMgr.m_ObjectList[1].m_pivot[0], ObjMgr.m_ObjectList[1].m_pivot[1], ObjMgr.m_ObjectList[1].m_pivot[2] + dir);
-			ObjMgr.SetPosition(2, ObjMgr.m_ObjectList[2].m_pivot[0], ObjMgr.m_ObjectList[2].m_pivot[1], ObjMgr.m_ObjectList[2].m_pivot[2] + dir);
-		}
-	}
-	else if (move_option == 1)
-	{
-		// 큐브만 이동
-		if (isX) ObjMgr.SetPosition(1, ObjMgr.m_ObjectList[1].m_pivot[0] + dir, ObjMgr.m_ObjectList[1].m_pivot[1], ObjMgr.m_ObjectList[1].m_pivot[2]);
-		else ObjMgr.SetPosition(1, ObjMgr.m_ObjectList[1].m_pivot[0], ObjMgr.m_ObjectList[1].m_pivot[1], ObjMgr.m_ObjectList[1].m_pivot[2] + dir);
-	}
-	else if (move_option == 2)
-	{
-		// 구만 이동
-		if (isX) ObjMgr.SetPosition(2, ObjMgr.m_ObjectList[2].m_pivot[0] + dir, ObjMgr.m_ObjectList[2].m_pivot[1], ObjMgr.m_ObjectList[2].m_pivot[2]);
-		else ObjMgr.SetPosition(2, ObjMgr.m_ObjectList[2].m_pivot[0], ObjMgr.m_ObjectList[2].m_pivot[1], ObjMgr.m_ObjectList[2].m_pivot[2] + dir);
-	}
 }
 
 void KeyboardSpecial(int key, int x, int y)

@@ -71,6 +71,11 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 	objInfo->m_model[1] = 0.0f;
 	objInfo->m_model[2] = 0.0f;
 	objInfo->m_model[3] = 0.0f;
+
+	objInfo->m_model_pos[0] = 0.0f;
+	objInfo->m_model_pos[1] = 0.0f;
+	objInfo->m_model_pos[2] = 0.0f;
+	objInfo->m_model_pos[3] = 0.0f;
 }
 
 void ObjectManager::CreateCoordinate()

@@ -24,6 +24,7 @@ typedef struct ObjectInfo
 	bool		m_isAnimRotating;
 	bool		m_isActive;
 	bool		m_isModeIDX;
+	float		m_model_pos[4];
 	float		m_model[4];
 	bool		m_Initmodel = false;
 };
