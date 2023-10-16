@@ -41,6 +41,8 @@ GLvoid StopAllAnim();
 GLvoid RotatinSwapAnim(int idx);
 GLvoid MovingDirectOriginAnim(int idx);
 GLvoid MovingDirectSwapAnim(int idx);
+GLvoid MovingUpDownSwapAnim(int idx);
+float moveOffset = 0.03f;
 
 bool isFirst = true;
 
@@ -275,7 +277,7 @@ GLvoid MovingOriginAnim(int idx)
 
 	// 현재 위치에서 원점으로 이동
 	GLfloat distance = sqrt(x * x + y * y + z * z);
-	if (distance > 0.01) {
+	if (distance > moveOffset) {
 		ObjMgr.m_ObjectList[idx].m_pivot[0] -= (x / distance) * movingSpeed;
 		ObjMgr.m_ObjectList[idx].m_pivot[1] -= (y / distance) * movingSpeed;
 		ObjMgr.m_ObjectList[idx].m_pivot[2] -= (z / distance) * movingSpeed;
@@ -309,7 +311,7 @@ GLvoid MovingDirectOriginAnim(int idx)
 
 	// 현재 위치에서 원래 위치로 이동
 	GLfloat distance = sqrt(x * x + y * y + z * z);
-	if (distance > 0.01) {
+	if (distance > moveOffset) {
 		ObjMgr.m_ObjectList[idx].m_pivot[0] -= (x / distance) * movingSpeed;
 		ObjMgr.m_ObjectList[idx].m_pivot[1] -= (y / distance) * movingSpeed;
 		ObjMgr.m_ObjectList[idx].m_pivot[2] -= (z / distance) * movingSpeed;
@@ -338,7 +340,7 @@ GLvoid MovingDirectSwapAnim(int idx)
 
 	// 현재 위치에서 상대 위치로 이동
 	GLfloat distance = sqrt(x * x + y * y + z * z);
-	if (distance > 0.01) {
+	if (distance > moveOffset) {
 		ObjMgr.m_ObjectList[idx].m_pivot[0] -= (x / distance) * movingSpeed;
 		ObjMgr.m_ObjectList[idx].m_pivot[1] -= (y / distance) * movingSpeed;
 		ObjMgr.m_ObjectList[idx].m_pivot[2] -= (z / distance) * movingSpeed;
@@ -351,6 +353,37 @@ GLvoid MovingDirectSwapAnim(int idx)
 	glutPostRedisplay();
 
 	if (isSwap == false) glutTimerFunc(30, MovingDirectSwapAnim, idx);
+}
+
+GLvoid MovingUpDownSwapAnim(int idx)
+{
+	bool isSwap = false;
+
+	float targetUp = (idx == 1) ? 0.5f : -0.5f;
+
+	float x = ObjMgr.m_ObjectList[idx].m_pivot[0];
+	float y = ObjMgr.m_ObjectList[idx].m_pivot[1] + targetUp;
+	float z = ObjMgr.m_ObjectList[idx].m_pivot[2];
+
+	// 현재 위치에서 상대 위치로 이동
+	GLfloat distance = sqrt(x * x + y * y + z * z);
+	if (distance > moveOffset) {
+		ObjMgr.m_ObjectList[idx].m_pivot[0] -= (x / distance) * movingSpeed;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] -= (y / distance) * movingSpeed;
+		ObjMgr.m_ObjectList[idx].m_pivot[2] -= (z / distance) * movingSpeed;
+	}
+	else
+	{
+		isSwap = true;
+	}
+
+	glutPostRedisplay();
+
+	if (isSwap == false) glutTimerFunc(30, MovingUpDownSwapAnim, idx);
+	if (isSwap)
+	{
+		glutTimerFunc(30, MovingDirectSwapAnim, idx);
+	}
 }
 
 GLvoid MoveObjects(bool isX, float dir)
@@ -454,6 +487,9 @@ void Keyboard(unsigned char key, int x, int y)
 		ObjMgr.m_ObjectList[2].m_isAnimRotating = true;
 		break;
 	case '3':
+		SettingSwap();
+		glutTimerFunc(30, MovingUpDownSwapAnim, 1);
+		glutTimerFunc(30, MovingUpDownSwapAnim, 2);
 		break;
 	case 'c':
 		Reset();
