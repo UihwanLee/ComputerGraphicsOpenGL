@@ -36,6 +36,9 @@ bool isRotating_Y = false;
 bool isRotating = true;
 bool isFirst = true;
 
+// 움직임
+int move_option = 0;
+
 glm::mat4 model = glm::mat4(1.0f);
 
 GLfloat rotate_X = -30.0f;
@@ -45,6 +48,7 @@ GLvoid RotatingAnimationY(int isAinm);
 GLfloat moveDir = 0.5f;
 
 void Keyboard(unsigned char key, int x, int y);
+void KeyboardSpecial(int key, int x, int y);
 
 int main(int argc, char** argv)
 {
@@ -66,6 +70,7 @@ int main(int argc, char** argv)
 	InitProgram(ShaderProgram);
 	glutDisplayFunc(drawScene);
 	glutKeyboardFunc(Keyboard);
+	glutSpecialFunc(KeyboardSpecial);
 	glutReshapeFunc(Reshape);
 	glutMainLoop();
 }
@@ -84,18 +89,12 @@ GLvoid Reset()
 
 	ObjMgr.CreateCoordinate();
 	ObjMgr.CreateCube();
-	ObjMgr.CreateCone();
-	ObjMgr.CreateSquarePyramid();
 	ObjMgr.CreateSqhere();
 
 	ObjMgr.SetPosition(1, 0.0f, 0.0f, 0.5f);
 	ObjMgr.SetPosition(2, 0.0f, 0.0f, -0.5f);
-	ObjMgr.SetPosition(3, 0.0f, 0.0f, 0.5f);
-	ObjMgr.SetPosition(4, 0.0f, 0.0f, -0.5f);
 	ObjMgr.SetAllRotate(-30.0f, -30.0f, 0.0f);
 	ObjMgr.SetAllScale(0.3f, 0.4f, 0.3f);
-	ObjMgr.m_ObjectList[3].m_isActive = false;
-	ObjMgr.m_ObjectList[4].m_isActive = false;
 }
 
 GLvoid drawScene()
@@ -213,8 +212,7 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 		model2[3][j] = modelInfo[j];
 	}
 
-	if (!isRotating) glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model1));		// 모델변환
-	else glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model2));
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model1));		// 모델변환
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
@@ -269,41 +267,17 @@ void Keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
-	case 'X':
-	case 'x':
-		moveDir = (key == 'X') ? 0.5f : -0.5f;
-		for (int i = 1; i < ObjMgr.m_ObjectList.size(); i++)
-		{
-			ObjMgr.m_ObjectList[i].m_Initmodel = !ObjMgr.m_ObjectList[i].m_Initmodel;
-		}
-		isRotating = true;
-		StopAllAnim();
-		ObjMgr.m_ObjectList[1].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[2].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[3].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[4].m_isAnimRotating = true;
-		if (ObjMgr.m_ObjectList[1].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 1);
-		if (ObjMgr.m_ObjectList[2].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 2);
-		if (ObjMgr.m_ObjectList[3].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 3);
-		if (ObjMgr.m_ObjectList[4].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 4);
+	case 'A':
+	case 'a':
+		move_option = 0;
 		break;
-	case 'Y':
-	case 'y':
-		moveDir = (key == 'Y') ? 0.5f : -0.5f;
-		for (int i = 1; i < ObjMgr.m_ObjectList.size(); i++)
-		{
-			ObjMgr.m_ObjectList[i].m_Initmodel = !ObjMgr.m_ObjectList[i].m_Initmodel;
-		}
-		isRotating = true;
-		StopAllAnim();
-		ObjMgr.m_ObjectList[1].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[2].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[3].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[4].m_isAnimRotating = true;
-		if (ObjMgr.m_ObjectList[1].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationY, 1);
-		if (ObjMgr.m_ObjectList[2].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationY, 2);
-		if (ObjMgr.m_ObjectList[3].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationY, 3);
-		if (ObjMgr.m_ObjectList[4].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationY, 4);
+	case 'S':
+	case 's':
+		move_option = 1;
+		break;
+	case 'D':
+	case 'd':
+		move_option = 2;
 		break;
 	case 'R':
 	case 'r':
@@ -312,38 +286,67 @@ void Keyboard(unsigned char key, int x, int y)
 		StopAllAnim();
 		ObjMgr.m_ObjectList[1].m_isAnimRotating = true;
 		ObjMgr.m_ObjectList[2].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[3].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[4].m_isAnimRotating = true;
 		if (ObjMgr.m_ObjectList[1].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 1);
 		if (ObjMgr.m_ObjectList[2].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 2);
-		if (ObjMgr.m_ObjectList[3].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 3);
-		if (ObjMgr.m_ObjectList[4].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 4);
 		break;
 	case 'c':
-	{
-		if (ObjMgr.m_ObjectList[1].m_isActive == true)
-		{
-			ObjMgr.m_ObjectList[1].m_isActive = false;
-			ObjMgr.m_ObjectList[2].m_isActive = false;
-			ObjMgr.m_ObjectList[3].m_isActive = true;
-			ObjMgr.m_ObjectList[4].m_isActive = true;
-		}
-		else
-		{
-			ObjMgr.m_ObjectList[1].m_isActive = true;
-			ObjMgr.m_ObjectList[2].m_isActive = true;
-			ObjMgr.m_ObjectList[3].m_isActive = false;
-			ObjMgr.m_ObjectList[4].m_isActive = false;
-		}
-	}
-	break;
-	case 's':
 		Reset();
 		break;
 	case 'q':
 		glutLeaveMainLoop();
 		break;
 	default:
+		break;
+	}
+
+	glutPostRedisplay();
+}
+
+GLvoid MoveObjects(bool isX, float dir)
+{
+	if (move_option == 0)
+	{
+		// 모두 이동
+		if (isX)
+		{
+			ObjMgr.SetPosition(1, ObjMgr.m_ObjectList[1].m_pivot[0] + dir, ObjMgr.m_ObjectList[1].m_pivot[1], ObjMgr.m_ObjectList[1].m_pivot[2]);
+			ObjMgr.SetPosition(2, ObjMgr.m_ObjectList[2].m_pivot[0] + dir, ObjMgr.m_ObjectList[2].m_pivot[1], ObjMgr.m_ObjectList[2].m_pivot[2]);
+		}
+		else
+		{
+			ObjMgr.SetPosition(1, ObjMgr.m_ObjectList[1].m_pivot[0], ObjMgr.m_ObjectList[1].m_pivot[1], ObjMgr.m_ObjectList[1].m_pivot[2] + dir);
+			ObjMgr.SetPosition(2, ObjMgr.m_ObjectList[2].m_pivot[0], ObjMgr.m_ObjectList[2].m_pivot[1], ObjMgr.m_ObjectList[2].m_pivot[2] + dir);
+		}
+	}
+	else if (move_option == 1)
+	{
+		// 큐브만 이동
+		if (isX) ObjMgr.SetPosition(1, ObjMgr.m_ObjectList[1].m_pivot[0] + dir, ObjMgr.m_ObjectList[1].m_pivot[1], ObjMgr.m_ObjectList[1].m_pivot[2]);
+		else ObjMgr.SetPosition(1, ObjMgr.m_ObjectList[1].m_pivot[0], ObjMgr.m_ObjectList[1].m_pivot[1], ObjMgr.m_ObjectList[1].m_pivot[2] + dir);
+	}
+	else if (move_option == 2)
+	{
+		// 구만 이동
+		if (isX) ObjMgr.SetPosition(2, ObjMgr.m_ObjectList[2].m_pivot[0] + dir, ObjMgr.m_ObjectList[2].m_pivot[1], ObjMgr.m_ObjectList[2].m_pivot[2]);
+		else ObjMgr.SetPosition(2, ObjMgr.m_ObjectList[2].m_pivot[0], ObjMgr.m_ObjectList[2].m_pivot[1], ObjMgr.m_ObjectList[2].m_pivot[2] + dir);
+	}
+}
+
+void KeyboardSpecial(int key, int x, int y)
+{
+	switch (key)
+	{
+	case GLUT_KEY_UP:
+		MoveObjects(false, 0.1f);
+		break;
+	case GLUT_KEY_DOWN:
+		MoveObjects(false, -0.1f);
+		break;
+	case GLUT_KEY_LEFT:
+		MoveObjects(true, -0.1f);
+		break;
+	case GLUT_KEY_RIGHT:
+		MoveObjects(true, 0.1f);
 		break;
 	}
 
