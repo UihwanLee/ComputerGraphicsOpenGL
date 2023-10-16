@@ -52,6 +52,17 @@ int move_option = 0;
 int movingSwapOption = 0;
 float movingSpeed = 0.05f;
 
+// ½ºÆÄÀÌ·²
+#define PI 3.14159265
+GLfloat radius = 0.1f;
+GLfloat spiralRadius = 0.1f;
+int spiralCount = 0;
+int spiralDeg = 0;
+
+int cycles = 10;
+float res = 0.2;
+float t = res;
+
 glm::mat4 model = glm::mat4(1.0f);
 
 GLfloat rotate_X = -30.0f;
@@ -168,7 +179,7 @@ GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VE
 	rot = glm::rotate(rot, glm::radians(-30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	rot = glm::rotate(rot, glm::radians(-30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	model = model * scale * move * rot;
+	model = model * move * rot * scale;
 
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));		// ¸ðµ¨º¯È¯
 
@@ -265,6 +276,39 @@ GLvoid StopAllAnim()
 	Sleep(500);
 
 	return;
+}
+
+float archimedean(float t)
+{
+	float r = t * 10;
+	return r;
+}
+
+
+
+GLvoid MovingSprial(int idx)
+{
+	bool isRotate = true;
+
+	if (t < 2 * PI * cycles)
+	{
+		spiralRadius = archimedean(t);
+		float x = 0.0f + spiralRadius * (cos(t)) / 1000;
+		float z = 0.0f + spiralRadius * (sin(t)) / 1000;
+
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = x;
+		ObjMgr.m_ObjectList[idx].m_pivot[2] = z;
+
+		t += res;
+	}
+	else
+	{
+		isRotate = false;
+	}
+
+	glutPostRedisplay();
+
+	if (isRotate) glutTimerFunc(30, MovingSprial, idx);
 }
 
 GLvoid MovingOriginAnim(int idx)
@@ -466,6 +510,9 @@ void Keyboard(unsigned char key, int x, int y)
 		break;
 	case 'R':
 	case 'r':
+		SettingSwap();
+		MovingSprial(1);
+		MovingSprial(2);
 		break;
 	case 'T':
 	case 't':
