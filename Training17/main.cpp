@@ -35,6 +35,8 @@ float originPivot_f1[3];
 float originPivot_f2[3];
 float swapPivot_f1[3];
 float swapPivot_f2[3];
+float swapRotate_f1[3];
+float swapRotate_f2[3];
 bool animRotatingSwap = false;
 bool animMovingDirectSwap = false;
 GLvoid StopAllAnim();
@@ -43,6 +45,9 @@ GLvoid MovingDirectOriginAnim(int idx);
 GLvoid MovingDirectSwapAnim(int idx);
 GLvoid MovingUpDownSwapAnim(int idx);
 float moveOffset = 0.03f;
+float rotX, rotY, rotZ;
+int rotateCount = 0;
+float rotateDeg = 0.f;
 
 bool isFirst = true;
 
@@ -62,6 +67,8 @@ int spiralDeg = 0;
 int cycles = 10;
 float res = 0.2;
 float t = res;
+
+bool isSRT = false;
 
 glm::mat4 model = glm::mat4(1.0f);
 
@@ -220,23 +227,28 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 	move = glm::translate(move, glm::vec3(pivot[0], pivot[1], pivot[2]));
 
 	model1 = rot * move * scale;
-	model2 = move * rot * scale;
 
-	// model 행렬의 요소 출력
-	if (!ObjMgr.m_ObjectList[idx].m_Initmodel)
+	model2 =  rot * scale * move;
+
+	//// model 행렬의 요소 출력
+	//if (!ObjMgr.m_ObjectList[idx].m_Initmodel)
+	//{
+	//	for (int j = 0; j < 4; j++) {
+	//		ObjMgr.m_ObjectList[idx].m_model_pos[j] = model1[3][j];
+	//		modelInfo[j] = model1[3][j];
+	//	}
+	//	ObjMgr.m_ObjectList[idx].m_Initmodel = true;
+	//}
+
+	//for (int j = 0; j < 4; j++) {
+	//	model2[3][j] = modelInfo[j];
+	//}
+
+	if (!isSRT) glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model1));		// 모델변환
+	else
 	{
-		for (int j = 0; j < 4; j++) {
-			ObjMgr.m_ObjectList[idx].m_model_pos[j] = model1[3][j];
-			modelInfo[j] = model1[3][j];
-		}
-		ObjMgr.m_ObjectList[idx].m_Initmodel = true;
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model2));
 	}
-
-	for (int j = 0; j < 4; j++) {
-		model2[3][j] = modelInfo[j];
-	}
-
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model1));		// 모델변환
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
@@ -261,6 +273,8 @@ GLvoid SettingSwap()
 	{
 		swapPivot_f1[i] = ObjMgr.m_ObjectList[1].m_pivot[i];
 		swapPivot_f2[i] = ObjMgr.m_ObjectList[2].m_pivot[i];
+		swapRotate_f1[i] = ObjMgr.m_ObjectList[1].m_rotate[i];
+		swapRotate_f2[i] = ObjMgr.m_ObjectList[2].m_rotate[i];
 	}
 }
 
@@ -309,6 +323,19 @@ GLvoid MovingSprial(int idx)
 	glutPostRedisplay();
 
 	if (isRotate) glutTimerFunc(30, MovingSprial, idx);
+	else
+	{
+		if (idx == 1)
+		{
+			ObjMgr.m_ObjectList[idx].m_pivot[0] = swapPivot_f1[0];
+			ObjMgr.m_ObjectList[idx].m_pivot[2] = swapPivot_f1[2];
+		}
+		else
+		{
+			ObjMgr.m_ObjectList[idx].m_pivot[0] = swapPivot_f2[0];
+			ObjMgr.m_ObjectList[idx].m_pivot[2] = swapPivot_f2[2];
+		}
+	}
 }
 
 GLvoid MovingOriginAnim(int idx)
@@ -382,8 +409,15 @@ GLvoid MovingDirectSwapAnim(int idx)
 	float y = ObjMgr.m_ObjectList[idx].m_pivot[1] - targetY;
 	float z = ObjMgr.m_ObjectList[idx].m_pivot[2] - targetZ;
 
+	if (rotateCount == 0)
+	{
+		rotX = ObjMgr.m_ObjectList[idx].m_pivot[0] - targetX;
+		rotY = ObjMgr.m_ObjectList[idx].m_pivot[1] - targetY;
+		rotZ = ObjMgr.m_ObjectList[idx].m_pivot[2] - targetZ;
+	}
+
 	// 현재 위치에서 상대 위치로 이동
-	GLfloat distance = sqrt(x * x + y * y + z * z);
+	GLfloat distance = sqrt(rotX * rotX + rotY * rotY + rotZ * rotZ);
 	if (distance > moveOffset) {
 		ObjMgr.m_ObjectList[idx].m_pivot[0] -= (x / distance) * movingSpeed;
 		ObjMgr.m_ObjectList[idx].m_pivot[1] -= (y / distance) * movingSpeed;
@@ -397,6 +431,26 @@ GLvoid MovingDirectSwapAnim(int idx)
 	glutPostRedisplay();
 
 	if (isSwap == false) glutTimerFunc(30, MovingDirectSwapAnim, idx);
+}
+
+GLvoid RotatinSwapAnim(int idx)
+{
+	bool isSwap = false;
+
+	float chagneDeg = 2.0f;
+
+	if (rotateDeg < 360.0f) {
+		rotateDeg += chagneDeg;
+		ObjMgr.m_ObjectList[idx].m_rotate[0] += chagneDeg;
+	}
+	else
+	{
+		isSwap = true;
+	}
+
+	glutPostRedisplay();
+
+	if (isSwap == false) glutTimerFunc(30, RotatinSwapAnim, idx);
 }
 
 GLvoid MovingUpDownSwapAnim(int idx)
@@ -485,8 +539,30 @@ GLvoid MoveObjects(bool isX, float dir)
 	}
 }
 
+GLvoid ChangeScale(float ch_x, float ch_y, float ch_z)
+{
+	float x = ObjMgr.m_ObjectList[1].m_scale[0];
+	float y = ObjMgr.m_ObjectList[1].m_scale[1];
+	float z = ObjMgr.m_ObjectList[1].m_scale[2];
+
+	ObjMgr.SetAllScale(x + ch_x, y + ch_y, z + ch_z);
+}
+
+GLvoid ChangeScaleByOrigin(int idx, float ch_x, float ch_y, float ch_z)
+{
+	float x = ObjMgr.m_ObjectList[1].m_scale[0];
+	float y = ObjMgr.m_ObjectList[1].m_scale[1];
+	float z = ObjMgr.m_ObjectList[1].m_scale[2];
+
+	float move = (ch_x == 0.01f) ? 1.0f : -1.0f;
+	ObjMgr.SetScale(idx, x + ch_x, y + ch_y, z + ch_z);
+	ObjMgr.m_ObjectList[idx].m_pivot[0] += move;
+	//ObjMgr.SetPosition(idx, ObjMgr.m_ObjectList[idx].m_pivot[0] + move, ObjMgr.m_ObjectList[idx].m_pivot[1], ObjMgr.m_ObjectList[idx].m_pivot[2] + move);
+}
+
 void Keyboard(unsigned char key, int x, int y)
 {
+	isSRT = false;
 	switch (key)
 	{
 	case 'A':
@@ -510,9 +586,25 @@ void Keyboard(unsigned char key, int x, int y)
 		break;
 	case 'R':
 	case 'r':
+		res = 0.2;
+		t = res;
 		SettingSwap();
 		MovingSprial(1);
 		MovingSprial(2);
+		break;
+	case 'L':
+		ChangeScale(0.01f, 0.01f, 0.01f);
+		break;
+	case 'l':
+		ChangeScale(-0.01f, -0.01f, -0.01f);
+		break;
+	case 'K':
+		isSRT = true;
+		ChangeScale(0.01f, 0.01f, 0.01f);
+		break;
+	case 'k':
+		isSRT = true;
+		ChangeScale(-0.01f, -0.01f, -0.01f);
 		break;
 	case 'T':
 	case 't':
@@ -529,9 +621,9 @@ void Keyboard(unsigned char key, int x, int y)
 		break;
 	case '2':
 		SettingSwap();
-		StopAllAnim();
-		ObjMgr.m_ObjectList[1].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[2].m_isAnimRotating = true;
+		rotateDeg = 0.0f;
+		glutTimerFunc(30, RotatinSwapAnim, 1);
+		glutTimerFunc(30, RotatinSwapAnim, 2);
 		break;
 	case '3':
 		SettingSwap();

@@ -198,6 +198,8 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 	move = glm::translate(move, glm::vec3(pivot[0], pivot[1], pivot[2]));
 
 	model1 = rot * move * scale;
+
+	move = glm::mat4(1.0f);
 	model2 = move * rot * scale;
 
 	// model 행렬의 요소 출력
@@ -244,7 +246,7 @@ GLvoid RotatingAnimationX(int idx)
 
 GLvoid RotatingAnimationY(int idx)
 {
-	ObjMgr.SetRotate(idx, ObjMgr.m_ObjectList[idx].m_rotate[0], ObjMgr.m_ObjectList[idx].m_rotate[1], ObjMgr.m_ObjectList[idx].m_rotate[2] + moveDir);
+	ObjMgr.SetRotate(idx, ObjMgr.m_ObjectList[idx].m_rotate[0], ObjMgr.m_ObjectList[idx].m_rotate[1] + moveDir, ObjMgr.m_ObjectList[idx].m_rotate[2]);
 
 	glutPostRedisplay();
 
