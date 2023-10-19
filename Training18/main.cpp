@@ -31,32 +31,21 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 	int NUM_VETEX, int SIZE_COL, int SIZE_IDX, float* modelInfo, int idx);
 
 // 애니메이션
-float originPivot_f1[3];
-float originPivot_f2[3];
-float swapPivot_f1[3];
-float swapPivot_f2[3];
-float swapRotate_f1[3];
-float swapRotate_f2[3];
-bool animRotatingSwap = false;
-bool animMovingDirectSwap = false;
 GLvoid StopAllAnim();
-GLvoid RotatinSwapAnim(int idx);
-GLvoid MovingDirectOriginAnim(int idx);
-GLvoid MovingDirectSwapAnim(int idx);
-GLvoid MovingUpDownSwapAnim(int idx);
-float moveOffset = 0.03f;
-float rotX, rotY, rotZ;
-int rotateCount = 0;
-float rotateDeg = 0.f;
+GLvoid SetRotatingAnimation(bool isAnim);
+GLvoid RotatingAnimationX(int idx);
+
+bool isRotatingAnim = false;
+
+GLfloat moveSpeed = 1.0f;
 
 bool isFirst = true;
 
 glm::mat4 model = glm::mat4(1.0f);
 
-GLfloat rotate_X = -30.0f;
-GLfloat rotate_Y = -30.0f;
 
-GLfloat moveDir = 1.0f;
+// 투영 변환
+bool projectionMode = true;
 
 // Camera
 GLfloat y_angle = 0.0f, z_angle = 0.0f, camera_y = 0.0f;
@@ -104,9 +93,11 @@ GLvoid Reset()
 
 	ObjMgr.CreateCoordinate();
 	ObjMgr.CreateCube();
+	ObjMgr.CreateSquarePyramid();
 
 	ObjMgr.SetAllRotate(-30.0f, -30.0f, 0.0f);
 	ObjMgr.SetAllScale(0.3f, 0.4f, 0.3f);
+	ObjMgr.m_ObjectList[2].m_isActive = false;
 }
 
 GLvoid drawScene()
@@ -116,7 +107,7 @@ GLvoid drawScene()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(ShaderProgram);
 
-	if (isDepthTest)	glEnable(GL_DEPTH_TEST);
+	if (isDepthTest) glEnable(GL_DEPTH_TEST);
 	else glDisable(GL_DEPTH_TEST);
 
 	unsigned int projectionLocation = glGetUniformLocation(ShaderProgram, "projectionTransform");
@@ -134,21 +125,26 @@ GLvoid drawScene()
 	glm::mat4 projection = glm::mat4(1.0f);
 
 	// 직교투영
-	//float left = -1.0f;
-	//float right = 1.0f;
-	//float bottom = -1.0f;
-	//float top = 1.0f;
-	//float zNear = -10.0f; 
-	//float zFar = 10.0f; 
-	//projection = glm::ortho(left, right, bottom, top, zNear, zFar);
+	if (projectionMode)
+	{
+		float left = -1.0f;
+		float right = 1.0f;
+		float bottom = -1.0f;
+		float top = 1.0f;
+		float zNear = -10.0f;
+		float zFar = 10.0f;
+		projection = glm::ortho(left, right, bottom, top, zNear, zFar);
+	}
+	else
+	{
+		// 원근 투영
+		float fov = 45.0f; // 시야각 (Field of View)
+		float aspectRatio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT); // 화면의 가로 세로 비율
+		float zNear = 0.1f; // 가까운 클리핑 평면
+		float zFar = 50.0f; // 먼 클리핑 평면
+		projection = glm::perspective(glm::radians(fov), aspectRatio, zNear, zFar); //--- 투영 공간 설정: (뷰잉각도, 종횡비, 가까운거리, 먼거리)
 
-	//// 원근 투영
-	float fov = 45.0f; // 시야각 (Field of View)
-	float aspectRatio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT); // 화면의 가로 세로 비율
-	float zNear = 0.1f; // 가까운 클리핑 평면
-	float zFar = 50.0f; // 먼 클리핑 평면
-	projection = glm::perspective(glm::radians(fov), aspectRatio, zNear, zFar); //--- 투영 공간 설정: fovy, aspect, near, far (뷰잉각도, 종횡비, 가까운거리, 먼거리)
-	//projection = glm::translate(projection, glm::vec3(0.0, 0.0, 0.0));
+	}
 
 	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, &projection[0][0]);		// 투영변환
 
@@ -245,20 +241,6 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 
 	model2 = move * rot * scale;
 
-	//// model 행렬의 요소 출력
-	//if (!ObjMgr.m_ObjectList[idx].m_Initmodel)
-	//{
-	//	for (int j = 0; j < 4; j++) {
-	//		ObjMgr.m_ObjectList[idx].m_model_pos[j] = model1[3][j];
-	//		modelInfo[j] = model1[3][j];
-	//	}
-	//	ObjMgr.m_ObjectList[idx].m_Initmodel = true;
-	//}
-
-	//for (int j = 0; j < 4; j++) {
-	//	model2[3][j] = modelInfo[j];
-	//}
-
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model2));	// 모델변환
 
 	glEnableVertexAttribArray(0);
@@ -270,7 +252,6 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	glDrawElements(DRAW_TYPE, NUM_VETEX, GL_UNSIGNED_INT, 0);
 
@@ -284,11 +265,51 @@ GLvoid StopAllAnim()
 	return;
 }
 
+GLvoid RotatingAnimationX(int idx)
+{
+	ObjMgr.SetRotate(idx, ObjMgr.m_ObjectList[idx].m_rotate[0] + moveSpeed, ObjMgr.m_ObjectList[idx].m_rotate[1], ObjMgr.m_ObjectList[idx].m_rotate[2]);
+
+	glutPostRedisplay();
+
+	if (ObjMgr.m_ObjectList[idx].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, idx);
+}
+
+GLvoid SetRotatingAnimation(bool isAnim)
+{
+	for (int i = 1; i < ObjMgr.m_ObjectList.size(); i++)
+	{
+		ObjMgr.m_ObjectList[i].m_isAnimRotating = isAnim;
+		if (ObjMgr.m_ObjectList[i].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 1);
+	}
+}
+
 void Keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
+	case 'H':
+	case 'h':
+		// 은면 제거
+		isDepthTest = !isDepthTest;
+		break;
+	case 'Y':
+	case 'y':
+		// y축에 의한 자전한다/멈춘다.
+		isRotatingAnim = (key == 'Y') ? true : false;
+		SetRotatingAnimation(isRotatingAnim);
+		break;
+	case 'P':
+	case 'p':
+		projectionMode = !projectionMode;
+		break;
+	case 'C':
 	case 'c':
+		// 도형 바꾸기
+		ObjMgr.m_ObjectList[1].m_isActive = !ObjMgr.m_ObjectList[1].m_isActive;
+		ObjMgr.m_ObjectList[2].m_isActive = !ObjMgr.m_ObjectList[2].m_isActive;
+		break;
+	case 'S':
+	case 's':
 		Reset();
 		break;
 	case 'q':

@@ -10,12 +10,12 @@ GLfloat Object::CoordinateVertexs[18] = {
 };
 
 GLfloat Object::CoordinateColors[18] = {
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
 		1.0f, 0.0f, 0.0f,
 		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
 };
 
 GLfloat Object::CubeVertexs[24] = {
