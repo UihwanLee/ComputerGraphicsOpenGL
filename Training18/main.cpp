@@ -58,6 +58,12 @@ GLfloat rotate_Y = -30.0f;
 
 GLfloat moveDir = 1.0f;
 
+// Camera
+GLfloat y_angle = 0.0f, z_angle = 0.0f, camera_y = 0.0f;
+int y_dir = 1, z_dir = 1;
+glm::vec3 CameraPos = glm::vec3(0.0f, 1.0f, 2.0f);
+glm::vec3 AT = glm::vec3(0.0f, 0.0f, 0.0f);
+
 void Keyboard(unsigned char key, int x, int y);
 
 int main(int argc, char** argv)
@@ -112,6 +118,39 @@ GLvoid drawScene()
 
 	if (isDepthTest)	glEnable(GL_DEPTH_TEST);
 	else glDisable(GL_DEPTH_TEST);
+
+	unsigned int projectionLocation = glGetUniformLocation(ShaderProgram, "projectionTransform");
+	unsigned int viewLocation = glGetUniformLocation(ShaderProgram, "viewTransform");
+
+	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 5.0f); //--- 카메라 위치
+	glm::vec3 cameraDirection = glm::vec3(0.0f, 0.0f, 0.0f); //--- 카메라 바라보는 방향
+	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f); //--- 카메라 위쪽 방향
+	glm::mat4 view = glm::mat4(1.0f);
+
+	view = glm::lookAt(cameraPos, cameraDirection, cameraUp);
+
+	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &view[0][0]);		// 뷰변환
+
+	glm::mat4 projection = glm::mat4(1.0f);
+
+	// 직교투영
+	float left = -1.0f;
+	float right = 1.0f;
+	float bottom = -1.0f;
+	float top = 1.0f;
+	float zNear = -10.0f; 
+	float zFar = 10.0f; 
+	projection = glm::ortho(left, right, bottom, top, zNear, zFar);
+
+	//// 원근 투영
+	//float fov = 45.0f; // 시야각 (Field of View)
+	//float aspectRatio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT); // 화면의 가로 세로 비율
+	//float zNear = -1.0f; // 가까운 클리핑 평면
+	//float zFar = 100.0f; // 먼 클리핑 평면
+	//projection = glm::perspective(glm::radians(fov), aspectRatio, zNear, zFar); //--- 투영 공간 설정: fovy, aspect, near, far (뷰잉각도, 종횡비, 가까운거리, 먼거리)
+	//projection = glm::translate(projection, glm::vec3(0.0, 0.0, -2.0));
+
+	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, &projection[0][0]);		// 투영변환
 
 	for (int i = 0; i < ObjMgr.m_ObjectList.size(); i++)
 	{
