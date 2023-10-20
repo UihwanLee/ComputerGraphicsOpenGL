@@ -58,6 +58,8 @@ public:
 	void CreateCone();
 	void CreateSqhere();
 
+	void CreateOrbit(float orbit_radius);
+
 	void SetChangeActive(int mode);
 	void ChangeWireSolidType();
 

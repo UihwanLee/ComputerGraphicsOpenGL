@@ -39,8 +39,7 @@ GLvoid StopAllAnim();
 bool isRotatingAnim = false;
 
 GLfloat rotateSpeed = 5.0f;
-GLfloat moveSpeed = -5.0f;
-GLfloat downSpeed = -5.0f;
+GLfloat moveSpeed = 0.5f;
 
 bool isFirst = true;
 
@@ -108,6 +107,7 @@ GLvoid Reset()
 
 	ObjMgr.CreateCoordinate();
 	ObjMgr.CreateSqhere();
+	ObjMgr.CreateOrbit(2.5f);
 
 	ObjMgr.SetAllScale(0.3f, 0.4f, 0.3f);
 	ObjMgr.SetAllModel();
@@ -279,10 +279,34 @@ GLvoid SetRotatingAnimation(bool isAnim)
 	}
 }
 
+GLvoid MoveObject_X(int idx, float dir)
+{
+	float move = moveSpeed * dir;
+	ObjMgr.Move(idx, move, 0, 0);
+}
+
+GLvoid MoveObject_Y(int idx, float dir)
+{
+	float move = moveSpeed * dir;
+	ObjMgr.Move(idx, 0, move, 0);
+}
+
 void Keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
+	case 'w':
+		MoveObject_Y(1, 1.0f);
+		break;
+	case 'a':
+		MoveObject_X(1, -1.0f);
+		break;
+	case 's':
+		MoveObject_Y(1, -1.0f);
+		break;
+	case 'd':
+		MoveObject_X(1, 1.0f);
+		break;
 	case 'M':
 	case 'm':
 		ObjMgr.ChangeWireSolidType();
