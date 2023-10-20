@@ -46,6 +46,7 @@ public:
 
 	void CreateCoordinate();
 	void CreateCube();
+	void CreateCubeFace(int face);
 	void CreateTetrahedron();
 	void CreateSquarePyramid();
 	void CreateCone();

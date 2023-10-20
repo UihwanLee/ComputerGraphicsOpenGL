@@ -106,6 +106,22 @@ void ObjectManager::CreateCube()
 	m_ObjectList.emplace_back(temp);
 }
 
+void ObjectManager::CreateCubeFace(int face)
+{
+	// 육면체의 특정 면을 오브젝트로 생성
+	temp.m_pos = new GLfloat[12];
+	temp.m_inex = new GLint[6];
+	temp.m_col = new GLfloat[12];
+
+	for (int i = 0; i < 12; i++)	temp.m_pos[i] = Object::CubeVertexs[i];
+	for (int i = 0; i < 6; i++)		temp.m_inex[i] = Object::CubeIndexs[i];
+	for (int i = 0; i < 12; i++)	temp.m_col[i] = Object::CubeColors[i];
+
+	InitObjectStruct(&temp, 6, 48, 24, 4, GL_TRIANGLES, true, false, true);
+
+	m_ObjectList.emplace_back(temp);
+}
+
 void ObjectManager::CreateTetrahedron()
 {
 	// 사면체

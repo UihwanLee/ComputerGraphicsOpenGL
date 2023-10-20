@@ -92,7 +92,7 @@ GLvoid Reset()
 	ObjMgr.Reset();
 
 	ObjMgr.CreateCoordinate();
-	ObjMgr.CreateCube();
+	ObjMgr.CreateCubeFace(0);
 	ObjMgr.CreateSquarePyramid();
 
 	ObjMgr.SetAllRotate(-30.0f, -30.0f, 0.0f);
