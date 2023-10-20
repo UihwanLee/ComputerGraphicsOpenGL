@@ -110,8 +110,8 @@ GLvoid Reset()
 	ObjMgr.CreateSqhere();
 	ObjMgr.CreateOrbit(2.5f);
 	ObjMgr.CreateSqhere();
+	ObjMgr.CreateOrbit(2.5f);
 
-	ObjMgr.Move(3, -0.5f, 0.0f, 0.0f);
 	ObjMgr.SetScale(3, 0.2f, 0.3f, 0.2f);
 
 	ObjMgr.SetScale(1, 0.3f, 0.4f, 0.3f);
@@ -274,19 +274,41 @@ GLvoid StopAllAnim()
 }
 
 float angle = 0.0f; // 도형의 현재 위치 각도
-float step = 0.01f; // 한 스텝당 각도 증가량
+int step = 1; // 한 스텝당 각도 증가량
+float sped = 0.01f;
 
 // 궤도 돌기
 GLvoid MovingThroughOrbit(int isAnim)
 {
 	int idx = 3;
-	angle += step;
-	if (angle >= 2.0f * PI) {
+	float radius = 2.5f;
+	angle = 2.0f * PI * step / 100;
+	/*if (angle >= 2.0f * PI) {
 		angle -= 2.0f * PI;
+	}*/
+	step++;
+
+	if (step > 100)
+	{
+		sped = -0.01f;
+		step = 0;
 	}
 
-	ObjMgr.SetPosition(3, 0.5f * cos(angle), 0.0f, 0.5f * sin(angle));
-	ObjMgr.SetModel(3);
+	float cur_move_x = radius * cos(angle);
+	float cur_move_z = radius * sin(angle);
+
+	float next_angle = 2.0f * PI * step / 100;
+
+	float next_move_x = radius * cos(next_angle);
+	float next_move_z = radius * sin(next_angle);
+
+	float move_x = next_move_x - cur_move_x;
+	float move_z = next_move_z - cur_move_z;
+
+	//ObjMgr.SetPosition(3, 1.5f * cos(angle), 0.0f, 1.5f * sin(angle));
+	//ObjMgr.SetModel(3);
+
+	ObjMgr.Move(3, move_x, 0.0f, move_z);
 
 	glutPostRedisplay();
 
