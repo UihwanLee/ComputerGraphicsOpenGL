@@ -53,6 +53,8 @@ public:
 	void CreateCubeFace(int face);
 	void CreateTetrahedron();
 	void CreateSquarePyramid();
+	void CreateSquarePyramidFace(int face);
+	void CreateSquarePyramidBottom();
 	void CreateCone();
 	void CreateSqhere();
 
@@ -60,9 +62,9 @@ public:
 	void ChangeWireSolidType();
 
 	// ÁÂÇ¥°è º¯È­
-	GLvoid TransformScale(glm::mat4& model, float x, float y, float z);
-	GLvoid TransformRotate(glm::mat4& model, float angle, int type);
-	GLvoid TransformMove(glm::mat4& model, float x, float y, float z);
+	glm::mat4 TransformScale(float x, float y, float z);
+	glm::mat4 TransformRotate(float x, float y, float z);
+	glm::mat4 TransformMove(float x, float y, float z);
 
 	void SetPosition(int idx, float x, float y, float z);
 	void SetRotate(int idx, float x, float y, float z);
@@ -75,7 +77,7 @@ public:
 	void SetAllModel();
 
 	void Move(int idx, float x, float y, float z);
-	void Rotate(int idx, float angle, int type);
+	void Rotate(int idx, float x, float y, float z);
 	void Scale(int idx, float x, float y, float z);
 
 	void Reset();

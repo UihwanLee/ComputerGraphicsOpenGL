@@ -197,6 +197,69 @@ void ObjectManager::CreateSquarePyramid()
 	m_ObjectList.emplace_back(temp);
 }
 
+void ObjectManager::CreateSquarePyramidFace(int face)
+{
+	temp.m_pos = new GLfloat[9];
+	temp.m_inex = new GLint[3];
+	temp.m_col = new GLfloat[9];
+
+	// 생성하려는 면에 따라 3개의 점 나누기
+	int point01, point02, point03;
+	point01 = point02 = point03 = 0;
+	if (face == 0) { point01 = 0; point02 = 1; point03 = 2; }
+	else if (face == 1) { point01 = 0; point02 = 2; point03 = 3; }
+	else if (face == 2) { point01 = 0; point02 = 4; point03 = 1; }
+	else if (face == 3) { point01 = 0; point02 = 3; point03 = 4; }
+	
+	int temp_idx = 0;
+	for (int i = point01 * 3; i < (point01 * 3) + 3; i++)
+	{
+		temp.m_pos[temp_idx] = Object::SquarePyramidVertexs[i];
+		temp.m_col[temp_idx++] = Object::SquarePyramidColors[i];
+	}
+	for (int i = point02 * 3; i < (point02 * 3) + 3; i++)
+	{
+		temp.m_pos[temp_idx] = Object::SquarePyramidVertexs[i];
+		temp.m_col[temp_idx++] = Object::SquarePyramidColors[i];
+	}
+	for (int i = point03 * 3; i < (point03 * 3) + 3; i++)
+	{
+		temp.m_pos[temp_idx] = Object::SquarePyramidVertexs[i];
+		temp.m_col[temp_idx++] = Object::SquarePyramidColors[i];
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		temp.m_inex[i] = Object::SquarePyramidIndexs[i];
+	}
+
+	InitObjectStruct(&temp, 3, 36, 12, 3, GL_TRIANGLES, true, false, true);
+
+	m_ObjectList.emplace_back(temp);
+}
+
+void ObjectManager::CreateSquarePyramidBottom()
+{
+	temp.m_pos = new GLfloat[12];
+	temp.m_inex = new GLint[6];
+	temp.m_col = new GLfloat[12];
+
+	for (int i = 3; i < 15; i++)
+	{
+		temp.m_pos[i] = Object::SquarePyramidVertexs[i];
+		temp.m_col[i] = Object::SquarePyramidColors[i];
+	}
+
+	for (int i = 12; i < 18; i++)
+	{
+		temp.m_inex[i] = Object::SquarePyramidIndexs[i];
+	}
+
+	InitObjectStruct(&temp, 6, 48, 24, 4, GL_TRIANGLES, true, false, true);
+
+	m_ObjectList.emplace_back(temp);
+}
+
 void ObjectManager::CreateCone()
 {
 	std::vector<float> vertices;
@@ -326,32 +389,39 @@ void ObjectManager::ChangeWireSolidType()
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////  [ 변환 ] //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GLvoid ObjectManager::TransformScale(glm::mat4& model, float x, float y, float z)
+glm::mat4 ObjectManager::TransformScale(float x, float y, float z)
 {
-	glm::vec3 scaleVector(x, y, z);
-	model = glm::scale(model, scaleVector);
+	glm::mat4 scale = glm::mat4(1.0f);
+	scale = glm::scale(scale, glm::vec3(x, y, z));
+
+	return scale;
 }
 
-GLvoid ObjectManager::TransformRotate(glm::mat4& model, float angle, int type)
+glm::mat4 ObjectManager::TransformRotate(float x, float y, float z)
 {
-	if (type == 0)
+	glm::mat4 rot = glm::mat4(1.0f);
+	if (x != 0.0f)
 	{
-		model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f));
+		rot = glm::rotate(rot, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
 	}
-	else if (type == 1)
+	else if (y != 0.0f)
 	{
-		model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
+		rot = glm::rotate(rot, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
 	}
-	else if (type == 2)
+	else if (z != 0.0f)
 	{
-		model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
+		rot = glm::rotate(rot, glm::radians(z), glm::vec3(0.0f, 0.0f, 1.0f));
 	}
+
+	return rot;
 }
 
-GLvoid ObjectManager::TransformMove(glm::mat4& model, float x, float y, float z)
+glm::mat4 ObjectManager::TransformMove(float x, float y, float z)
 {
-	glm::vec3 moveVector(x, y, z);
-	model = glm::translate(model, moveVector);
+	glm::mat4 move = glm::mat4(1.0f);
+	move = glm::translate(move, glm::vec3(x, y, z));
+
+	return move;
 }
 
 void ObjectManager::SetPosition(int idx, float x, float y, float z)
@@ -385,11 +455,12 @@ void ObjectManager::SetModel(int idx)
 {
 	if (m_ObjectList.empty() || idx == 0) return;
 
-	TransformMove(m_ObjectList[idx].m_model, m_ObjectList[idx].m_pivot[0], m_ObjectList[idx].m_pivot[1], m_ObjectList[idx].m_pivot[2]);
-	TransformRotate(m_ObjectList[idx].m_model, m_ObjectList[idx].m_rotate[0], 0);
-	TransformRotate(m_ObjectList[idx].m_model, m_ObjectList[idx].m_rotate[1], 1);
-	TransformRotate(m_ObjectList[idx].m_model, m_ObjectList[idx].m_rotate[2], 2);
-	TransformScale(m_ObjectList[idx].m_model, m_ObjectList[idx].m_scale[0], m_ObjectList[idx].m_scale[1], m_ObjectList[idx].m_scale[2]);
+	glm::mat4 scale = TransformScale(m_ObjectList[idx].m_scale[0], m_ObjectList[idx].m_scale[1], m_ObjectList[idx].m_scale[2]);
+	glm::mat4 rot = TransformRotate(m_ObjectList[idx].m_rotate[0], m_ObjectList[idx].m_rotate[1], m_ObjectList[idx].m_rotate[2]);
+	glm::mat4 move = TransformMove(m_ObjectList[idx].m_pivot[0], m_ObjectList[idx].m_pivot[1], m_ObjectList[idx].m_pivot[2]);
+	glm::mat4 model = glm::mat4(1.0f);
+
+	m_ObjectList[idx].m_model = model * move * rot * scale;
 }
 
 void ObjectManager::SetAllPositon(float x, float y, float z)
@@ -443,15 +514,15 @@ void ObjectManager::Move(int idx, float x, float y, float z)
 	m_ObjectList[idx].m_pivot[0] += x;
 	m_ObjectList[idx].m_pivot[1] += y;
 	m_ObjectList[idx].m_pivot[2] += z;
-	TransformMove(m_ObjectList[idx].m_model, x, y, z);
+	m_ObjectList[idx].m_model = m_ObjectList[idx].m_model * TransformMove(x, y, z);
 }
 
-void ObjectManager::Rotate(int idx, float angle, int type)
+void ObjectManager::Rotate(int idx, float x, float y, float z)
 {
-	if (type == 0) m_ObjectList[idx].m_rotate[0] += angle;
-	else if (type == 1) m_ObjectList[idx].m_rotate[1] += angle;
-	else if (type == 2) m_ObjectList[idx].m_rotate[2] += angle;
-	TransformRotate(m_ObjectList[idx].m_model, angle, type);
+	if (x != 0.0f) m_ObjectList[idx].m_rotate[0] += x;
+	else if (y != 0.0f) m_ObjectList[idx].m_rotate[1] += y;
+	else if (z != 0.0f) m_ObjectList[idx].m_rotate[2] += z;
+	m_ObjectList[idx].m_model = m_ObjectList[idx].m_model * TransformRotate(x, y, z);
 }
 
 void ObjectManager::Scale(int idx, float x, float y, float z)
@@ -459,7 +530,8 @@ void ObjectManager::Scale(int idx, float x, float y, float z)
 	m_ObjectList[idx].m_scale[0] += x;
 	m_ObjectList[idx].m_scale[1] += y;
 	m_ObjectList[idx].m_scale[2] += z;
-	TransformScale(m_ObjectList[idx].m_model, x, y, z);
+	//m_ObjectList[idx].m_model = m_ObjectList[idx].m_model * TransformScale(x, y, z);
+	SetModel(idx);
 }
 
 void MoveAxisObject(GLfloat* posList, int SIZE, int startIDX, float moveDist)
