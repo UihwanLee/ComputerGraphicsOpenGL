@@ -35,7 +35,7 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 
 // 애니메이션
 GLvoid StopAllAnim();
-GLvoid MovingThroughOrbit(int isAnim);
+GLvoid MovingThroughOrbit(int idx);
 
 bool isRotatingAnim = false;
 
@@ -107,24 +107,34 @@ GLvoid Reset()
 	ObjMgr.Reset();
 
 	ObjMgr.CreateCoordinate();
-	ObjMgr.CreateSqhere();
-	ObjMgr.CreateOrbit(2.5f);
+
+	// 태양
 	ObjMgr.CreateSqhere();
 	ObjMgr.CreateOrbit(2.5f);
 
+	// 지구
+	ObjMgr.CreateSqhere();
 	ObjMgr.SetScale(3, 0.2f, 0.3f, 0.2f);
+	ObjMgr.SetPosition(3, 0.5f, 0.0f, 0.0f);
+
+	// 달
+	ObjMgr.CreateSqhere();
+	ObjMgr.SetScale(4, 0.1f, 0.15f, 0.1f);
+	ObjMgr.SetPosition(4, 0.75f, 0.0f, 0.0f);
 
 	ObjMgr.SetScale(1, 0.3f, 0.4f, 0.3f);
 	ObjMgr.SetScale(2, 0.3f, 0.4f, 0.3f);
 	ObjMgr.SetAllModel();
 
 	// 자식 설정
-	ObjMgr.SetChild(1, 2);
-	ObjMgr.SetChild(2, 3);
+	ObjMgr.SetChild(1, 3);
+	ObjMgr.SetChild(3, 4);
+	//ObjMgr.SetChild()
 
 	ObjMgr.m_ObjectList[0].m_isActive = false;
 
-	MovingThroughOrbit(true);
+	MovingThroughOrbit(3);
+	MovingThroughOrbit(4);
 }
 
 GLvoid drawScene()
@@ -274,30 +284,28 @@ GLvoid StopAllAnim()
 }
 
 float angle = 0.0f; // 도형의 현재 위치 각도
-int step = 1; // 한 스텝당 각도 증가량
-float sped = 0.01f;
+int step[5] = { 1, 1, 1, 1, 1}; // 한 스텝당 각도 증가량
+float radius_list[5] = { 2.5f, 2.5f, 2.5f, 2.5f, 5.0f };
 
 // 궤도 돌기
-GLvoid MovingThroughOrbit(int isAnim)
+GLvoid MovingThroughOrbit(int idx)
 {
-	int idx = 3;
-	float radius = 2.5f;
-	angle = 2.0f * PI * step / 100;
+	float radius = radius_list[idx];
+	angle = 2.0f * PI * step[idx] / 100;
 	/*if (angle >= 2.0f * PI) {
 		angle -= 2.0f * PI;
 	}*/
-	step++;
+	step[idx]++;
 
-	if (step > 100)
+	if (step[idx] > 100)
 	{
-		sped = -0.01f;
-		step = 0;
+		step[idx] = 0;
 	}
 
 	float cur_move_x = radius * cos(angle);
 	float cur_move_z = radius * sin(angle);
 
-	float next_angle = 2.0f * PI * step / 100;
+	float next_angle = 2.0f * PI * step[idx] / 100;
 
 	float next_move_x = radius * cos(next_angle);
 	float next_move_z = radius * sin(next_angle);
@@ -305,10 +313,7 @@ GLvoid MovingThroughOrbit(int isAnim)
 	float move_x = next_move_x - cur_move_x;
 	float move_z = next_move_z - cur_move_z;
 
-	//ObjMgr.SetPosition(3, 1.5f * cos(angle), 0.0f, 1.5f * sin(angle));
-	//ObjMgr.SetModel(3);
-
-	ObjMgr.Move(3, move_x, 0.0f, move_z);
+	ObjMgr.Move(idx, move_x, 0.0f, move_z);
 
 	glutPostRedisplay();
 
