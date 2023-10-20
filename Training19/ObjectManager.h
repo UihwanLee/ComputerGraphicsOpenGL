@@ -31,6 +31,8 @@ typedef struct ObjectInfo
 	glm::mat4	m_model;
 
 	bool		m_Initmodel = false;
+
+	vector<int> m_child;
 };
 
 class ObjectManager
@@ -67,6 +69,7 @@ public:
 	glm::mat4 TransformScale(float x, float y, float z);
 	glm::mat4 TransformRotate(float x, float y, float z);
 	glm::mat4 TransformMove(float x, float y, float z);
+	void TransformModel(int idx);
 
 	void SetPosition(int idx, float x, float y, float z);
 	void SetRotate(int idx, float x, float y, float z);
@@ -81,6 +84,9 @@ public:
 	void Move(int idx, float x, float y, float z);
 	void Rotate(int idx, float x, float y, float z);
 	void Scale(int idx, float x, float y, float z);
+
+	// 자식 설정
+	void SetChild(int idx, int idx_child);
 
 	void Reset();
 };

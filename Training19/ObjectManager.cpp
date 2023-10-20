@@ -465,6 +465,18 @@ glm::mat4 ObjectManager::TransformMove(float x, float y, float z)
 	return move;
 }
 
+void ObjectManager::TransformModel(int idx)
+{
+	if (m_ObjectList.empty() || idx == 0) return;
+
+	glm::mat4 scale = TransformScale(m_ObjectList[idx].m_scale[0], m_ObjectList[idx].m_scale[1], m_ObjectList[idx].m_scale[2]);
+	glm::mat4 rot = TransformRotate(m_ObjectList[idx].m_rotate[0], m_ObjectList[idx].m_rotate[1], m_ObjectList[idx].m_rotate[2]);
+	glm::mat4 move = TransformMove(m_ObjectList[idx].m_pivot[0], m_ObjectList[idx].m_pivot[1], m_ObjectList[idx].m_pivot[2]);
+	glm::mat4 model = glm::mat4(1.0f);
+
+	m_ObjectList[idx].m_model = model * move * rot * scale;
+}
+
 void ObjectManager::SetPosition(int idx, float x, float y, float z)
 {
 	if (m_ObjectList.empty() || idx == 0) return;
@@ -556,6 +568,15 @@ void ObjectManager::Move(int idx, float x, float y, float z)
 	m_ObjectList[idx].m_pivot[1] += y;
 	m_ObjectList[idx].m_pivot[2] += z;
 	m_ObjectList[idx].m_model = m_ObjectList[idx].m_model * TransformMove(x, y, z);
+
+	if (m_ObjectList[idx].m_child.empty() == false)
+	{
+		for (int i = 0; i < m_ObjectList[idx].m_child.size(); i++)
+		{
+			int idx_child = m_ObjectList[idx].m_child[i];
+			Move(idx_child, x, y, z);
+		}
+	}
 }
 
 void ObjectManager::Rotate(int idx, float x, float y, float z)
@@ -564,6 +585,15 @@ void ObjectManager::Rotate(int idx, float x, float y, float z)
 	else if (y != 0.0f) m_ObjectList[idx].m_rotate[1] += y;
 	else if (z != 0.0f) m_ObjectList[idx].m_rotate[2] += z;
 	m_ObjectList[idx].m_model = m_ObjectList[idx].m_model * TransformRotate(x, y, z);
+
+	if (m_ObjectList[idx].m_child.empty() == false)
+	{
+		for (int i = 0; i < m_ObjectList[idx].m_child.size(); i++)
+		{
+			int idx_child = m_ObjectList[idx].m_child[i];
+			Rotate(idx_child, x, y, z);
+		}
+	}
 }
 
 void ObjectManager::Scale(int idx, float x, float y, float z)
@@ -582,6 +612,11 @@ void MoveAxisObject(GLfloat* posList, int SIZE, int startIDX, float moveDist)
 		posList[startIDX] += moveDist;
 		startIDX += 3;
 	}
+}
+
+void ObjectManager::SetChild(int idx, int idx_child)
+{
+	m_ObjectList[idx].m_child.emplace_back(idx_child);
 }
 
 void ObjectManager::Reset()

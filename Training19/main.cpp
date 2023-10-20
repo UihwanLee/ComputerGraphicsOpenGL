@@ -35,6 +35,7 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 
 // 애니메이션
 GLvoid StopAllAnim();
+GLvoid MovingThroughOrbit(int isAnim);
 
 bool isRotatingAnim = false;
 
@@ -108,11 +109,22 @@ GLvoid Reset()
 	ObjMgr.CreateCoordinate();
 	ObjMgr.CreateSqhere();
 	ObjMgr.CreateOrbit(2.5f);
+	ObjMgr.CreateSqhere();
 
-	ObjMgr.SetAllScale(0.3f, 0.4f, 0.3f);
+	ObjMgr.Move(3, -0.5f, 0.0f, 0.0f);
+	ObjMgr.SetScale(3, 0.2f, 0.3f, 0.2f);
+
+	ObjMgr.SetScale(1, 0.3f, 0.4f, 0.3f);
+	ObjMgr.SetScale(2, 0.3f, 0.4f, 0.3f);
 	ObjMgr.SetAllModel();
 
+	// 자식 설정
+	ObjMgr.SetChild(1, 2);
+	ObjMgr.SetChild(2, 3);
+
 	ObjMgr.m_ObjectList[0].m_isActive = false;
+
+	MovingThroughOrbit(true);
 }
 
 GLvoid drawScene()
@@ -259,6 +271,26 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 GLvoid StopAllAnim()
 {
 
+}
+
+float angle = 0.0f; // 도형의 현재 위치 각도
+float step = 0.01f; // 한 스텝당 각도 증가량
+
+// 궤도 돌기
+GLvoid MovingThroughOrbit(int isAnim)
+{
+	int idx = 3;
+	angle += step;
+	if (angle >= 2.0f * PI) {
+		angle -= 2.0f * PI;
+	}
+
+	ObjMgr.SetPosition(3, 0.5f * cos(angle), 0.0f, 0.5f * sin(angle));
+	ObjMgr.SetModel(3);
+
+	glutPostRedisplay();
+
+	glutTimerFunc(30, MovingThroughOrbit, idx);
 }
 
 GLvoid RotatingAnimationX(int idx)
