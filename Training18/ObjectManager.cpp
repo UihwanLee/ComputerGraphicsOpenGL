@@ -72,6 +72,11 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 	objInfo->m_model_pos[2] = 0.0f;
 	objInfo->m_model_pos[3] = 0.0f;
 
+	objInfo->m_modelInfo[0] = 0.0f;
+	objInfo->m_modelInfo[1] = 0.0f;
+	objInfo->m_modelInfo[2] = 0.0f;
+	objInfo->m_modelInfo[3] = 0.0f;
+
 	objInfo->m_model = glm::mat4(1.0f);
 }
 
@@ -140,6 +145,14 @@ void ObjectManager::CreateCubeFace(int face)
 	{
 		temp.m_pos[temp_idx] = Object::CubeVertexs[i];
 		temp.m_col[temp_idx++] = Object::CubeColors[i];
+	}
+
+	if (face == 0)
+	{
+		for (int i = 0; i < 12; i++)
+		{
+			if(i%3==1) temp.m_pos[i] = 0.0f;
+		}
 	}
 
 	for (int i = 0; i < 6; i++)
@@ -372,11 +385,11 @@ void ObjectManager::SetModel(int idx)
 {
 	if (m_ObjectList.empty() || idx == 0) return;
 
-	TransformScale(m_ObjectList[idx].m_model, m_ObjectList[idx].m_scale[0], m_ObjectList[idx].m_scale[1], m_ObjectList[idx].m_scale[2]);
+	TransformMove(m_ObjectList[idx].m_model, m_ObjectList[idx].m_pivot[0], m_ObjectList[idx].m_pivot[1], m_ObjectList[idx].m_pivot[2]);
 	TransformRotate(m_ObjectList[idx].m_model, m_ObjectList[idx].m_rotate[0], 0);
 	TransformRotate(m_ObjectList[idx].m_model, m_ObjectList[idx].m_rotate[1], 1);
 	TransformRotate(m_ObjectList[idx].m_model, m_ObjectList[idx].m_rotate[2], 2);
-	TransformMove(m_ObjectList[idx].m_model, m_ObjectList[idx].m_pivot[0], m_ObjectList[idx].m_pivot[1], m_ObjectList[idx].m_pivot[2]);
+	TransformScale(m_ObjectList[idx].m_model, m_ObjectList[idx].m_scale[0], m_ObjectList[idx].m_scale[1], m_ObjectList[idx].m_scale[2]);
 }
 
 void ObjectManager::SetAllPositon(float x, float y, float z)
@@ -427,16 +440,25 @@ void ObjectManager::SetAllModel()
 
 void ObjectManager::Move(int idx, float x, float y, float z)
 {
+	m_ObjectList[idx].m_pivot[0] += x;
+	m_ObjectList[idx].m_pivot[1] += y;
+	m_ObjectList[idx].m_pivot[2] += z;
 	TransformMove(m_ObjectList[idx].m_model, x, y, z);
 }
 
 void ObjectManager::Rotate(int idx, float angle, int type)
 {
+	if (type == 0) m_ObjectList[idx].m_rotate[0] += angle;
+	else if (type == 1) m_ObjectList[idx].m_rotate[1] += angle;
+	else if (type == 2) m_ObjectList[idx].m_rotate[2] += angle;
 	TransformRotate(m_ObjectList[idx].m_model, angle, type);
 }
 
 void ObjectManager::Scale(int idx, float x, float y, float z)
 {
+	m_ObjectList[idx].m_scale[0] += x;
+	m_ObjectList[idx].m_scale[1] += y;
+	m_ObjectList[idx].m_scale[2] += z;
 	TransformScale(m_ObjectList[idx].m_model, x, y, z);
 }
 

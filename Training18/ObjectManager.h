@@ -27,6 +27,7 @@ typedef struct ObjectInfo
 	float		m_model_pos[4];
 
 	// 좌표계 행렬
+	float		m_modelInfo[4];
 	glm::mat4	m_model;
 
 	bool		m_Initmodel = false;
