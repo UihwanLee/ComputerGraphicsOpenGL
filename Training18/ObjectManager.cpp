@@ -67,15 +67,12 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 	objInfo->m_isAnimRotating = isAinm;
 	objInfo->m_isActive = isActive;
 
-	objInfo->m_model[0] = 0.0f;
-	objInfo->m_model[1] = 0.0f;
-	objInfo->m_model[2] = 0.0f;
-	objInfo->m_model[3] = 0.0f;
-
 	objInfo->m_model_pos[0] = 0.0f;
 	objInfo->m_model_pos[1] = 0.0f;
 	objInfo->m_model_pos[2] = 0.0f;
 	objInfo->m_model_pos[3] = 0.0f;
+
+	objInfo->m_model = glm::mat4(1.0f);
 }
 
 void ObjectManager::CreateCoordinate()
@@ -313,6 +310,37 @@ void ObjectManager::ChangeWireSolidType()
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////  [ º¯È¯ ] //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+GLvoid ObjectManager::TransformScale(glm::mat4& model, float x, float y, float z)
+{
+	glm::vec3 scaleVector(x, y, z);
+	model = glm::scale(model, scaleVector);
+}
+
+GLvoid ObjectManager::TransformRotate(glm::mat4& model, float angle, int type)
+{
+	if (type == 0)
+	{
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f));
+	}
+	else if (type == 1)
+	{
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
+	}
+	else if (type == 2)
+	{
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
+	}
+}
+
+GLvoid ObjectManager::TransformMove(glm::mat4& model, float x, float y, float z)
+{
+	glm::vec3 moveVector(x, y, z);
+	model = glm::translate(model, moveVector);
+}
+
 void ObjectManager::SetPosition(int idx, float x, float y, float z)
 {
 	if (m_ObjectList.empty() || idx == 0) return;
@@ -338,6 +366,17 @@ void ObjectManager::SetScale(int idx, float x, float y, float z)
 	m_ObjectList[idx].m_scale[0] = x;
 	m_ObjectList[idx].m_scale[1] = y;
 	m_ObjectList[idx].m_scale[2] = z;
+}
+
+void ObjectManager::SetModel(int idx)
+{
+	if (m_ObjectList.empty() || idx == 0) return;
+
+	TransformScale(m_ObjectList[idx].m_model, m_ObjectList[idx].m_scale[0], m_ObjectList[idx].m_scale[1], m_ObjectList[idx].m_scale[2]);
+	TransformRotate(m_ObjectList[idx].m_model, m_ObjectList[idx].m_rotate[0], 0);
+	TransformRotate(m_ObjectList[idx].m_model, m_ObjectList[idx].m_rotate[1], 1);
+	TransformRotate(m_ObjectList[idx].m_model, m_ObjectList[idx].m_rotate[2], 2);
+	TransformMove(m_ObjectList[idx].m_model, m_ObjectList[idx].m_pivot[0], m_ObjectList[idx].m_pivot[1], m_ObjectList[idx].m_pivot[2]);
 }
 
 void ObjectManager::SetAllPositon(float x, float y, float z)
@@ -374,6 +413,31 @@ void ObjectManager::SetAllScale(float x, float y, float z)
 		m_ObjectList[i].m_scale[1] = y;
 		m_ObjectList[i].m_scale[2] = z;
 	}
+}
+
+void ObjectManager::SetAllModel()
+{
+	if (m_ObjectList.empty()) return;
+
+	for (int i = 1; i < m_ObjectList.size(); i++)
+	{
+		SetModel(i);
+	}
+}
+
+void ObjectManager::Move(int idx, float x, float y, float z)
+{
+	TransformMove(m_ObjectList[idx].m_model, x, y, z);
+}
+
+void ObjectManager::Rotate(int idx, float angle, int type)
+{
+	TransformRotate(m_ObjectList[idx].m_model, angle, type);
+}
+
+void ObjectManager::Scale(int idx, float x, float y, float z)
+{
+	TransformScale(m_ObjectList[idx].m_model, x, y, z);
 }
 
 void MoveAxisObject(GLfloat* posList, int SIZE, int startIDX, float moveDist)

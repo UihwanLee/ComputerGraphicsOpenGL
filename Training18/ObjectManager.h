@@ -25,7 +25,10 @@ typedef struct ObjectInfo
 	bool		m_isActive;
 	bool		m_isModeIDX;
 	float		m_model_pos[4];
-	float		m_model[4];
+
+	// ÁÂÇ¥°è Çà·Ä
+	glm::mat4	m_model;
+
 	bool		m_Initmodel = false;
 };
 
@@ -55,13 +58,24 @@ public:
 	void SetChangeActive(int mode);
 	void ChangeWireSolidType();
 
+	// ÁÂÇ¥°è º¯È­
+	GLvoid TransformScale(glm::mat4& model, float x, float y, float z);
+	GLvoid TransformRotate(glm::mat4& model, float angle, int type);
+	GLvoid TransformMove(glm::mat4& model, float x, float y, float z);
+
 	void SetPosition(int idx, float x, float y, float z);
 	void SetRotate(int idx, float x, float y, float z);
 	void SetScale(int idx, float x, float y, float z);
+	void SetModel(int idx);
 
 	void SetAllPositon(float x, float y, float z);
 	void SetAllRotate(float x, float y, float z);
 	void SetAllScale(float x, float y, float z);
+	void SetAllModel();
+
+	void Move(int idx, float x, float y, float z);
+	void Rotate(int idx, float angle, int type);
+	void Scale(int idx, float x, float y, float z);
 
 	void Reset();
 };

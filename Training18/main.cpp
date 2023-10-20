@@ -28,21 +28,35 @@ bool isDepthTest = false;
 
 GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL);
 GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_color, float* pivot, float* rotateInfo, float* scaleInfo,
-	int NUM_VETEX, int SIZE_COL, int SIZE_IDX, float* modelInfo, int idx);
+	int NUM_VETEX, int SIZE_COL, int SIZE_IDX, glm::mat4& model, int idx);
+
+// 변환
+GLvoid TransformScale(glm::mat4& model, float x, float y, float z);
+GLvoid TransformRotate(glm::mat4& model, float angle, int type);
+GLvoid TransformMove(glm::mat4& model, float x, float y, float z);
+GLvoid TransformModel(int idx, float* pivot, float* rotateInfo, float* scaleInfo, float* modelInfo);
 
 // 애니메이션
 GLvoid StopAllAnim();
 GLvoid SetRotatingAnimation(bool isAnim);
 GLvoid RotatingAnimationX(int idx);
 
+GLvoid CubeTopAnim(int isAnim);
+GLvoid CubeFrontAnim(int isAnim);
+GLvoid CubeSideAnim(int isAnim);
+GLvoid CubeBackAnim(int isAnim);
+
+bool isAnimCubeTop = false;
+bool isAnimCubeFont = false;
+bool isAnimCubeSide = false;
+bool isAnimCubeBack = false;
+
 bool isRotatingAnim = false;
 
+GLfloat rotateSpeed = 1.0f;
 GLfloat moveSpeed = 1.0f;
 
 bool isFirst = true;
-
-glm::mat4 model = glm::mat4(1.0f);
-
 
 // 투영 변환
 bool projectionMode = true;
@@ -98,9 +112,59 @@ GLvoid Reset()
 	}
 	//ObjMgr.CreateSquarePyramid();
 
-	ObjMgr.SetAllRotate(-30.0f, -30.0f, 0.0f);
 	ObjMgr.SetAllScale(0.3f, 0.4f, 0.3f);
+	ObjMgr.SetAllRotate(-30.0f, -30.0f, 0.0f);
+	ObjMgr.SetAllModel();
 	//ObjMgr.m_ObjectList[5].m_isActive = false;
+}
+
+GLvoid TransformScale(glm::mat4& model, float x, float y, float z)
+{
+	glm::vec3 scaleVector(x, y, z); 
+	model = glm::scale(model, scaleVector);
+}
+
+GLvoid TransformRotate(glm::mat4& model, float angle, int type)
+{
+	if (type == 0)
+	{
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f));
+	}
+	else if (type == 1)
+	{
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
+	}
+	else if (type == 2)
+	{
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
+	}
+}
+
+GLvoid TransformMove(glm::mat4& model, float x, float y, float z)
+{
+	glm::vec3 moveVector(x, y, z);
+	model = glm::translate(model, moveVector);
+}
+
+GLvoid TransformModel(int idx, float* pivot, float* rotateInfo, float* scaleInfo, float* modelInfo)
+{
+	unsigned int modelLocation = glGetUniformLocation(ShaderProgram, "modelTransform");
+
+	glm::mat4 model = glm::mat4(1.0f);
+	glm::mat4 scale = glm::mat4(1.0f);
+	glm::mat4 rot = glm::mat4(1.0f);
+	glm::mat4 move = glm::mat4(1.0f);
+
+	scale = glm::scale(scale, glm::vec3(scaleInfo[0], scaleInfo[1], scaleInfo[2]));
+
+	rot = glm::rotate(rot, glm::radians(rotateInfo[1]), glm::vec3(1.0f, 0.0f, 0.0f));
+	rot = glm::rotate(rot, glm::radians(rotateInfo[0]), glm::vec3(0.0f, 1.0f, 0.0f));
+
+	move = glm::translate(move, glm::vec3(pivot[0], pivot[1], pivot[2]));
+
+	model = move * rot * scale;
+
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));	// 모델변환
 }
 
 GLvoid drawScene()
@@ -217,7 +281,7 @@ GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VE
 }
 
 GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_color, float* pivot, float* rotateInfo, float* scaleInfo,
-	int NUM_VETEX, int SIZE_COL, int SIZE_IDX, float* modelInfo, int idx)
+	int NUM_VETEX, int SIZE_COL, int SIZE_IDX, glm::mat4& model, int idx)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
 	glBufferData(GL_ARRAY_BUFFER, SIZE_COL, obj_pos, GL_STATIC_DRAW);
@@ -225,26 +289,10 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, SIZE_IDX, obj_index, GL_STATIC_DRAW);
 
+	// 모델변환
 	unsigned int modelLocation = glGetUniformLocation(ShaderProgram, "modelTransform");
-
-	glm::mat4 model2 = glm::mat4(1.0f);
-	glm::mat4 model1 = glm::mat4(1.0f);
-	glm::mat4 scale = glm::mat4(1.0f);
-	glm::mat4 rot = glm::mat4(1.0f);
-	glm::mat4 move = glm::mat4(1.0f);
-
-	scale = glm::scale(scale, glm::vec3(scaleInfo[0], scaleInfo[1], scaleInfo[2]));
-
-	rot = glm::rotate(rot, glm::radians(rotateInfo[1]), glm::vec3(1.0f, 0.0f, 0.0f));
-	rot = glm::rotate(rot, glm::radians(rotateInfo[0]), glm::vec3(0.0f, 1.0f, 0.0f));
-
-	move = glm::translate(move, glm::vec3(pivot[0], pivot[1], pivot[2]));
-
-	model1 = rot * move * scale;
-
-	model2 = move * rot * scale;
-
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model2));	// 모델변환
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+	//TransformModel(idx, pivot, rotateInfo, scaleInfo, modelInfo);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
@@ -264,13 +312,12 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 
 GLvoid StopAllAnim()
 {
-
 	return;
 }
 
 GLvoid RotatingAnimationX(int idx)
 {
-	ObjMgr.SetRotate(idx, ObjMgr.m_ObjectList[idx].m_rotate[0] + moveSpeed, ObjMgr.m_ObjectList[idx].m_rotate[1], ObjMgr.m_ObjectList[idx].m_rotate[2]);
+	ObjMgr.Rotate(idx, rotateSpeed, 1);
 
 	glutPostRedisplay();
 
@@ -282,8 +329,33 @@ GLvoid SetRotatingAnimation(bool isAnim)
 	for (int i = 1; i < ObjMgr.m_ObjectList.size(); i++)
 	{
 		ObjMgr.m_ObjectList[i].m_isAnimRotating = isAnim;
-		if (ObjMgr.m_ObjectList[i].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 1);
+		if (ObjMgr.m_ObjectList[i].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, i);
 	}
+}
+
+GLvoid CubeTopAnim(int isAnim)
+{
+	int idx = 1;
+	//ObjMgr.SetRotate(idx, ObjMgr.m_ObjectList[idx].m_rotate[0], ObjMgr.m_ObjectList[idx].m_rotate[1] + moveSpeed, ObjMgr.m_ObjectList[idx].m_rotate[2]);
+
+	glutPostRedisplay();
+
+	if (isAnimCubeTop) glutTimerFunc(30, CubeTopAnim, isAnimCubeTop);
+}
+
+GLvoid CubeFrontAnim(int isAnim)
+{
+
+}
+
+GLvoid CubeSideAnim(int isAnim)
+{
+
+}
+
+GLvoid CubeBackAnim(int isAnim)
+{
+
 }
 
 void Keyboard(unsigned char key, int x, int y)
@@ -301,6 +373,26 @@ void Keyboard(unsigned char key, int x, int y)
 		isRotatingAnim = (key == 'Y') ? true : false;
 		SetRotatingAnimation(isRotatingAnim);
 		break;
+	// 육면체 애니메이션
+	case 't':
+		//육면체의 윗면 애니메이션 시작/정지 (자전)
+		isAnimCubeTop = !isAnimCubeTop;
+		//if (isAnimCubeTop) glutTimerFunc(30, CubeTopAnim, isAnimCubeTop);
+		break;
+	case 'f':
+		//육면체의 앞면을 연다/ 앞면을 닫는다 (회전)
+		break;
+	case 's':
+		// 육면체의 옆면을 연다/ 닫는다 (슬라이드 이동 변환)
+		break;
+	case 'b':
+		// 육면체의 뒷면을 연다/ 닫는다 (크기 커짐/작아짐)
+		break;
+	// 사각뿔 애니메이션
+	case 'o':
+		break;
+	case 'r':
+		break;
 	case 'P':
 	case 'p':
 		projectionMode = !projectionMode;
@@ -311,8 +403,8 @@ void Keyboard(unsigned char key, int x, int y)
 		ObjMgr.m_ObjectList[1].m_isActive = !ObjMgr.m_ObjectList[1].m_isActive;
 		ObjMgr.m_ObjectList[2].m_isActive = !ObjMgr.m_ObjectList[2].m_isActive;
 		break;
-	case 'S':
-	case 's':
+	case 'Z':
+	case 'z':
 		Reset();
 		break;
 	case 'q':
