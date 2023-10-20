@@ -113,9 +113,42 @@ void ObjectManager::CreateCubeFace(int face)
 	temp.m_inex = new GLint[6];
 	temp.m_col = new GLfloat[12];
 
-	for (int i = 0; i < 12; i++)	temp.m_pos[i] = Object::CubeVertexs[i];
-	for (int i = 0; i < 6; i++)		temp.m_inex[i] = Object::CubeIndexs[i];
-	for (int i = 0; i < 12; i++)	temp.m_col[i] = Object::CubeColors[i];
+	// 생성하려는 면에 따라 4개의 점 나누기
+	int point01, point02, point03, point04;
+	point01 = point02 = point03 = point04 = 0;
+	if (face == 0) { point01 = 0; point02 = 1; point03 = 2; point04 = 3; }
+	else if (face == 1) { point01 = 1; point02 = 5; point03 = 6; point04 = 2; }
+	else if (face == 2) { point01 = 2; point02 = 6; point03 = 7; point04 = 3; }
+	else if (face == 3) { point01 = 3; point02 = 0; point03 = 4; point04 = 7; }
+	else if (face == 4) { point01 = 0; point02 = 1; point03 = 5; point04 = 4; }
+	else if (face == 5) { point01 = 4; point02 = 5; point03 = 6; point04 = 7; }
+
+	int temp_idx = 0;
+	for (int i = point01 * 3; i < (point01 *3) + 3 ; i++)
+	{
+		temp.m_pos[temp_idx] = Object::CubeVertexs[i];
+		temp.m_col[temp_idx++] = Object::CubeColors[i];
+	}
+	for (int i = point02 * 3; i < (point02 * 3) + 3; i++)
+	{
+		temp.m_pos[temp_idx] = Object::CubeVertexs[i];
+		temp.m_col[temp_idx++] = Object::CubeColors[i];
+	}
+	for (int i = point03 * 3; i < (point03 * 3) + 3; i++)
+	{
+		temp.m_pos[temp_idx] = Object::CubeVertexs[i];
+		temp.m_col[temp_idx++] = Object::CubeColors[i];
+	}
+	for (int i = point04 * 3; i < (point04 * 3) + 3; i++)
+	{
+		temp.m_pos[temp_idx] = Object::CubeVertexs[i];
+		temp.m_col[temp_idx++] = Object::CubeColors[i];
+	}
+
+	for (int i = 0; i < 6; i++)
+	{
+		temp.m_inex[i] = Object::CubeIndexs[i];
+	}
 
 	InitObjectStruct(&temp, 6, 48, 24, 4, GL_TRIANGLES, true, false, true);
 

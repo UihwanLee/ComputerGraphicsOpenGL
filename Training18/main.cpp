@@ -92,12 +92,15 @@ GLvoid Reset()
 	ObjMgr.Reset();
 
 	ObjMgr.CreateCoordinate();
-	ObjMgr.CreateCubeFace(0);
-	ObjMgr.CreateSquarePyramid();
+	for (int i = 0; i < 6; i++)
+	{
+		ObjMgr.CreateCubeFace(i);
+	}
+	//ObjMgr.CreateSquarePyramid();
 
 	ObjMgr.SetAllRotate(-30.0f, -30.0f, 0.0f);
 	ObjMgr.SetAllScale(0.3f, 0.4f, 0.3f);
-	ObjMgr.m_ObjectList[2].m_isActive = false;
+	//ObjMgr.m_ObjectList[5].m_isActive = false;
 }
 
 GLvoid drawScene()
