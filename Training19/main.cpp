@@ -36,10 +36,13 @@ int NUM_VETEX, int SIZE_COL, int SIZE_IDX, glm::mat4& model, float* modelInfo, i
 // 애니메이션
 GLvoid StopAllAnim();
 GLvoid MovingThroughOrbit(int idx);
-GLvoid MovingOrbitUp(int idx);
 GLvoid MovingThroughOrbit2(int idx);
+GLvoid MovingThroughOrbit3(int idx);
+GLvoid MovingThroughOrbit4(int idx);
+GLvoid MovingOrbitUp(int idx);
 
 GLvoid RotatingCamera(int isAnim);
+GLvoid RotatingCamera_Z(int isAnim);
 
 void timer(int value);
 
@@ -60,7 +63,9 @@ glm::vec3 CameraPos = glm::vec3(-1.0f, 1.0f, 2.0f);
 glm::vec3 AT = glm::vec3(0.0f, 0.0f, 0.0f);
 
 bool rotatingCarmera = false;
+bool rotatingCamera_z = false;
 float rotatingCameraRate = 0.0f;
+float rotatingCameraRate_z = 0.0f;
 
 
 void Keyboard(unsigned char key, int x, int y);
@@ -156,35 +161,47 @@ GLvoid Reset()
 	ObjMgr.SetPosition(4, 0.75f, 0.0f, 0.0f);
 
 	// 궤도2
-	ObjMgr.CreateOrbit(2.0f);
+	ObjMgr.CreateOrbit2(2.0f, 1.0f);
 	ObjMgr.SetScale(5, 0.3f, 0.4f, 0.3f);
-	ObjMgr.SetRotate(5, 45.0f, 0.0f, 0.0f);
+
+	// 지구2
+	ObjMgr.CreateSqhere(0.0f, 255.0f, 0.0f);
+	ObjMgr.SetScale(6, 0.2f, 0.3f, 0.2f);
+	ObjMgr.SetPosition(6, 0.5f, 0.7f, 0.4f);
+
+	// 달2
+	ObjMgr.CreateSqhere(255.0f, 0.0f, 0.0f);
+	ObjMgr.SetScale(7, 0.1f, 0.15f, 0.1f);
+	ObjMgr.SetPosition(7, 0.87f, 0.7f, 0.35f);
+
+	// 궤도3
+	ObjMgr.CreateOrbit2(2.0f, -1.0f);
+	ObjMgr.SetScale(8, 0.3f, 0.4f, 0.3f);
+
+	// 지구3
+	ObjMgr.CreateSqhere(0.0f, 255.0f, 0.0f);
+	ObjMgr.SetScale(9, 0.2f, 0.3f, 0.2f);
+	ObjMgr.SetPosition(9, 0.45f, -0.5f, 0.45f);
+
+	// 달3
+	ObjMgr.CreateSqhere(255.0f, 0.0f, 0.0f);
+	ObjMgr.SetScale(10, 0.1f, 0.15f, 0.1f);
+	ObjMgr.SetPosition(10, 0.7f, -0.45f, 0.4f);
 
 	ObjMgr.SetAllModel();
 
-	//// 지구2
-	//ObjMgr.CreateSqhere(0.0f, 255.0f, 0.0f);
-	//ObjMgr.SetScale(6, 0.2f, 0.3f, 0.2f);
-	////ObjMgr.SetRotate(6, 45.0f, 0.0f, 0.0f);
-	//ObjMgr.SetPosition(6, 0.5f, 0.0f, 0.0f);
-
-
-	//// 달2
-	//ObjMgr.CreateSqhere(255.0f, 0.0f, 0.0f);
-	//ObjMgr.SetScale(7, 0.1f, 0.15f, 0.1f);
-	//ObjMgr.SetPosition(7, 0.75f, 0.0f, 0.0f);
-
 	ObjMgr.m_ObjectList[0].m_isActive = false;
-
 
 	// 자식 설정
 	ObjMgr.SetChild(1, 2); // 태양 <- 지구1
 	ObjMgr.SetChild(1, 3); // 태양 <- 궤도1
 	ObjMgr.SetChild(3, 4); // 지구1 <- 달1
-	//ObjMgr.SetChild(1, 5); // 태양1 <- 궤도2
-	//ObjMgr.SetChild(1, 6); // 태양1 <- 지구2
-	//ObjMgr.SetChild(6, 7); // 지구2 <- 달2
-	////ObjMgr.SetChild()
+	ObjMgr.SetChild(1, 5); // 태양1 <- 궤도2
+	ObjMgr.SetChild(1, 6); // 태양1 <- 지구2
+	ObjMgr.SetChild(6, 7); // 지구2 <- 달2
+	ObjMgr.SetChild(1, 8); // 태양1 <- 궤도3
+	ObjMgr.SetChild(1, 9); // 태양1 <- 지구3
+	ObjMgr.SetChild(9, 10); // 지구3 <- 달3
 
 	//MovingThroughOrbit(3);
 	//MovingThroughOrbit(4);
@@ -199,12 +216,22 @@ GLvoid Reset()
 	// 지구1 -> 공전 + 자전
 	MovingThroughOrbit(3);
 	MovingThroughOrbit(4);
+	MovingThroughOrbit3(6);
+	MovingThroughOrbit(7);
+	MovingThroughOrbit4(9);
+	MovingThroughOrbit(10);
 }
 
 float angle = 0.0f; // 도형의 현재 위치 각도
-int step[9] = { 1, 1, 1, 1, 1, 1, 1, 1, 1 }; // 한 스텝당 각도 증가량
-float radius_list[9] = { 2.5f, 2.5f, 2.5f, 0.5f, 0.25f, 2.5f, 2.5f, 5.0f, 2.5f};
-                       // 0     1     2     3     4     5     6     7     8
+int step[11] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }; // 한 스텝당 각도 증가량
+float radius_list[11] = { 2.5f, 2.5f, 2.5f, 0.5f, 0.25f, 2.5f, 0.7f, 0.25f, 0.5f, 0.7f, 0.25f };
+                          // 0     1     2     3     4     5     6     7     8     9
+float angle_list[11] = { 2.5f, 2.5f, 2.5f, 0.5f, 0.25f, 2.5f, -45.0f, 0.25f, -45.0f, -45.0f, 2.5f };
+                       // 0     1     2     3     4     5      6        7     8       9
+
+float dir[10] = { 2.5f, 2.5f, 2.5f, 0.5f, 0.25f, 2.5f,  1.0f,   1.0f, -45.0f, -1.0f };
+                 // 0     1     2     3     4     5      6        7     8       9
+
 
 GLvoid drawScene()
 {
@@ -224,8 +251,9 @@ GLvoid drawScene()
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f); //--- 카메라 위쪽 방향
 	glm::mat4 view = glm::mat4(1.0f);
 
-	//view = glm::lookAt(cameraPos, cameraDirection, cameraUp);
-	view = glm::rotate(view, rotatingCameraRate, glm::vec3(0.0f, 1.0f, 0.0f));
+	view = glm::lookAt(cameraPos, cameraDirection, cameraUp);
+	//view = glm::rotate(view, rotatingCameraRate, glm::vec3(0.0f, 1.0f, 0.0f));
+	//view = glm::rotate(view, rotatingCameraRate_z, glm::vec3(0.0f, 0.0f, 1.0f));
 
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &view[0][0]);		// 뷰변환
 
@@ -387,16 +415,139 @@ GLvoid MovingThroughOrbit(int idx)
 
 GLvoid MovingThroughOrbit2(int idx)
 {
-	//ObjMgr.RotateRevolution(idx);
+	float radius = radius_list[idx];
+	float anlge = angle_list[idx];
+
+	angle = 2.0f * PI * step[idx] / 100;
+	step[idx]++;
+
+	if (step[idx] > 100)
+	{
+		step[idx] = 0;
+	}
+
+	// 원 운동을 45도로 기울이려면, 각도를 45도로 조정
+	angle += glm::radians(anlge);
+
+	float cur_move_x = radius * cos(angle);
+	float cur_move_y = radius * sin(angle);
+	float cur_move_z = radius * sin(angle);
+
+	float next_angle = 2.0f * PI * step[idx] / 100;
+
+	// 원 운동을 45도로 기울이려면, 각도를 45도로 조정
+	next_angle += glm::radians(anlge);
+
+	float next_move_x = radius * cos(next_angle);
+	float next_move_y = radius * sin(next_angle);
+	float next_move_z = radius * sin(next_angle);
+
+	float move_x = next_move_x - cur_move_x;
+	float move_y = next_move_y - cur_move_y;
+	float move_z = next_move_z - cur_move_z;
+
+	ObjMgr.Move(idx, move_x, move_y * dir[idx], move_z);
+
+	glutPostRedisplay();
+
+	glutTimerFunc(30, MovingThroughOrbit2, idx);
 }
 
+int idx_orbit = 0;
+float moveOffset = 0.3f;
+float movingSpeed = 0.5f;
+GLvoid MovingThroughOrbit3(int idx)
+{
+	if (idx_orbit + 5 > 300)
+	{
+		idx_orbit = 0;
+	}
+	//0.3f, 0.4f, 0.3f
+	float scale_x = 0.3f;
+	float scale_y = 0.4;
+	float scale_z = 0.3f;
+
+	float cur_move_x = ObjMgr.m_ObjectList[idx - 1].m_pos[idx_orbit] * scale_x;
+	float cur_move_y = ObjMgr.m_ObjectList[idx - 1].m_pos[idx_orbit+1] * scale_y;
+	float cur_move_z = ObjMgr.m_ObjectList[idx - 1].m_pos[idx_orbit+2] * scale_z;
+
+	float next_move_x = ObjMgr.m_ObjectList[idx - 1].m_pos[idx_orbit + 3] * scale_x;
+	float next_move_y = ObjMgr.m_ObjectList[idx - 1].m_pos[idx_orbit + 4] * scale_y;
+	float next_move_z = ObjMgr.m_ObjectList[idx - 1].m_pos[idx_orbit + 5] * scale_z;
+
+	float move_x = next_move_x - cur_move_x;
+	float move_y = next_move_y - cur_move_y;
+	float move_z = next_move_z - cur_move_z;
+
+	ObjMgr.Move(idx, move_x, move_y * dir[idx], move_z);
+
+	idx_orbit += 3;
+
+	glutPostRedisplay();
+
+
+	glutTimerFunc(30, MovingThroughOrbit3, idx);
+}
+
+int idx_orbit_2 = 0;
+GLvoid MovingThroughOrbit4(int idx)
+{
+	if (idx_orbit_2 + 5 > 300)
+	{
+		idx_orbit_2 = 0;
+	}
+	//0.3f, 0.4f, 0.3f
+	float scale_x = 0.3f;
+	float scale_y = 0.4;
+	float scale_z = 0.3f;
+
+	float cur_move_x = ObjMgr.m_ObjectList[idx - 1].m_pos[idx_orbit_2] * scale_x;
+	float cur_move_y = ObjMgr.m_ObjectList[idx - 1].m_pos[idx_orbit_2 + 1] * scale_y;
+	float cur_move_z = ObjMgr.m_ObjectList[idx - 1].m_pos[idx_orbit_2 + 2] * scale_z;
+
+	float next_move_x = ObjMgr.m_ObjectList[idx - 1].m_pos[idx_orbit_2 + 3] * scale_x;
+	float next_move_y = ObjMgr.m_ObjectList[idx - 1].m_pos[idx_orbit_2 + 4] * scale_y;
+	float next_move_z = ObjMgr.m_ObjectList[idx - 1].m_pos[idx_orbit_2 + 5] * scale_z;
+
+	float move_x = next_move_x - cur_move_x;
+	float move_y = next_move_y - cur_move_y;
+	float move_z = next_move_z - cur_move_z;
+
+	ObjMgr.Move(idx, move_x, move_y, move_z);
+
+	idx_orbit_2 += 3;
+
+	glutPostRedisplay();
+
+
+	glutTimerFunc(30, MovingThroughOrbit4, idx);
+}
+
+float angle_camera = 0;
 GLvoid RotatingCamera(int isAnim)
 {
-	rotatingCameraRate += 0.05f;
+	float radius = 5.0f;
+	CameraPos.x = sin(angle_camera) * radius;
+	CameraPos.z = cos(angle_camera) * radius;
+
+	angle_camera += 0.03f;
 	
 	glutPostRedisplay();
 
 	if(rotatingCarmera) glutTimerFunc(30, RotatingCamera, rotatingCarmera);
+}
+
+float angle_camera_z = 0;
+GLvoid RotatingCamera_Z(int isAnim)
+{
+	float radius = 5.0f;
+	CameraPos.y = sin(angle_camera_z) * radius;
+
+	angle_camera_z += 0.03f;
+
+	glutPostRedisplay();
+
+	if (rotatingCamera_z) glutTimerFunc(30, RotatingCamera_Z, rotatingCamera_z);
 }
 
 // y 상하이동
@@ -441,6 +592,12 @@ GLvoid MoveObject_Y(int idx, float dir)
 	ObjMgr.Move(idx, 0, move, 0);
 }
 
+GLvoid MoveObject_Z(int idx, float dir)
+{
+	float move = moveSpeed * dir;
+	ObjMgr.Move(idx, 0, 0, move);
+}
+
 void Keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
@@ -462,14 +619,29 @@ void Keyboard(unsigned char key, int x, int y)
 	case 'd':
 		MoveObject_X(1, 1.0f);
 		break;
+	case '-':
+		MoveObject_Z(1, -1.0f);
+		break;
+	case '+':
+		MoveObject_Z(1, 1.0f);
+		break;
 	case 'M':
 	case 'm':
 		ObjMgr.ChangeWireSolidType();
 		break;
 	case 'Y':
 	case 'y':
-		rotatingCarmera = true;
+		rotatingCamera_z = false;
+		if (rotatingCarmera) rotatingCarmera = false;
+		else if(rotatingCarmera ==false) rotatingCarmera = true;
 		if (rotatingCarmera) glutTimerFunc(30, RotatingCamera, rotatingCarmera);
+		break;
+	case 'Z':
+	case 'z':
+		rotatingCarmera = false;
+		if (rotatingCamera_z) rotatingCamera_z = false;
+		else if (rotatingCamera_z == false) rotatingCamera_z = true;
+		if (rotatingCamera_z) glutTimerFunc(30, RotatingCamera_Z, rotatingCamera_z);
 		break;
 	case 'P':
 	case 'p':

@@ -62,6 +62,7 @@ public:
 	void CreateSqhere(float x, float y, float z);
 
 	void CreateOrbit(float orbit_radius);
+	void CreateOrbit2(float orbit_radius, float dir);
 
 	void SetChangeActive(int mode);
 	void ChangeWireSolidType();

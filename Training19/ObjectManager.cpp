@@ -392,6 +392,50 @@ void ObjectManager::CreateOrbit(float orbit_radius)
 	m_ObjectList.emplace_back(temp);
 }
 
+void ObjectManager::CreateOrbit2(float orbit_radius, float dir)
+{
+	const int numPoints = 100;  // 궤도를 구성하는 점의 수
+	const float radius = orbit_radius;  // 반지름 크기
+
+	// 궤도를 그리기 위한 배열 초기화
+	std::vector<GLfloat> vertices;  // 궤도의 점들을 저장할 배열
+	std::vector<GLfloat> colors;    // 각 점의 색상을 저장할 배열
+	std::vector<GLuint> indices;    // 궤도를 그리기 위한 인덱스 배열
+
+	for (int i = 0; i < numPoints; ++i) {
+		float angle = 2.0f * PI * i / numPoints;
+
+		angle += glm::radians(45.0f);
+
+		float x = radius * cos(angle);
+		float y = radius * sin(angle);
+		float z = radius * sin(angle);
+
+		vertices.push_back(x);
+		vertices.push_back(y * dir);
+		vertices.push_back(z);
+
+		colors.push_back(0.0f);
+		colors.push_back(0.0f);
+		colors.push_back(0.0f);
+
+		indices.push_back(i);
+	}
+
+	// 궤도
+	temp.m_pos = new GLfloat[vertices.size()];
+	temp.m_inex = new GLint[indices.size()];
+	temp.m_col = new GLfloat[vertices.size()];
+
+	for (int i = 0; i < numPoints; i++) temp.m_inex[i] = indices[i];
+	for (int i = 0; i < vertices.size(); i++) temp.m_pos[i] = vertices[i];
+	for (int i = 0; i < vertices.size(); i++) temp.m_col[i] = colors[i];
+
+	InitObjectStruct(&temp, indices.size(), 12 * (vertices.size() / 3), 12 * (indices.size() / 3), 0, GL_LINE_LOOP, true, false, true);
+
+	m_ObjectList.emplace_back(temp);
+}
+
 void ObjectManager::SetChangeActive(int mode)
 {
 	if (m_ObjectList.size() <= 2) return;
@@ -428,7 +472,8 @@ void ObjectManager::ChangeWireSolidType()
 
 	for (int i = 1; i < m_ObjectList.size(); i++)
 	{
-		m_ObjectList[i].m_DRAW_TYPE = drawType;
+		// 2 5 8 not
+		if(i!=2 && i!=5 && i!=8) m_ObjectList[i].m_DRAW_TYPE = drawType;
 	}
 }
 
