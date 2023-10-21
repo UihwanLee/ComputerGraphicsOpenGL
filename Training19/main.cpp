@@ -29,7 +29,7 @@ bool isDepthTest = false;
 
 GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL);
 GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_color, float* pivot, float* rotateInfo, float* scaleInfo,
-	int NUM_VETEX, int SIZE_COL, int SIZE_IDX, glm::mat4& model, float* modelInfo, int idx);
+int NUM_VETEX, int SIZE_COL, int SIZE_IDX, glm::mat4& model, float* modelInfo, int idx);
 
 // 변환
 
@@ -37,6 +37,9 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 GLvoid StopAllAnim();
 GLvoid MovingThroughOrbit(int idx);
 GLvoid MovingOrbitUp(int idx);
+GLvoid MovingThroughOrbit2(int idx);
+
+GLvoid RotatingCamera(int isAnim);
 
 void timer(int value);
 
@@ -55,6 +58,9 @@ GLfloat y_angle = 0.0f, z_angle = 0.0f, camera_y = 0.0f;
 int y_dir = 1, z_dir = 1;
 glm::vec3 CameraPos = glm::vec3(-1.0f, 1.0f, 2.0f);
 glm::vec3 AT = glm::vec3(0.0f, 0.0f, 0.0f);
+
+bool rotatingCarmera = false;
+float rotatingCameraRate = 0.0f;
 
 
 void Keyboard(unsigned char key, int x, int y);
@@ -95,6 +101,7 @@ GLvoid Init()
 
 GLvoid Message()
 {
+	cout << "h/H : 은면 제거" << endl;
 	cout << "p/P : 직각 투영/ 원근 투영" << endl;
 	cout << "m/M : 솔리드 모델/와이어 모델" << endl;
 	cout << endl;
@@ -108,7 +115,7 @@ GLvoid Message()
 const int numPoints = 100; // 궤도를 구성하는 점의 수
 const float orbitRadius = 0.3f; // 궤도 반지름
 const float rotationSpeed = 1.0f; // 자전 속도 (라디안/초)
-const float revolutionSpeed = 0.1f; // 공전 속도 (라디안/초)
+const float revolutionSpeed = 0.0f; // 공전 속도 (라디안/초)
 
 // 현재 객체의 공전 각도
 float revolutionAngle = 0.0f;
@@ -131,7 +138,7 @@ GLvoid Reset()
 	ObjMgr.CreateCoordinate();
 
 	// 태양
-	ObjMgr.CreateSqhere();
+	ObjMgr.CreateSqhere(0.0f, 0.0f, 255.0f);
 	ObjMgr.SetScale(1, 0.3f, 0.4f, 0.3f);
 
 	// 궤도1
@@ -139,12 +146,12 @@ GLvoid Reset()
 	ObjMgr.SetScale(2, 0.3f, 0.4f, 0.3f);
 
 	// 지구1
-	ObjMgr.CreateSqhere();
+	ObjMgr.CreateSqhere(0.0f, 255.0f, 0.0f);
 	ObjMgr.SetScale(3, 0.2f, 0.3f, 0.2f);
 	ObjMgr.SetPosition(3, 0.5f, 0.0f, 0.0f);
 
 	// 달
-	ObjMgr.CreateSqhere();
+	ObjMgr.CreateSqhere(255.0f, 0.0f, 0.0f);
 	ObjMgr.SetScale(4, 0.1f, 0.15f, 0.1f);
 	ObjMgr.SetPosition(4, 0.75f, 0.0f, 0.0f);
 
@@ -153,26 +160,27 @@ GLvoid Reset()
 	ObjMgr.SetScale(5, 0.3f, 0.4f, 0.3f);
 	ObjMgr.SetRotate(5, 45.0f, 0.0f, 0.0f);
 
-	// 지구2
-	ObjMgr.CreateSqhere();
-	ObjMgr.SetScale(6, 0.2f, 0.3f, 0.2f);
-	//ObjMgr.SetRotate(6, 45.0f, 0.0f, 0.0f);
-	ObjMgr.SetPosition(6, 0.5f, 0.0f, 0.0f);
-
-
-	// 달2
-	ObjMgr.CreateSqhere();
-	ObjMgr.SetScale(7, 0.1f, 0.15f, 0.1f);
-	ObjMgr.SetPosition(7, 0.75f, 0.0f, 0.0f);
-
 	ObjMgr.SetAllModel();
+
+	//// 지구2
+	//ObjMgr.CreateSqhere(0.0f, 255.0f, 0.0f);
+	//ObjMgr.SetScale(6, 0.2f, 0.3f, 0.2f);
+	////ObjMgr.SetRotate(6, 45.0f, 0.0f, 0.0f);
+	//ObjMgr.SetPosition(6, 0.5f, 0.0f, 0.0f);
+
+
+	//// 달2
+	//ObjMgr.CreateSqhere(255.0f, 0.0f, 0.0f);
+	//ObjMgr.SetScale(7, 0.1f, 0.15f, 0.1f);
+	//ObjMgr.SetPosition(7, 0.75f, 0.0f, 0.0f);
 
 	ObjMgr.m_ObjectList[0].m_isActive = false;
 
+
 	// 자식 설정
-	//ObjMgr.SetChild(1, 3); // 태양 <- 지구1
-	//ObjMgr.SetChild(1, 2); // 태양 <- 궤도1
-	//ObjMgr.SetChild(3, 4); // 지구1 <- 달1
+	ObjMgr.SetChild(1, 2); // 태양 <- 지구1
+	ObjMgr.SetChild(1, 3); // 태양 <- 궤도1
+	ObjMgr.SetChild(3, 4); // 지구1 <- 달1
 	//ObjMgr.SetChild(1, 5); // 태양1 <- 궤도2
 	//ObjMgr.SetChild(1, 6); // 태양1 <- 지구2
 	//ObjMgr.SetChild(6, 7); // 지구2 <- 달2
@@ -183,21 +191,19 @@ GLvoid Reset()
 	//MovingThroughOrbit(6);
 	//MovingThroughOrbit(7);
 
-	ObjMgr.SetChild(1, 2); // 태양 <- 궤도1
-	ObjMgr.SetChild(2, 3); // 궤도1 <- 지구1
-	ObjMgr.SetChild(1, 5); // 태양1 <- 궤도2
 	//ObjMgr.SetChild(5, 6); // 궤도2 <- 지구2
 
 
 	// 공전과 자전 주기를 자주 바꿔져야함
 	// 태양 -> 자전
 	// 지구1 -> 공전 + 자전
-	MovingOrbitUp(1);
+	MovingThroughOrbit(3);
+	MovingThroughOrbit(4);
 }
 
 float angle = 0.0f; // 도형의 현재 위치 각도
 int step[9] = { 1, 1, 1, 1, 1, 1, 1, 1, 1 }; // 한 스텝당 각도 증가량
-float radius_list[9] = { 2.5f, 2.5f, 2.5f, 2.5f, 5.0f, 2.5f, 2.5f, 5.0f, 2.5f};
+float radius_list[9] = { 2.5f, 2.5f, 2.5f, 0.5f, 0.25f, 2.5f, 2.5f, 5.0f, 2.5f};
                        // 0     1     2     3     4     5     6     7     8
 
 GLvoid drawScene()
@@ -218,7 +224,8 @@ GLvoid drawScene()
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f); //--- 카메라 위쪽 방향
 	glm::mat4 view = glm::mat4(1.0f);
 
-	view = glm::lookAt(cameraPos, cameraDirection, cameraUp);
+	//view = glm::lookAt(cameraPos, cameraDirection, cameraUp);
+	view = glm::rotate(view, rotatingCameraRate, glm::vec3(0.0f, 1.0f, 0.0f));
 
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &view[0][0]);		// 뷰변환
 
@@ -324,12 +331,6 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 	// 모델변환
 	unsigned int modelLocation = glGetUniformLocation(ShaderProgram, "modelTransform");
 
-	model = glm::mat4(1.0f);
-	model = glm::scale(model, glm::vec3(0.3f, 0.4f, 0.3f));
-	model = glm::rotate(model, revolutionAngle, glm::vec3(0.0f, 1.0f, 0.0f));
-	model = glm::rotate(model, glm::radians(rotationSpeed), glm::vec3(0.0f, 1.0f, 0.0f));
-	model = glm::translate(model, glm::vec3(orbitRadius, 0.0f, 0.0f));
-
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
 
 	glEnableVertexAttribArray(0);
@@ -357,10 +358,8 @@ GLvoid StopAllAnim()
 GLvoid MovingThroughOrbit(int idx)
 {
 	float radius = radius_list[idx];
+
 	angle = 2.0f * PI * step[idx] / 100;
-	/*if (angle >= 2.0f * PI) {
-		angle -= 2.0f * PI;
-	}*/
 	step[idx]++;
 
 	if (step[idx] > 100)
@@ -384,6 +383,20 @@ GLvoid MovingThroughOrbit(int idx)
 	glutPostRedisplay();
 
 	glutTimerFunc(30, MovingThroughOrbit, idx);
+}
+
+GLvoid MovingThroughOrbit2(int idx)
+{
+	//ObjMgr.RotateRevolution(idx);
+}
+
+GLvoid RotatingCamera(int isAnim)
+{
+	rotatingCameraRate += 0.05f;
+	
+	glutPostRedisplay();
+
+	if(rotatingCarmera) glutTimerFunc(30, RotatingCamera, rotatingCarmera);
 }
 
 // y 상하이동
@@ -432,6 +445,11 @@ void Keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
+	case 'H':
+	case 'h':
+		// 은면 제거
+		isDepthTest = !isDepthTest;
+		break;
 	case 'w':
 		MoveObject_Y(1, 1.0f);
 		break;
@@ -447,6 +465,11 @@ void Keyboard(unsigned char key, int x, int y)
 	case 'M':
 	case 'm':
 		ObjMgr.ChangeWireSolidType();
+		break;
+	case 'Y':
+	case 'y':
+		rotatingCarmera = true;
+		if (rotatingCarmera) glutTimerFunc(30, RotatingCamera, rotatingCarmera);
 		break;
 	case 'P':
 	case 'p':

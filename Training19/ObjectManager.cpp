@@ -299,7 +299,7 @@ void ObjectManager::CreateCone()
 	m_ObjectList.emplace_back(temp);
 }
 
-void ObjectManager::CreateSqhere()
+void ObjectManager::CreateSqhere(float x, float y, float z)
 {
 	std::vector<float> vertices;
 	std::vector<unsigned int> indices;
@@ -338,7 +338,12 @@ void ObjectManager::CreateSqhere()
 	temp.m_col = new GLfloat[SIZE_SQHERE_VERTEX];
 
 	for (int i = 0; i < vertices.size(); i++)	temp.m_pos[i] = vertices[i];
-	for (int i = 0; i < vertices.size(); i++)	temp.m_col[i] = Object::SqhereColors[i];
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		if (i % 3 == 0) temp.m_col[i] = x;
+		if (i % 3 == 1)temp.m_col[i] = y;
+		if (i % 3 == 2)temp.m_col[i] = z;
+	}
 	for (int i = 0; i < indices.size(); i++)	temp.m_inex[i] = indices[i];
 
 	InitObjectStruct(&temp, SIZE_SQHERE_INDEX, 12 * (SIZE_SQHERE_VERTEX / 3), 12 * (SIZE_SQHERE_INDEX / 3), 0, GL_TRIANGLES, true, false, true);
@@ -474,7 +479,7 @@ void ObjectManager::TransformModel(int idx)
 	glm::mat4 move = TransformMove(m_ObjectList[idx].m_pivot[0], m_ObjectList[idx].m_pivot[1], m_ObjectList[idx].m_pivot[2]);
 	glm::mat4 model = glm::mat4(1.0f);
 
-	m_ObjectList[idx].m_model = model * rot * move * scale;
+	m_ObjectList[idx].m_model = model * move * rot * scale;
 }
 
 void ObjectManager::SetPosition(int idx, float x, float y, float z)
@@ -513,7 +518,7 @@ void ObjectManager::SetModel(int idx)
 	glm::mat4 move = TransformMove(m_ObjectList[idx].m_pivot[0], m_ObjectList[idx].m_pivot[1], m_ObjectList[idx].m_pivot[2]);
 	glm::mat4 model = glm::mat4(1.0f);
 
-	m_ObjectList[idx].m_model = model * rot * move * scale;
+	m_ObjectList[idx].m_model = model * move * rot * scale;
 }
 
 void ObjectManager::SetAllPositon(float x, float y, float z)
@@ -567,7 +572,9 @@ void ObjectManager::Move(int idx, float x, float y, float z)
 	m_ObjectList[idx].m_pivot[0] += x;
 	m_ObjectList[idx].m_pivot[1] += y;
 	m_ObjectList[idx].m_pivot[2] += z;
-	m_ObjectList[idx].m_model = m_ObjectList[idx].m_model * TransformMove(x, y, z);
+
+	if (m_ObjectList[idx].m_rotateRevol) SetRotateRevolution(idx);
+	else SetRotate(idx);
 
 	if (m_ObjectList[idx].m_child.empty() == false)
 	{
@@ -585,7 +592,8 @@ void ObjectManager::Rotate(int idx, float x, float y, float z)
 	else if (y != 0.0f) m_ObjectList[idx].m_rotate[1] += y;
 	else if (z != 0.0f) m_ObjectList[idx].m_rotate[2] += z;
 	//m_ObjectList[idx].m_model = m_ObjectList[idx].m_model * TransformRotate(x, y, z);
-	TransformModel(idx);
+	if (m_ObjectList[idx].m_rotateRevol) SetRotateRevolution(idx);
+	else SetRotate(idx);
 
 	if (m_ObjectList[idx].m_child.empty() == false)
 	{
@@ -603,7 +611,34 @@ void ObjectManager::Scale(int idx, float x, float y, float z)
 	m_ObjectList[idx].m_scale[1] += y;
 	m_ObjectList[idx].m_scale[2] += z;
 	//m_ObjectList[idx].m_model = m_ObjectList[idx].m_model * TransformScale(x, y, z);
-	SetModel(idx);
+	if (m_ObjectList[idx].m_rotateRevol) SetRotateRevolution(idx);
+	else SetRotate(idx);
+}
+
+void ObjectManager::SetRotateRevolution(int idx)
+{
+	if (m_ObjectList.empty() || idx == 0) return;
+
+	glm::mat4 scale = TransformScale(m_ObjectList[idx].m_scale[0], m_ObjectList[idx].m_scale[1], m_ObjectList[idx].m_scale[2]);
+	glm::mat4 rot = TransformRotate(m_ObjectList[idx].m_rotate[0], m_ObjectList[idx].m_rotate[1], m_ObjectList[idx].m_rotate[2]);
+	glm::mat4 move = TransformMove(m_ObjectList[idx].m_pivot[0], m_ObjectList[idx].m_pivot[1], m_ObjectList[idx].m_pivot[2]);
+	glm::mat4 model = glm::mat4(1.0f);
+
+	m_ObjectList[idx].m_model = model * move * rot * scale;
+	m_ObjectList[idx].m_rotateRevol = true;
+}
+
+void ObjectManager::SetRotate(int idx)
+{
+	if (m_ObjectList.empty() || idx == 0) return;
+
+	glm::mat4 scale = TransformScale(m_ObjectList[idx].m_scale[0], m_ObjectList[idx].m_scale[1], m_ObjectList[idx].m_scale[2]);
+	glm::mat4 rot = TransformRotate(m_ObjectList[idx].m_rotate[0], m_ObjectList[idx].m_rotate[1], m_ObjectList[idx].m_rotate[2]);
+	glm::mat4 move = TransformMove(m_ObjectList[idx].m_pivot[0], m_ObjectList[idx].m_pivot[1], m_ObjectList[idx].m_pivot[2]);
+	glm::mat4 model = glm::mat4(1.0f);
+
+	m_ObjectList[idx].m_model = model * rot * move * scale;
+	m_ObjectList[idx].m_rotateRevol = false;
 }
 
 void MoveAxisObject(GLfloat* posList, int SIZE, int startIDX, float moveDist)

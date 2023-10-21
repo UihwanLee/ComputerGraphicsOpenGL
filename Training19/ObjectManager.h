@@ -31,6 +31,7 @@ typedef struct ObjectInfo
 	glm::mat4	m_model;
 
 	bool		m_Initmodel = false;
+	bool		m_rotateRevol = false;
 
 	vector<int> m_child;
 };
@@ -58,7 +59,7 @@ public:
 	void CreateSquarePyramidFace(int face);
 	void CreateSquarePyramidBottom();
 	void CreateCone();
-	void CreateSqhere();
+	void CreateSqhere(float x, float y, float z);
 
 	void CreateOrbit(float orbit_radius);
 
@@ -84,6 +85,9 @@ public:
 	void Move(int idx, float x, float y, float z);
 	void Rotate(int idx, float x, float y, float z);
 	void Scale(int idx, float x, float y, float z);
+
+	void SetRotateRevolution(int idx);
+	void SetRotate(int idx);
 
 	// 자식 설정
 	void SetChild(int idx, int idx_child);
