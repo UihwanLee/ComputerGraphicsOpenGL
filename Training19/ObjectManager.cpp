@@ -474,7 +474,7 @@ void ObjectManager::TransformModel(int idx)
 	glm::mat4 move = TransformMove(m_ObjectList[idx].m_pivot[0], m_ObjectList[idx].m_pivot[1], m_ObjectList[idx].m_pivot[2]);
 	glm::mat4 model = glm::mat4(1.0f);
 
-	m_ObjectList[idx].m_model = model * move * rot * scale;
+	m_ObjectList[idx].m_model = model * rot * move * scale;
 }
 
 void ObjectManager::SetPosition(int idx, float x, float y, float z)
@@ -513,7 +513,7 @@ void ObjectManager::SetModel(int idx)
 	glm::mat4 move = TransformMove(m_ObjectList[idx].m_pivot[0], m_ObjectList[idx].m_pivot[1], m_ObjectList[idx].m_pivot[2]);
 	glm::mat4 model = glm::mat4(1.0f);
 
-	m_ObjectList[idx].m_model = model * move * rot * scale;
+	m_ObjectList[idx].m_model = model * rot * move * scale;
 }
 
 void ObjectManager::SetAllPositon(float x, float y, float z)
@@ -584,7 +584,8 @@ void ObjectManager::Rotate(int idx, float x, float y, float z)
 	if (x != 0.0f) m_ObjectList[idx].m_rotate[0] += x;
 	else if (y != 0.0f) m_ObjectList[idx].m_rotate[1] += y;
 	else if (z != 0.0f) m_ObjectList[idx].m_rotate[2] += z;
-	m_ObjectList[idx].m_model = m_ObjectList[idx].m_model * TransformRotate(x, y, z);
+	//m_ObjectList[idx].m_model = m_ObjectList[idx].m_model * TransformRotate(x, y, z);
+	TransformModel(idx);
 
 	if (m_ObjectList[idx].m_child.empty() == false)
 	{
