@@ -541,7 +541,8 @@ float angle_camera_z = 0;
 GLvoid RotatingCamera_Z(int isAnim)
 {
 	float radius = 5.0f;
-	CameraPos.y = sin(angle_camera_z) * radius;
+	CameraPos.x = sin(angle_camera_z) * radius;
+	CameraPos.y = cos(angle_camera_z) * radius;
 
 	angle_camera_z += 0.03f;
 
