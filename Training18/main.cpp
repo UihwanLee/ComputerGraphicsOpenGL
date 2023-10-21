@@ -37,6 +37,7 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 GLvoid StopAllAnim();
 GLvoid SetRotatingAnimation(bool isAnim);
 GLvoid RotatingAnimationX(int idx);
+GLvoid RotatingCube(int isAnim);
 
 GLvoid CubeTopAnim(int isAnim);
 GLvoid CubeFrontAnim(int isAnim);
@@ -55,8 +56,12 @@ bool isAnimCubeFrontDown = false;
 bool isAnimCubeSideUp = false;
 bool isAnimCubeBackScale = false;
 
-GLvoid PyramidAnim_01(int isAnim);
-GLvoid PyramidAnim_02(int isAnim);
+bool isDown = false;
+bool isDown2 = false;
+
+GLvoid PyramidAnim_01(int idx);
+GLvoid PyramidAnim_01_End(int idx);
+bool isRotatingAnim = false;
 
 bool isAnimPyramid_01 = false;
 bool isAnimPyramid_02 = false;
@@ -65,8 +70,6 @@ int PyramidFullTime = 0;
 int PyramidTime = 0;
 
 bool isCube = true;
-
-bool isRotatingAnim = false;
 
 GLfloat rotateSpeed = 5.0f;
 GLfloat moveSpeed = -5.0f;
@@ -133,6 +136,7 @@ GLvoid Message()
 	cout << "r : 사각뿔 각 면 열린다/닫는다" << endl;
 	cout << endl;
 	cout << "p : 직각 투영/ 원근 투영" << endl;
+	cout << "c : 도형 바꾸기 육면체/사각뿔" << endl;
 	cout << endl;
 }
 
@@ -141,12 +145,12 @@ GLvoid SetActive(bool isCube)
 	if (isCube)
 	{
 		for (int i = 1; i < 7; i++) ObjMgr.m_ObjectList[i].m_isActive = true;
-		for (int i = 7; i < 12; i++) ObjMgr.m_ObjectList[i].m_isActive = false;
+		for (int i = 7; i < 13; i++) ObjMgr.m_ObjectList[i].m_isActive = false;
 	}
 	else
 	{
 		for (int i = 1; i < 7; i++) ObjMgr.m_ObjectList[i].m_isActive = false;
-		for (int i = 7; i < 12; i++) ObjMgr.m_ObjectList[i].m_isActive = true;
+		for (int i = 7; i < 13; i++) ObjMgr.m_ObjectList[i].m_isActive = true;
 	}
 }
 
@@ -160,8 +164,12 @@ GLvoid Reset()
 	{
 		ObjMgr.CreateCubeFace(i);
 	}
-	for(int i=0; i<4; i++) ObjMgr.CreateSquarePyramidFace(i);
-	ObjMgr.CreateSquarePyramidBottom();
+	ObjMgr.CreateSquarePyramidFace(0);
+	ObjMgr.CreateSquarePyramidFace(1);
+	ObjMgr.CreateSquarePyramidFace(2);
+	ObjMgr.CreateSquarePyramidFace(3);
+	ObjMgr.CreateSquarePyramidFace(4);
+	ObjMgr.CreateSquarePyramidFace(5);
 
 	ObjMgr.SetAllScale(0.3f, 0.4f, 0.3f);
 	ObjMgr.SetAllModel();
@@ -332,20 +340,22 @@ GLvoid StopAllAnim()
 	PyramidFullTime = 0;
 	PyramidTime = 0;
 
+	isDown = false;
+	isDown2 = false;
 }
 
 GLvoid RotatingAnimationX(int idx)
 {
-	ObjMgr.SetRotate(idx, ObjMgr.m_ObjectList[idx].m_rotate[0] + rotateSpeed, ObjMgr.m_ObjectList[idx].m_rotate[1], ObjMgr.m_ObjectList[idx].m_rotate[2]);
+	ObjMgr.Rotate(idx, rotateSpeed, 0.0f, 0.0f);
 
 	glutPostRedisplay();
 
 	if (ObjMgr.m_ObjectList[idx].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, idx);
 }
 
-GLvoid SetRotatingAnimation(bool isAnim)
+GLvoid RotatingCube(int isAnim)
 {
-	for (int i = 1; i < ObjMgr.m_ObjectList.size(); i++)
+	for (int i = 1; i < 7; i++)
 	{
 		ObjMgr.m_ObjectList[i].m_isAnimRotating = isAnim;
 		if (ObjMgr.m_ObjectList[i].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, i);
@@ -456,35 +466,140 @@ GLvoid CubeBackAnim(int isAnim)
 	if (isAnimCubeBack) glutTimerFunc(30, CubeBackAnim, isAnimCubeBack);
 }
 
-GLvoid PyramidAnim_01(int isAnim)
+float moveOffset = 0.03f;
+float movingSpeed = 0.05f;
+
+float target_X[4] = { -1.5f, 0.0f, 0.0f, 1.5f };
+float target_Y[4] = { -0.5f, -0.5f, -0.5f, -0.5f };
+float target_Z[4] = { 0.0f, 1.5f, -1.5f, 0.0f };
+
+float target_X2[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+float target_Y2[4] = { -1.5f, -1.5f, -1.5f, -1.5f };
+float target_Y2_T[4] = { 0.5f, 0.5f, 0.5f, 0.5f };
+float target_Z2[4] = { 0.0f, -0.0f, 0.0f, 0.0f };
+
+
+GLvoid PyramidAnim_01(int idx)
 {
-	int idx1 = 7;
-	int idx2 = 8;
-	int idx3 = 9;
-	int idx4 = 10;
+	if (idx >= 11)
+	{
+		isAnimPyramid_02 = false;
+		return;
+	}
 
-	PyramidFullTime += 1;
+	int idx_target = idx - 7;
 
-	ObjMgr.Rotate(idx1, 0.0f, 0.0f, rotateSpeed);
-	//ObjMgr.Rotate(idx1, rotateSpeed, 0.0f, 0.0f);
+	bool isAnim = true;
+
+	float targetX, targetY, targetZ;
+
+	targetX = target_X[idx_target];
+	targetY = target_Y[idx_target];
+	targetZ = target_Z[idx_target];
+
+	float x = ObjMgr.m_ObjectList[idx].m_pos[0] - targetX;
+	float y = ObjMgr.m_ObjectList[idx].m_pos[1] - targetY;
+	float z = ObjMgr.m_ObjectList[idx].m_pos[2] - targetZ;
+
+	// 현재 위치에서 원래 위치로 이동
+	GLfloat distance = sqrt(x * x + y * y + z * z);
+	if (distance > moveOffset) {
+		ObjMgr.m_ObjectList[idx].m_pos[0] -= (x / distance) * movingSpeed;
+		ObjMgr.m_ObjectList[idx].m_pos[1] -= (y / distance) * movingSpeed;
+		ObjMgr.m_ObjectList[idx].m_pos[2] -= (z / distance) * movingSpeed;
+	}
+	else
+	{
+		isAnim = false;
+
+		ObjMgr.m_ObjectList[idx].m_pos[0] = target_X[idx_target];
+		ObjMgr.m_ObjectList[idx].m_pos[1] = target_Y[idx_target];
+		ObjMgr.m_ObjectList[idx].m_pos[2] = target_Z[idx_target];
+
+		if (isAnimPyramid_01)
+		{
+			glutTimerFunc(30, PyramidAnim_01_End, idx);
+		}
+		else if (isAnimPyramid_02)
+		{
+			int idx_new = idx++;
+			glutTimerFunc(30, PyramidAnim_01, idx);
+		}
+	}
 
 	glutPostRedisplay();
 
-	/*if (PyramidFullTime > 17)
-	{
-		isAnimPyramid_01 = false;
-		FrontAnimTime = 0;
-	}*/
-
-	if (isAnimPyramid_01) glutTimerFunc(30, PyramidAnim_01, isAnimPyramid_01);
+	if (isAnim) glutTimerFunc(30, PyramidAnim_01, idx);
 }
 
-GLvoid PyramidAnim_02(int isAnim)
+GLvoid PyramidAnim_01_End(int idx)
 {
-	int idx1 = 7;
-	int idx2 = 8;
-	int idx3 = 9;
-	int idx4 = 10;
+	if (idx <= 6)
+	{
+		isAnimPyramid_02 = false;
+		return;
+	}
+
+	int idx_target = idx - 7;
+
+	bool isAnim = true;
+
+	float targetX = target_X2[idx_target];
+	float targetY = target_Y2[idx_target];
+	float targetZ = target_Z2[idx_target];
+
+	if (isAnimPyramid_01 && isDown == false)
+	{
+		targetY = target_Y2_T[idx_target];
+	}
+
+	if (isAnimPyramid_02 && isDown2 == false)
+	{
+		targetY = target_Y2_T[idx_target];
+	}
+
+	float x = ObjMgr.m_ObjectList[idx].m_pos[0] - targetX;
+	float y = ObjMgr.m_ObjectList[idx].m_pos[1] - targetY;
+	float z = ObjMgr.m_ObjectList[idx].m_pos[2] - targetZ;
+
+	// 현재 위치에서 원래 위치로 이동
+	GLfloat distance = sqrt(x * x + y * y + z * z);
+	if (distance > moveOffset) {
+		ObjMgr.m_ObjectList[idx].m_pos[0] -= (x / distance) * movingSpeed;
+		ObjMgr.m_ObjectList[idx].m_pos[1] -= (y / distance) * movingSpeed;
+		ObjMgr.m_ObjectList[idx].m_pos[2] -= (z / distance) * movingSpeed;
+	}
+	else
+	{
+		isAnim = false;
+
+		ObjMgr.m_ObjectList[idx].m_pos[0] = target_X2[idx_target];
+		ObjMgr.m_ObjectList[idx].m_pos[1] = target_Y2[idx_target];
+		ObjMgr.m_ObjectList[idx].m_pos[2] = target_Z2[idx_target];
+
+		if (isAnimPyramid_01 && isDown == false)
+		{
+			ObjMgr.m_ObjectList[idx].m_pos[0] = target_X2[idx_target];
+			ObjMgr.m_ObjectList[idx].m_pos[1] = target_Y2_T[idx_target];
+			ObjMgr.m_ObjectList[idx].m_pos[2] = target_Z2[idx_target];
+		}
+
+		if (isAnimPyramid_02)
+		{
+			ObjMgr.m_ObjectList[idx].m_pos[0] = target_X2[idx_target];
+			ObjMgr.m_ObjectList[idx].m_pos[1] = target_Y2_T[idx_target];
+			ObjMgr.m_ObjectList[idx].m_pos[2] = target_Z2[idx_target];
+
+			int idx_new = idx - 1;
+			glutTimerFunc(30, PyramidAnim_01_End, idx_new);
+		}
+
+		if (isAnimPyramid_01 && idx==10) isAnimPyramid_01 = false;
+	}
+
+	glutPostRedisplay();
+
+	if (isAnim) glutTimerFunc(30, PyramidAnim_01_End, idx);
 }
 
 void Keyboard(unsigned char key, int x, int y)
@@ -500,7 +615,7 @@ void Keyboard(unsigned char key, int x, int y)
 	case 'y':
 		// y축에 의한 자전한다/멈춘다.
 		isRotatingAnim = (key == 'Y') ? true : false;
-		SetRotatingAnimation(isRotatingAnim);
+		RotatingCube(isRotatingAnim);
 		break;
 	// 육면체 애니메이션
 	case 't':
@@ -530,9 +645,19 @@ void Keyboard(unsigned char key, int x, int y)
 	// 사각뿔 애니메이션
 	case 'o':
 		isAnimPyramid_01 = true;
-		if (isAnimPyramid_01) glutTimerFunc(30, PyramidAnim_01, isAnimPyramid_01);
+		if (isDown) isDown = false;
+		else isDown = true;
+		if (isAnimPyramid_01) glutTimerFunc(30, PyramidAnim_01, 7);
+		if (isAnimPyramid_01) glutTimerFunc(30, PyramidAnim_01, 8);
+		if (isAnimPyramid_01) glutTimerFunc(30, PyramidAnim_01, 9);
+		if (isAnimPyramid_01) glutTimerFunc(30, PyramidAnim_01, 10);
 		break;
 	case 'r':
+		isAnimPyramid_02 = true;
+		if (isDown2) isDown2 = false;
+		else isDown2 = true;
+		if (isDown2) glutTimerFunc(30, PyramidAnim_01, 7);
+		else  glutTimerFunc(30, PyramidAnim_01_End, 10);
 		break;
 	case 'P':
 	case 'p':

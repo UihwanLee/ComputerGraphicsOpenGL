@@ -210,6 +210,8 @@ void ObjectManager::CreateSquarePyramidFace(int face)
 	else if (face == 1) { point01 = 0; point02 = 2; point03 = 3; }
 	else if (face == 2) { point01 = 0; point02 = 4; point03 = 1; }
 	else if (face == 3) { point01 = 0; point02 = 3; point03 = 4; }
+	else if (face == 4) { point01 = 1, point02 = 2, point03 = 3; }
+	else if (face == 5) { point01 = 1, point02 = 3, point03 = 4; }
 	
 	int temp_idx = 0;
 	for (int i = point01 * 3; i < (point01 * 3) + 3; i++)
@@ -244,15 +246,18 @@ void ObjectManager::CreateSquarePyramidBottom()
 	temp.m_inex = new GLint[6];
 	temp.m_col = new GLfloat[12];
 
-	for (int i = 3; i < 15; i++)
+	int idx_index = 0;
+
+	for (int i = 0; i < 12; i++)
 	{
-		temp.m_pos[i] = Object::SquarePyramidVertexs[i];
-		temp.m_col[i] = Object::SquarePyramidColors[i];
+		temp.m_pos[i] = Object::SquarePyramidVertexs[i+3];
+		temp.m_col[i] = Object::SquarePyramidColors[i+3];
 	}
 
 	for (int i = 12; i < 18; i++)
 	{
-		temp.m_inex[i] = Object::SquarePyramidIndexs[i];
+		temp.m_inex[idx_index] = Object::SquarePyramidIndexs[i];
+		idx_index += 1;
 	}
 
 	InitObjectStruct(&temp, 6, 48, 24, 4, GL_TRIANGLES, true, false, true);
