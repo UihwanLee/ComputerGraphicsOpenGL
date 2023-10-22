@@ -25,28 +25,33 @@ GLvoid drawScene(GLvoid);
 GLvoid Reshape(int w, int h);
 GLuint ShaderProgram;
 GLuint VBO[2], EBO;
-bool isDepthTest = false;
+bool isDepthTest = true;
 
 GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL);
 GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_color, float* pivot, float* rotateInfo, float* scaleInfo,
 	int NUM_VETEX, int SIZE_COL, int SIZE_IDX, glm::mat4& model, float* modelInfo, int idx);
 
-// 변환
-
-// 애니메이션
+// 애니메이션 :: 초기화
 GLvoid StopAllAnim();
 
+// 애니메이션 :: 크레인
+GLvoid MovingCrainBottomX(int isAnim);
+GLvoid RotatingCrainMidY(int isAnim);
+
+// 애니메이션 :: 카메라
 GLvoid RotatingCamera(int isAnim);
 GLvoid RotatingCamera_Z(int isAnim);
 
-void timer(int value);
+// 애니메이션 :: 변수
+bool isMovingCrainBottomX = false;
+bool isMovingCrainBottomX_Front = true;
+bool isRotatingCrainMidY = false;
+bool isRotatingCrainMidY_Front = true;
 
-bool isRotatingAnim = false;
+
 
 GLfloat rotateSpeed = 5.0f;
 GLfloat moveSpeed = 0.5f;
-
-bool isFirst = true;
 
 // 투영 변환
 bool projectionMode = true;
@@ -54,7 +59,7 @@ bool projectionMode = true;
 // Camera
 GLfloat y_angle = 0.0f, z_angle = 0.0f, camera_y = 0.0f;
 int y_dir = 1, z_dir = 1;
-glm::vec3 CameraPos = glm::vec3(0.5f, 1.0f, 2.0f);
+glm::vec3 CameraPos = glm::vec3(0.5f, 0.5f, 0.0f);
 glm::vec3 AT = glm::vec3(0.0f, 0.0f, 0.0f);
 
 bool rotatingCarmera = false;
@@ -104,10 +109,20 @@ GLvoid Message()
 	cout << "p/P : 직각 투영/ 원근 투영" << endl;
 	cout << "m/M : 솔리드 모델/와이어 모델" << endl;
 	cout << endl;
-	cout << "w/a/s/d : 좌/우/상/하 이동" << endl;
-	cout << "+/- : 앞/뒤 이동" << endl;
-	cout << "y/Y : 전체 도형 y축으로 양/음 회전" << endl;
-	cout << "z/Z : 행성,달,궤도가 z축에 대하여 양/음 방향으로 회전" << endl;
+	cout << "b/B: 크레인의 아래 몸체가 x축 방향으로 양/음 방향으로 이동한다" << endl;
+	cout << "f/F: 포신이 y축에 대하여 양/음 방향으로 회전하는데, 두 포신이 서로 반대방향으로 회전한다." << endl;
+	cout << "e/E: 2개 포신이 조금씩 이동해서 한 개가 된다/다시 제자리로 이동해서 2개가 된다." << endl;
+	cout << "t/T: 크레인의 맨 위 2개의 팔이 z축에 대하여 양/음 방향으로 서로 반대방향으로 회전한다. " << endl;
+	cout << endl;
+	cout << "z/Z: 카메라가 z축 양/음 방향으로 이동" << endl;
+	cout << "x/X: 카메라가 x축 양/음 방향으로 이동" << endl;
+	cout << "y/Y: 카메라 기준 y축에 대하여 회전" << endl;
+	cout << "r/R: 화면의 중심의 y축에 대하여 카메라가 회전 (중점에 대하여 공전)" << endl;
+	cout << endl;
+	cout << "a/A: r 명령어와 같이 화면의 중심의 축에 대하여 카메라가 회전하는 애니메이션을 진행한다/멈춘다." << endl;
+	cout << "s/S: 모든 움직임 멈추기" << endl;
+	cout << "c/C: 모든 움직임이 초기화된다." << endl;
+	cout << "Q: 프로그램 종료한다." << endl;
 	cout << endl;
 }
 
@@ -118,9 +133,51 @@ GLvoid Reset()
 
 	ObjMgr.CreateCoordinate();
 
-	ObjMgr.CreateCube();
+	int idx = 0;
+
+	// 평지
+	ObjMgr.CreateCube(0.0f, 0.0f, 0.0f);
+	ObjMgr.SetScale(1, 2.0f, 0.3f, 2.0f);
+	ObjMgr.SetPosition(1, 0.0f, -0.2f, 0.0f);
+
+	// 크레인 아래 몸체
+	ObjMgr.CreateCube(255.0f, 0.0f, 0.0f);
+	ObjMgr.SetScale(2, 0.5f, 0.4f, 0.5f);
+
+	// 크레인 중앙 몸체
+	ObjMgr.CreateCube(0.0f, 0.0f, 255.0f);
+	ObjMgr.SetScale(3, 0.3f, 0.2f, 0.3f);
+	ObjMgr.SetPosition(3, 0.0f, 0.3f, 0.0f);
+
+	// 크레인 포신 왼쪽
+	ObjMgr.CreateCube(255.0f, 255.0f, 0.0f);
+	ObjMgr.SetScale(4, 0.5f, 0.1f, 0.1f);
+	ObjMgr.SetPosition(4, 0.2f, 0.1f, 0.15f);
+
+	// 크레인 포신 오른쪽
+	ObjMgr.CreateCube(255.0f, 255.0f, 0.0f);
+	ObjMgr.SetScale(5, 0.5f, 0.1f, 0.1f);
+	ObjMgr.SetPosition(5, 0.2f, 0.1f, -0.15f);
+
+	// 크레인 팔 왼쪽
+	ObjMgr.CreateCube(255.0f, 0.0f, 255.0f);
+	ObjMgr.SetScale(6, 0.05f, 0.5f, 0.05f);
+	ObjMgr.SetPosition(6, 0.0f, 0.5f, 0.05f);
+
+	// 크레인 팔 오른쪽
+	ObjMgr.CreateCube(255.0f, 0.0f, 255.0f);
+	ObjMgr.SetScale(7, 0.05f, 0.5f, 0.05f);
+	ObjMgr.SetPosition(7, 0.0f, 0.5f, -0.05f);
 
 	ObjMgr.SetAllModel();
+
+	// 자식 설정
+	ObjMgr.SetChild(2, 3); // 크레인 아래 몸체 <- 크레인 중앙 몸체
+	ObjMgr.SetChild(2, 4); // 크레인 아래 몸체 <- 크레인 포신 왼쪽
+	ObjMgr.SetChild(2, 5); // 크레인 아래 몸체 <- 크레인 포신 오른쪽
+
+	ObjMgr.SetChild(3, 6); // 크레인 중앙 몸체 <- 크레인 팔 왼쪽
+	ObjMgr.SetChild(3, 7); // 크레인 중앙 몸체 <- 크레인 팔 오른쪽
 }
 
 GLvoid drawScene()
@@ -267,7 +324,35 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 
 GLvoid StopAllAnim()
 {
+	isMovingCrainBottomX = false;
+}
 
+GLvoid MovingCrainBottomX(int isAnim)
+{
+	int idx = 2;
+
+	float speed = 0.0f;
+	speed = (isMovingCrainBottomX_Front) ? 0.05f : -0.05f;
+
+	ObjMgr.Move(2, speed, 0.0f, 0.0f);
+
+	glutPostRedisplay();
+
+	if (isMovingCrainBottomX) glutTimerFunc(30, MovingCrainBottomX, isMovingCrainBottomX);
+}
+
+GLvoid RotatingCrainMidY(int isAnim)
+{
+	int idx = 3;
+
+	float rotateSpeed = 5.0f;
+	rotateSpeed = (isRotatingCrainMidY_Front) ? 5.0f : -5.0f;
+
+	ObjMgr.Rotate(idx, 0.0f, rotateSpeed, 0.0f);
+
+	glutPostRedisplay();
+
+	if (isRotatingCrainMidY) glutTimerFunc(30, RotatingCrainMidY, isRotatingCrainMidY);
 }
 
 float angle_camera = 0;
@@ -304,8 +389,36 @@ void Keyboard(unsigned char key, int x, int y)
 	case 'H':
 	case 'h':
 		// 은면 제거
-		isDepthTest = !isDepthTest;
+		if (isDepthTest) isDepthTest = false;
+		else isDepthTest = true;
 		break;
+	// 애니메이션 :: 크레인 아래 몸체 이동
+	case 'B':
+		isMovingCrainBottomX_Front = false;
+		if (isMovingCrainBottomX) isMovingCrainBottomX = false;
+		else isMovingCrainBottomX = true;
+		if(isMovingCrainBottomX) glutTimerFunc(30, MovingCrainBottomX, isMovingCrainBottomX);
+		break;
+	case 'b':
+		isMovingCrainBottomX_Front = true;
+		if (isMovingCrainBottomX) isMovingCrainBottomX = false;
+		else isMovingCrainBottomX = true;
+		if (isMovingCrainBottomX) glutTimerFunc(30, MovingCrainBottomX, isMovingCrainBottomX);
+		break;
+	// 애니메이션 :: 크레인 중앙 몸체 회전
+	case 'M':
+		isRotatingCrainMidY_Front = false;
+		if (isRotatingCrainMidY) isRotatingCrainMidY = false;
+		else isRotatingCrainMidY = true;
+		if (isRotatingCrainMidY) glutTimerFunc(30, RotatingCrainMidY, isRotatingCrainMidY);
+		break;
+	case 'm':
+		isRotatingCrainMidY_Front = true;
+		if (isRotatingCrainMidY) isRotatingCrainMidY = false;
+		else isRotatingCrainMidY = true;
+		if (isRotatingCrainMidY) glutTimerFunc(30, RotatingCrainMidY, isRotatingCrainMidY);
+		break;
+	// 애니메이션 :: 카메라
 	case 'Y':
 	case 'y':
 		rotatingCamera_z = false;

@@ -52,7 +52,7 @@ public:
 	GLfloat GetRandomFloatValue(GLfloat min, GLfloat max);
 
 	void CreateCoordinate();
-	void CreateCube();
+	void CreateCube(float x, float y, float z);
 	void CreateCubeFace(int face);
 	void CreateTetrahedron();
 	void CreateSquarePyramid();

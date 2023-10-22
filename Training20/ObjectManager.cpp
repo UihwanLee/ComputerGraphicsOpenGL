@@ -93,7 +93,7 @@ void ObjectManager::CreateCoordinate()
 	m_ObjectList.emplace_back(temp);
 }
 
-void ObjectManager::CreateCube()
+void ObjectManager::CreateCube(float x, float y, float z)
 {
 	temp.m_pos = new GLfloat[24];
 	temp.m_inex = new GLint[36];
@@ -101,7 +101,21 @@ void ObjectManager::CreateCube()
 
 	for (int i = 0; i < 24; i++)	temp.m_pos[i] = Object::CubeVertexs[i];
 	for (int i = 0; i < 36; i++)	temp.m_inex[i] = Object::CubeIndexs[i];
-	for (int i = 0; i < 24; i++)	temp.m_col[i] = Object::CubeColors[i];
+
+	// x = 0.0f, y = 0.0f, z = 0.0f이면 기본 색깔 지정
+	if (x == 0.0f && y == 0.0f && z == 0.0f)
+	{
+		for (int i = 0; i < 24; i++)	temp.m_col[i] = Object::CubeColors[i];
+	}
+	else
+	{
+		for (int i = 0; i < 24; i++)
+		{
+			if (i % 3 == 0) temp.m_col[i] = x;
+			if (i % 3 == 1)	temp.m_col[i] = y;
+			if (i % 3 == 2)	temp.m_col[i] = z;
+		}
+	}
 
 	InitObjectStruct(&temp, 36, 96, 144, 8, GL_TRIANGLES, true, false, true);
 
@@ -637,8 +651,7 @@ void ObjectManager::Rotate(int idx, float x, float y, float z)
 	else if (y != 0.0f) m_ObjectList[idx].m_rotate[1] += y;
 	else if (z != 0.0f) m_ObjectList[idx].m_rotate[2] += z;
 	//m_ObjectList[idx].m_model = m_ObjectList[idx].m_model * TransformRotate(x, y, z);
-	if (m_ObjectList[idx].m_rotateRevol) SetRotateRevolution(idx);
-	else SetRotate(idx);
+	TransformModel(idx);
 
 	if (m_ObjectList[idx].m_child.empty() == false)
 	{
@@ -682,7 +695,7 @@ void ObjectManager::SetRotate(int idx)
 	glm::mat4 move = TransformMove(m_ObjectList[idx].m_pivot[0], m_ObjectList[idx].m_pivot[1], m_ObjectList[idx].m_pivot[2]);
 	glm::mat4 model = glm::mat4(1.0f);
 
-	m_ObjectList[idx].m_model = model * rot * move * scale;
+	m_ObjectList[idx].m_model = model * move * rot * scale;
 	m_ObjectList[idx].m_rotateRevol = false;
 }
 
