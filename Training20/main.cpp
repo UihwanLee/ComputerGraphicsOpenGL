@@ -48,8 +48,6 @@ bool isMovingCrainBottomX_Front = true;
 bool isRotatingCrainMidY = false;
 bool isRotatingCrainMidY_Front = true;
 
-
-
 GLfloat rotateSpeed = 5.0f;
 GLfloat moveSpeed = 0.5f;
 
@@ -137,47 +135,47 @@ GLvoid Reset()
 
 	// 평지
 	ObjMgr.CreateCube(0.0f, 0.0f, 0.0f);
-	ObjMgr.SetScale(1, 2.0f, 0.3f, 2.0f);
+	ObjMgr.SetScale(1, 1.0f, 0.1f, 1.0f);
 	ObjMgr.SetPosition(1, 0.0f, -0.2f, 0.0f);
 
 	// 크레인 아래 몸체
 	ObjMgr.CreateCube(255.0f, 0.0f, 0.0f);
-	ObjMgr.SetScale(2, 0.5f, 0.4f, 0.5f);
+	ObjMgr.SetScale(2, 0.2f, 0.2f, 0.2f);
 
 	// 크레인 중앙 몸체
 	ObjMgr.CreateCube(0.0f, 0.0f, 255.0f);
-	ObjMgr.SetScale(3, 0.3f, 0.2f, 0.3f);
-	ObjMgr.SetPosition(3, 0.0f, 0.3f, 0.0f);
+	ObjMgr.SetScale(3, 0.1f, 0.1f, 0.1f);
+	ObjMgr.SetPosition(3, 0.0f, 0.9f, 0.0f);
 
 	// 크레인 포신 왼쪽
 	ObjMgr.CreateCube(255.0f, 255.0f, 0.0f);
 	ObjMgr.SetScale(4, 0.5f, 0.1f, 0.1f);
 	ObjMgr.SetPosition(4, 0.2f, 0.1f, 0.15f);
 
-	// 크레인 포신 오른쪽
-	ObjMgr.CreateCube(255.0f, 255.0f, 0.0f);
-	ObjMgr.SetScale(5, 0.5f, 0.1f, 0.1f);
-	ObjMgr.SetPosition(5, 0.2f, 0.1f, -0.15f);
+	//// 크레인 포신 오른쪽
+	//ObjMgr.CreateCube(255.0f, 255.0f, 0.0f);
+	//ObjMgr.SetScale(5, 0.5f, 0.1f, 0.1f);
+	//ObjMgr.SetPosition(5, 0.2f, 0.1f, -0.15f);
 
-	// 크레인 팔 왼쪽
-	ObjMgr.CreateCube(255.0f, 0.0f, 255.0f);
-	ObjMgr.SetScale(6, 0.05f, 0.5f, 0.05f);
-	ObjMgr.SetPosition(6, 0.0f, 0.5f, 0.05f);
+	//// 크레인 팔 왼쪽
+	//ObjMgr.CreateCube(255.0f, 0.0f, 255.0f);
+	//ObjMgr.SetScale(6, 0.05f, 0.5f, 0.05f);
+	//ObjMgr.SetPosition(6, 0.0f, 0.5f, 0.05f);
 
-	// 크레인 팔 오른쪽
-	ObjMgr.CreateCube(255.0f, 0.0f, 255.0f);
-	ObjMgr.SetScale(7, 0.05f, 0.5f, 0.05f);
-	ObjMgr.SetPosition(7, 0.0f, 0.5f, -0.05f);
+	//// 크레인 팔 오른쪽
+	//ObjMgr.CreateCube(255.0f, 0.0f, 255.0f);
+	//ObjMgr.SetScale(7, 0.05f, 0.5f, 0.05f);
+	//ObjMgr.SetPosition(7, 0.0f, 0.5f, -0.05f);
 
 	ObjMgr.SetAllModel();
 
 	// 자식 설정
-	ObjMgr.SetChild(2, 3); // 크레인 아래 몸체 <- 크레인 중앙 몸체
-	ObjMgr.SetChild(2, 4); // 크레인 아래 몸체 <- 크레인 포신 왼쪽
-	ObjMgr.SetChild(2, 5); // 크레인 아래 몸체 <- 크레인 포신 오른쪽
+	//ObjMgr.SetChild(2, 3); // 크레인 아래 몸체 <- 크레인 중앙 몸체
+	//ObjMgr.SetChild(2, 4); // 크레인 아래 몸체 <- 크레인 포신 왼쪽
+	//ObjMgr.SetChild(2, 5); // 크레인 아래 몸체 <- 크레인 포신 오른쪽
 
-	ObjMgr.SetChild(3, 6); // 크레인 중앙 몸체 <- 크레인 팔 왼쪽
-	ObjMgr.SetChild(3, 7); // 크레인 중앙 몸체 <- 크레인 팔 오른쪽
+	//ObjMgr.SetChild(3, 6); // 크레인 중앙 몸체 <- 크레인 팔 왼쪽
+	//ObjMgr.SetChild(3, 7); // 크레인 중앙 몸체 <- 크레인 팔 오른쪽
 }
 
 GLvoid drawScene()
@@ -205,7 +203,7 @@ GLvoid drawScene()
 	glm::mat4 projection = glm::mat4(1.0f);
 
 	// 직교투영
-	if (projectionMode)
+	if (projectionMode == false)
 	{
 		float left = -1.0f;
 		float right = 1.0f;
@@ -273,9 +271,6 @@ GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VE
 
 	move = glm::translate(move, glm::vec3(0.0f, 0.0f, 0.0f));
 
-	//rot = glm::rotate(rot, glm::radians(-30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	//rot = glm::rotate(rot, glm::radians(-30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
 	model = model * move * rot * scale;
 
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));		// 모델변환
@@ -303,6 +298,8 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 
 	// 모델변환
 	unsigned int modelLocation = glGetUniformLocation(ShaderProgram, "modelTransform");
+
+	model = ObjMgr.TransformModel(idx);
 
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
 
@@ -341,6 +338,7 @@ GLvoid MovingCrainBottomX(int isAnim)
 	if (isMovingCrainBottomX) glutTimerFunc(30, MovingCrainBottomX, isMovingCrainBottomX);
 }
 
+// 크레인 중앙 몸체 Y축 기준으로 회전 -> 팔 2개도 같이 회전해야함
 GLvoid RotatingCrainMidY(int isAnim)
 {
 	int idx = 3;

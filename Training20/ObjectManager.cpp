@@ -529,16 +529,34 @@ glm::mat4 ObjectManager::TransformMove(float x, float y, float z)
 	return move;
 }
 
-void ObjectManager::TransformModel(int idx)
+glm::mat4 ObjectManager::TransformModel(int idx)
 {
-	if (m_ObjectList.empty() || idx == 0) return;
-
-	glm::mat4 scale = TransformScale(m_ObjectList[idx].m_scale[0], m_ObjectList[idx].m_scale[1], m_ObjectList[idx].m_scale[2]);
-	glm::mat4 rot = TransformRotate(m_ObjectList[idx].m_rotate[0], m_ObjectList[idx].m_rotate[1], m_ObjectList[idx].m_rotate[2]);
-	glm::mat4 move = TransformMove(m_ObjectList[idx].m_pivot[0], m_ObjectList[idx].m_pivot[1], m_ObjectList[idx].m_pivot[2]);
 	glm::mat4 model = glm::mat4(1.0f);
 
-	m_ObjectList[idx].m_model = model * move * rot * scale;
+	if (!m_ObjectList.empty() && idx != 0)
+	{
+		float move_x = m_ObjectList[idx].m_pivot[0];
+		float move_y = m_ObjectList[idx].m_pivot[1];
+		float move_z = m_ObjectList[idx].m_pivot[2];
+
+		float rotate_x = m_ObjectList[idx].m_rotate[0];
+		float rotate_y = m_ObjectList[idx].m_rotate[0];
+		float rotate_z = m_ObjectList[idx].m_rotate[0];
+
+		float scale_x = m_ObjectList[idx].m_scale[0];
+		float scale_y = m_ObjectList[idx].m_scale[1];
+		float scale_z = m_ObjectList[idx].m_scale[2];
+
+		model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
+		model = glm::rotate(model, glm::radians(rotate_x), glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(rotate_y), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(rotate_y), glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::translate(model, glm::vec3(move_x, move_y, move_z));
+
+		// mainTransform * objectTransform
+	}
+
+	return model;
 }
 
 void ObjectManager::SetPosition(int idx, float x, float y, float z)
@@ -572,12 +590,26 @@ void ObjectManager::SetModel(int idx)
 {
 	if (m_ObjectList.empty() || idx == 0) return;
 
-	glm::mat4 scale = TransformScale(m_ObjectList[idx].m_scale[0], m_ObjectList[idx].m_scale[1], m_ObjectList[idx].m_scale[2]);
-	glm::mat4 rot = TransformRotate(m_ObjectList[idx].m_rotate[0], m_ObjectList[idx].m_rotate[1], m_ObjectList[idx].m_rotate[2]);
-	glm::mat4 move = TransformMove(m_ObjectList[idx].m_pivot[0], m_ObjectList[idx].m_pivot[1], m_ObjectList[idx].m_pivot[2]);
-	glm::mat4 model = glm::mat4(1.0f);
+	float move_x = m_ObjectList[idx].m_pivot[0];
+	float move_y = m_ObjectList[idx].m_pivot[1];
+	float move_z = m_ObjectList[idx].m_pivot[2];
 
-	m_ObjectList[idx].m_model = model * move * rot * scale;
+	float rotate_x = m_ObjectList[idx].m_rotate[0];
+	float rotate_y = m_ObjectList[idx].m_rotate[1];
+	float rotate_z = m_ObjectList[idx].m_rotate[2];
+
+	float scale_x = m_ObjectList[idx].m_scale[0];
+	float scale_y = m_ObjectList[idx].m_scale[1];
+	float scale_z = m_ObjectList[idx].m_scale[2];
+
+	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
+	model = glm::rotate(model, glm::radians(rotate_x), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(rotate_y), glm::vec3(0.0f, 1.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(rotate_y), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::translate(model, glm::vec3(move_x, move_y, move_z));
+
+	m_ObjectList[idx].m_model = model;
 }
 
 void ObjectManager::SetAllPositon(float x, float y, float z)
@@ -650,7 +682,7 @@ void ObjectManager::Rotate(int idx, float x, float y, float z)
 	if (x != 0.0f) m_ObjectList[idx].m_rotate[0] += x;
 	else if (y != 0.0f) m_ObjectList[idx].m_rotate[1] += y;
 	else if (z != 0.0f) m_ObjectList[idx].m_rotate[2] += z;
-	//m_ObjectList[idx].m_model = m_ObjectList[idx].m_model * TransformRotate(x, y, z);
+
 	TransformModel(idx);
 
 	if (m_ObjectList[idx].m_child.empty() == false)

@@ -71,7 +71,7 @@ public:
 	glm::mat4 TransformScale(float x, float y, float z);
 	glm::mat4 TransformRotate(float x, float y, float z);
 	glm::mat4 TransformMove(float x, float y, float z);
-	void TransformModel(int idx);
+	glm::mat4 TransformModel(int idx);
 
 	void SetPosition(int idx, float x, float y, float z);
 	void SetRotate(int idx, float x, float y, float z);
