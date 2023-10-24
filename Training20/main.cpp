@@ -144,28 +144,28 @@ GLvoid Reset()
 
 	// 크레인 중앙 몸체
 	ObjMgr.CreateCube(0.0f, 0.0f, 255.0f);
-	ObjMgr.SetScale(3, 0.1f, 0.1f, 0.1f);
-	ObjMgr.SetPosition(3, 0.0f, 0.9f, 0.0f);
+	ObjMgr.SetScale(3, 0.6f, 0.6f, 0.6f);
+	ObjMgr.SetPosition(3, 0.0f, 0.4f, 0.0f);
 
 	// 크레인 포신 왼쪽
 	ObjMgr.CreateCube(255.0f, 255.0f, 0.0f);
-	ObjMgr.SetScale(4, 0.5f, 0.1f, 0.1f);
-	ObjMgr.SetPosition(4, 0.2f, 0.1f, 0.15f);
+	ObjMgr.SetScale(4, 0.3f, 0.03f, 0.03f);
+	ObjMgr.SetPosition(4, 0.0f, 1.5f, 1.5f);
 
 	//// 크레인 포신 오른쪽
-	//ObjMgr.CreateCube(255.0f, 255.0f, 0.0f);
-	//ObjMgr.SetScale(5, 0.5f, 0.1f, 0.1f);
-	//ObjMgr.SetPosition(5, 0.2f, 0.1f, -0.15f);
+	ObjMgr.CreateCube(255.0f, 255.0f, 0.0f);
+	ObjMgr.SetScale(5, 0.3f, 0.03f, 0.03f);
+	ObjMgr.SetPosition(5, 0.0f, 1.5f, -1.5f);
 
 	//// 크레인 팔 왼쪽
-	//ObjMgr.CreateCube(255.0f, 0.0f, 255.0f);
-	//ObjMgr.SetScale(6, 0.05f, 0.5f, 0.05f);
-	//ObjMgr.SetPosition(6, 0.0f, 0.5f, 0.05f);
+	ObjMgr.CreateCube(255.0f, 0.0f, 255.0f);
+	ObjMgr.SetScale(6, 0.03f, 0.25f, 0.03);
+	ObjMgr.SetPosition(6, 0.0f, 0.4f, 1.0f);
 
 	//// 크레인 팔 오른쪽
-	//ObjMgr.CreateCube(255.0f, 0.0f, 255.0f);
-	//ObjMgr.SetScale(7, 0.05f, 0.5f, 0.05f);
-	//ObjMgr.SetPosition(7, 0.0f, 0.5f, -0.05f);
+	ObjMgr.CreateCube(255.0f, 0.0f, 255.0f);
+	ObjMgr.SetScale(7, 0.03f, 0.25f, 0.03);
+	ObjMgr.SetPosition(7, 0.0f, 0.4f, -1.0f);
 
 	ObjMgr.SetAllModel();
 
@@ -299,9 +299,9 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 	// 모델변환
 	unsigned int modelLocation = glGetUniformLocation(ShaderProgram, "modelTransform");
 
-	model = ObjMgr.TransformModel(idx);
+	ObjMgr.m_ObjectList[idx].m_model = ObjMgr.TransformModel(idx);
 
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(ObjMgr.m_ObjectList[idx].m_model));
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
