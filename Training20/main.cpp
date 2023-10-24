@@ -167,8 +167,6 @@ GLvoid Reset()
 	ObjMgr.SetScale(7, 0.03f, 0.25f, 0.03);
 	ObjMgr.SetPosition(7, 0.0f, 0.4f, -1.0f);
 
-	ObjMgr.SetAllModel();
-
 	// ÀÚ½Ä ¼³Á¤
 	//ObjMgr.SetChild(2, 3); // Å©·¹ÀÎ ¾Æ·¡ ¸öÃ¼ <- Å©·¹ÀÎ Áß¾Ó ¸öÃ¼
 	//ObjMgr.SetChild(2, 4); // Å©·¹ÀÎ ¾Æ·¡ ¸öÃ¼ <- Å©·¹ÀÎ Æ÷½Å ¿ÞÂÊ

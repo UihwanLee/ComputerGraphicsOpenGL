@@ -76,19 +76,14 @@ public:
 	void SetPosition(int idx, float x, float y, float z);
 	void SetRotate(int idx, float x, float y, float z);
 	void SetScale(int idx, float x, float y, float z);
-	void SetModel(int idx);
 
 	void SetAllPositon(float x, float y, float z);
 	void SetAllRotate(float x, float y, float z);
 	void SetAllScale(float x, float y, float z);
-	void SetAllModel();
 
 	void Move(int idx, float x, float y, float z);
 	void Rotate(int idx, float x, float y, float z);
 	void Scale(int idx, float x, float y, float z);
-
-	void SetRotateRevolution(int idx);
-	void SetRotate(int idx);
 
 	// 자식 설정
 	void SetChild(int idx, int idx_child);
