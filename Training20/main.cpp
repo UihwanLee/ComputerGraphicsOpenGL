@@ -37,6 +37,8 @@ GLvoid StopAllAnim();
 // 애니메이션 :: 크레인
 GLvoid MovingCrainBottomX(int isAnim);
 GLvoid RotatingCrainMidY(int isAnim);
+GLvoid RotatingCrainGun(int isAnim);
+GLvoid MovingCrainGun(int isAnim);
 
 // 애니메이션 :: 카메라
 GLvoid RotatingCamera(int isAnim);
@@ -47,9 +49,14 @@ bool isMovingCrainBottomX = false;
 bool isMovingCrainBottomX_Front = true;
 bool isRotatingCrainMidY = false;
 bool isRotatingCrainMidY_Front = true;
+bool isRotatingCrainGun = false;
+bool isRotatingCrainGun_Front = true;
+bool isMovingCrainGun = false;
+bool isMovingCrainGun_Front = true;
 
-GLfloat rotateSpeed = 5.0f;
+GLfloat rotateSpeed = 4.0f;
 GLfloat moveSpeed = 0.5f;
+GLfloat curRotateRate = 0.0f;
 
 // 투영 변환
 bool projectionMode = true;
@@ -64,7 +71,6 @@ bool rotatingCarmera = false;
 bool rotatingCamera_z = false;
 float rotatingCameraRate = 0.0f;
 float rotatingCameraRate_z = 0.0f;
-
 
 void Keyboard(unsigned char key, int x, int y);
 
@@ -131,6 +137,10 @@ GLvoid Reset()
 
 	ObjMgr.CreateCoordinate();
 
+	CameraPos.x = 0.5f; 
+	CameraPos.y = 0.5f;
+	CameraPos.z = 0.0f;
+
 	int idx = 0;
 
 	// 평지
@@ -149,18 +159,18 @@ GLvoid Reset()
 
 	// 크레인 포신 왼쪽
 	ObjMgr.CreateCube(255.0f, 255.0f, 0.0f);
-	ObjMgr.SetScale(4, 0.3f, 0.03f, 0.03f);
-	ObjMgr.SetPosition(4, 0.0f, 1.5f, 1.5f);
+	ObjMgr.SetScale(4, 1.0f, 0.2f, 0.15f);
+	ObjMgr.SetPosition(4, 0.3f, 0.3f, 0.2f);
 
 	//// 크레인 포신 오른쪽
 	ObjMgr.CreateCube(255.0f, 255.0f, 0.0f);
-	ObjMgr.SetScale(5, 0.3f, 0.03f, 0.03f);
-	ObjMgr.SetPosition(5, 0.0f, 1.5f, -1.5f);
+	ObjMgr.SetScale(5, 1.0f, 0.2f, 0.15f);
+	ObjMgr.SetPosition(5, 0.3f, 0.3f, -0.2f);
 
 	//// 크레인 팔 왼쪽
 	ObjMgr.CreateCube(255.0f, 0.0f, 255.0f);
-	ObjMgr.SetScale(6, 0.03f, 0.25f, 0.03);
-	ObjMgr.SetPosition(6, 0.0f, 0.4f, 1.0f);
+	ObjMgr.SetScale(6, 0.15f, 0.5f, 0.15f);
+	ObjMgr.SetPosition(6, 0.0f, 0.9f, 0.15f);
 
 	//// 크레인 팔 오른쪽
 	ObjMgr.CreateCube(255.0f, 0.0f, 255.0f);
@@ -319,7 +329,16 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 
 GLvoid StopAllAnim()
 {
+	rotatingCarmera = false;
 	isMovingCrainBottomX = false;
+	isRotatingCrainMidY = false;
+	isRotatingCrainGun = false;
+
+	isMovingCrainBottomX_Front = true;
+	isRotatingCrainMidY_Front = true;
+
+	curRotateRate = 0.0f;
+	rotateSpeed = 4.0f;
 }
 
 GLvoid MovingCrainBottomX(int isAnim)
@@ -349,6 +368,75 @@ GLvoid RotatingCrainMidY(int isAnim)
 	glutPostRedisplay();
 
 	if (isRotatingCrainMidY) glutTimerFunc(30, RotatingCrainMidY, isRotatingCrainMidY);
+}
+
+GLvoid RotatingCrainGun(int isAnim)
+{
+	int idx1 = 4;
+	int idx2 = 5;
+
+	if (curRotateRate > 20.0f)
+	{
+		rotateSpeed = rotateSpeed * (-1.0f);
+		curRotateRate = 0.0f;
+	}
+
+	ObjMgr.Rotate(idx1, 0.0f, -rotateSpeed, 0.0f);
+	ObjMgr.Rotate(idx2, 0.0f, rotateSpeed, 0.0f);
+	curRotateRate += 1;
+
+	glutPostRedisplay();
+
+	if (isRotatingCrainGun) glutTimerFunc(30, RotatingCrainGun, isRotatingCrainGun);
+}
+
+GLvoid MovingCrainGun(int isAnim)
+{
+	int idx1 = 4;
+	int idx2 = 5;
+
+	if (ObjMgr.m_ObjectList[idx1].m_rotate[1] != 0)
+	{
+		ObjMgr.Rotate(idx1, 0.0f, 4.0f, 0.0f);
+		ObjMgr.Rotate(idx2, 0.0f, -4.0f, 0.0f);
+	}
+	else
+	{
+		if (isMovingCrainGun_Front)
+		{
+			if (ObjMgr.m_ObjectList[idx1].m_pivot[2] > 0.0f)
+			{
+				ObjMgr.Move(idx1, 0.0f, 0.0f, -0.01f);
+				ObjMgr.Move(idx2, 0.0f, 0.0f, 0.01f);
+			}
+			else
+			{
+				ObjMgr.m_ObjectList[idx1].m_pivot[2] = 0.0f;
+				ObjMgr.m_ObjectList[idx2].m_pivot[2] = 0.0f;
+				isMovingCrainGun_Front = false;
+				isMovingCrainGun = false;
+			}
+		}
+		else
+		{
+			if (ObjMgr.m_ObjectList[idx1].m_pivot[2] < 0.2f)
+			{
+				ObjMgr.Move(idx1, 0.0f, 0.0f, 0.01f);
+				ObjMgr.Move(idx2, 0.0f, 0.0f, -0.01f);
+			}
+			else
+			{
+				ObjMgr.m_ObjectList[idx1].m_pivot[2] = 0.2f;
+				ObjMgr.m_ObjectList[idx2].m_pivot[2] = -0.2f;
+				isMovingCrainGun_Front = true;
+				isMovingCrainGun = false;
+			}
+		}
+	}
+
+	glutPostRedisplay();
+
+	if (isMovingCrainGun) glutTimerFunc(30, MovingCrainGun, isMovingCrainGun);
 }
 
 float angle_camera = 0;
@@ -414,7 +502,34 @@ void Keyboard(unsigned char key, int x, int y)
 		else isRotatingCrainMidY = true;
 		if (isRotatingCrainMidY) glutTimerFunc(30, RotatingCrainMidY, isRotatingCrainMidY);
 		break;
+	case 'F':
+		break;
+	case 'f':
+		isRotatingCrainGun_Front = true;
+		if (isRotatingCrainGun) isRotatingCrainGun = false;
+		else isRotatingCrainGun = true;
+		if (isRotatingCrainGun) glutTimerFunc(30, RotatingCrainGun, isRotatingCrainGun);
+		break;
+	case 'E':
+	case 'e':
+		rotateSpeed = 4.0f;
+		curRotateRate = 0.0f;
+		isMovingCrainGun = true;
+		if (isMovingCrainGun)glutTimerFunc(30, MovingCrainGun, isMovingCrainGun);
+		break;
 	// 애니메이션 :: 카메라
+	case 'X':
+		CameraPos.x += 0.1f;
+		break;
+	case 'x':
+		CameraPos.x -= 0.1f;
+		break;
+	case 'Z':
+		CameraPos.z += 0.1f;
+		break;
+	case 'z':
+		CameraPos.z -= 0.1f;
+		break;
 	case 'Y':
 	case 'y':
 		rotatingCamera_z = false;
