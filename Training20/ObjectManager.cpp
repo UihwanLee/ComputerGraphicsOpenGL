@@ -586,6 +586,49 @@ glm::mat4 ObjectManager::TransformModel(int idx)
 
 			//model = model * move * rot * scale;
 		}
+		else if (idx == 4 || idx == 5)
+		{
+			scale_x_parent = m_ObjectList[2].m_scale[0];
+			scale_y_parent = m_ObjectList[2].m_scale[1];
+			scale_z_parent = m_ObjectList[2].m_scale[2];
+
+			move_x_parent = m_ObjectList[2].m_pivot[0];
+			move_y_parent = m_ObjectList[2].m_pivot[1];
+			move_z_parent = m_ObjectList[2].m_pivot[2];
+
+			model = glm::mat4(1.0f);
+			scale = glm::mat4(1.0f);
+			rot = glm::mat4(1.0f);
+			move = glm::mat4(1.0f);
+			glm::mat4 move2 = glm::mat4(1.0f);
+
+			model = glm::scale(glm::mat4(1.0f), glm::vec3(scale_x_parent, scale_y_parent, scale_z_parent));
+			model = glm::translate(model, glm::vec3(move_x_parent, move_y_parent, move_z_parent));
+			model = glm::translate(model, glm::vec3(move_x, move_y, move_z));
+			model = glm::rotate(model, glm::radians(rotate_y), glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
+		}
+		else if (idx == 6)
+		{
+			scale_x_parent = m_ObjectList[2].m_scale[0];
+			scale_y_parent = m_ObjectList[2].m_scale[1];
+			scale_z_parent = m_ObjectList[2].m_scale[2];
+
+			move_x_parent = m_ObjectList[2].m_pivot[0];
+			move_y_parent = m_ObjectList[2].m_pivot[1];
+			move_z_parent = m_ObjectList[2].m_pivot[2];
+
+			model = glm::mat4(1.0f);
+			scale = glm::mat4(1.0f);
+			rot = glm::mat4(1.0f);
+			move = glm::mat4(1.0f);
+			glm::mat4 move2 = glm::mat4(1.0f);
+
+			model = glm::scale(glm::mat4(1.0f), glm::vec3(scale_x_parent, scale_y_parent, scale_z_parent));
+			model = glm::translate(model, glm::vec3(move_x_parent, move_y_parent, move_z_parent));
+			model = glm::translate(model, glm::vec3(move_x, move_y, move_z));
+			model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
+		}
 	}
 
 	return model;
