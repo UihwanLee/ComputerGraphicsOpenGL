@@ -621,7 +621,6 @@ glm::mat4 ObjectManager::TransformModel(int idx)
 
 			rotate_y_parent = m_ObjectList[3].m_rotate[1];
 
-
 			model = glm::mat4(1.0f);
 			scale = glm::mat4(1.0f);
 			rot = glm::mat4(1.0f);

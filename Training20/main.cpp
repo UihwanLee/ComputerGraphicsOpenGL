@@ -128,8 +128,8 @@ GLvoid Message()
 	cout << "x/X: 카메라가 x축 양/음 방향으로 이동" << endl;
 	cout << "y/Y: 카메라 기준 y축에 대하여 회전" << endl;
 	cout << "r/R: 화면의 중심의 y축에 대하여 카메라가 회전 (중점에 대하여 공전)" << endl;
-	cout << endl;
 	cout << "a/A: r 명령어와 같이 화면의 중심의 축에 대하여 카메라가 회전하는 애니메이션을 진행한다/멈춘다." << endl;
+	cout << endl;
 	cout << "s/S: 모든 움직임 멈추기" << endl;
 	cout << "c/C: 모든 움직임이 초기화된다." << endl;
 	cout << "Q: 프로그램 종료한다." << endl;
@@ -140,6 +140,8 @@ GLvoid Reset()
 {
 	StopAllAnim();
 	ObjMgr.Reset();
+
+	isRotateCamera_C = false;
 
 	ObjMgr.CreateCoordinate();
 
@@ -214,10 +216,15 @@ GLvoid drawScene()
 	glm::mat4 view = glm::mat4(1.0f);
 
 
-	view = glm::lookAt(cameraPos, cameraDirection, cameraUp);
 	if (isRotateCamera_C)
 	{
 		view = glm::rotate(view, glm::radians(rotatingCameraRate_z), glm::vec3(0.0f, 1.0f, 0.0f));
+		view = glm::translate(view, glm::vec3(0.0f, -0.15f, -0.6f));
+		view = glm::rotate(view, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	}
+	else
+	{
+		view = glm::lookAt(cameraPos, cameraDirection, cameraUp);
 	}
 
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &view[0][0]);		// 뷰변환
@@ -350,6 +357,8 @@ GLvoid StopAllAnim()
 
 	isMovingCrainBottomX_Front = true;
 	isRotatingCrainMidY_Front = true;
+
+	rotatingCamera_z = false;
 
 	curRotateRate = 0.0f;
 	rotateSpeed = 4.0f;
@@ -490,11 +499,7 @@ GLvoid RotatingCamera(int isAnim)
 float angle_camera_z = 0;
 GLvoid RotatingCamera_Z(int isAnim)
 {
-	float radius = 5.0f;
-	CameraPos.x = sin(angle_camera_z) * radius;
-	CameraPos.y = cos(angle_camera_z) * radius;
-
-	angle_camera_z += 0.03f;
+	rotatingCameraRate_z += 5.0f;
 
 	glutPostRedisplay();
 
@@ -577,6 +582,13 @@ void Keyboard(unsigned char key, int x, int y)
 		if (rotatingCarmera) rotatingCarmera = false;
 		else if (rotatingCarmera == false) rotatingCarmera = true;
 		if (rotatingCarmera) glutTimerFunc(30, RotatingCamera, rotatingCarmera);
+		break;
+	case 'R':
+	case 'r':
+		isRotateCamera_C = true;
+		if (rotatingCamera_z) rotatingCamera_z = false;
+		else rotatingCamera_z = true;
+		if (rotatingCamera_z) glutTimerFunc(30, RotatingCamera_Z, rotatingCamera_z);
 		break;
 	case 'P':
 	case 'p':
