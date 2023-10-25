@@ -59,7 +59,7 @@ bool projectionMode = true;
 // Camera
 GLfloat y_angle = 0.0f, z_angle = 0.0f, camera_y = 0.0f;
 int y_dir = 1, z_dir = 1;
-glm::vec3 CameraPos = glm::vec3(-1.0f, 1.0f, 2.0f);
+glm::vec3 CameraPos = glm::vec3(0.0f, 0.0f, 2.0f);
 glm::vec3 AT = glm::vec3(0.0f, 0.0f, 0.0f);
 
 bool rotatingCarmera = false;
@@ -253,7 +253,7 @@ GLvoid drawScene()
 
 	view = glm::lookAt(cameraPos, cameraDirection, cameraUp);
 	//view = glm::rotate(view, rotatingCameraRate, glm::vec3(0.0f, 1.0f, 0.0f));
-	//view = glm::rotate(view, rotatingCameraRate_z, glm::vec3(0.0f, 0.0f, 1.0f));
+	if(rotatingCamera_z) view = glm::rotate(view, rotatingCameraRate_z, glm::vec3(0.0f, 0.0f, 1.0f));
 
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &view[0][0]);		// �亯ȯ
 
@@ -540,11 +540,13 @@ GLvoid RotatingCamera(int isAnim)
 float angle_camera_z = 0;
 GLvoid RotatingCamera_Z(int isAnim)
 {
-	float radius = 5.0f;
-	CameraPos.x = sin(angle_camera_z) * radius;
-	CameraPos.y = cos(angle_camera_z) * radius;
+	//float radius = 5.0f;
+	//CameraPos.x = sin(angle_camera_z) * radius;
+	//CameraPos.y = cos(angle_camera_z) * radius;
 
-	angle_camera_z += 0.03f;
+	//angle_camera_z += 0.03f;
+
+	rotatingCameraRate_z += 0.01f;
 
 	glutPostRedisplay();
 
