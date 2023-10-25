@@ -540,6 +540,7 @@ glm::mat4 ObjectManager::TransformModel(int idx)
 	{
 		float scale_x_parent; float scale_y_parent; float scale_z_parent;
 		float move_x_parent; float move_y_parent; float move_z_parent;
+		float rotate_y_parent;
 
 		float move_x = m_ObjectList[idx].m_pivot[0];
 		float move_y = m_ObjectList[idx].m_pivot[1];
@@ -563,7 +564,7 @@ glm::mat4 ObjectManager::TransformModel(int idx)
 
 		if (idx == 3)
 		{
-			scale_x_parent= m_ObjectList[2].m_scale[0];
+			scale_x_parent = m_ObjectList[2].m_scale[0];
 			scale_y_parent = m_ObjectList[2].m_scale[1];
 			scale_z_parent = m_ObjectList[2].m_scale[2];
 
@@ -608,7 +609,11 @@ glm::mat4 ObjectManager::TransformModel(int idx)
 			model = glm::rotate(model, glm::radians(rotate_y), glm::vec3(0.0f, 1.0f, 0.0f));
 			model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
 		}
+<<<<<<< Updated upstream
 		else if (idx == 6)
+=======
+		else if (idx == 6 || idx == 7)
+>>>>>>> Stashed changes
 		{
 			scale_x_parent = m_ObjectList[2].m_scale[0];
 			scale_y_parent = m_ObjectList[2].m_scale[1];
@@ -618,6 +623,12 @@ glm::mat4 ObjectManager::TransformModel(int idx)
 			move_y_parent = m_ObjectList[2].m_pivot[1];
 			move_z_parent = m_ObjectList[2].m_pivot[2];
 
+<<<<<<< Updated upstream
+=======
+			rotate_y_parent = m_ObjectList[3].m_rotate[1];
+
+
+>>>>>>> Stashed changes
 			model = glm::mat4(1.0f);
 			scale = glm::mat4(1.0f);
 			rot = glm::mat4(1.0f);
@@ -626,8 +637,15 @@ glm::mat4 ObjectManager::TransformModel(int idx)
 
 			model = glm::scale(glm::mat4(1.0f), glm::vec3(scale_x_parent, scale_y_parent, scale_z_parent));
 			model = glm::translate(model, glm::vec3(move_x_parent, move_y_parent, move_z_parent));
+<<<<<<< Updated upstream
 			model = glm::translate(model, glm::vec3(move_x, move_y, move_z));
 			model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
+=======
+			model = glm::rotate(model, glm::radians(rotate_y_parent), glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::rotate(model, glm::radians(rotate_z), glm::vec3(0.0f, 0.0f, 1.0f));
+			model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
+			model = glm::translate(model, glm::vec3(move_x, move_y, move_z));
+>>>>>>> Stashed changes
 		}
 	}
 
