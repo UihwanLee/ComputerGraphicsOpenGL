@@ -346,7 +346,7 @@ GLvoid StopAllAnim()
 
 GLvoid RotatingAnimationX(int idx)
 {
-	ObjMgr.Rotate(idx, rotateSpeed, 0.0f, 0.0f);
+	ObjMgr.Rotate(idx, 0.0f, rotateSpeed, 0.0f);
 
 	glutPostRedisplay();
 
@@ -620,6 +620,7 @@ void Keyboard(unsigned char key, int x, int y)
 	// 육면체 애니메이션
 	case 't':
 		//육면체의 윗면 애니메이션 시작/정지 (자전)
+		Reset();
 		isAnimCubeTop = !isAnimCubeTop;
 		ObjMgr.Move(1, 0.0f, 0.5f, 0.0f);
 		if (isAnimCubeTop) glutTimerFunc(30, CubeTopAnim, isAnimCubeTop);

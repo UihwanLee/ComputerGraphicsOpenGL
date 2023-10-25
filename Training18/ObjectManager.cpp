@@ -553,6 +553,3 @@ void ObjectManager::Reset()
 	m_ObjectList.clear();
 }
 
-
-#include "ObjectManager.h"
-
