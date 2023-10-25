@@ -39,11 +39,8 @@ GLvoid MovingCrainBottomX(int isAnim);
 GLvoid RotatingCrainMidY(int isAnim);
 GLvoid RotatingCrainGun(int isAnim);
 GLvoid MovingCrainGun(int isAnim);
-<<<<<<< Updated upstream
-=======
 GLvoid RotatingCrainArm(int isAnim);
 
->>>>>>> Stashed changes
 
 // 애니메이션 :: 카메라
 GLvoid RotatingCamera(int isAnim);
@@ -58,20 +55,14 @@ bool isRotatingCrainGun = false;
 bool isRotatingCrainGun_Front = true;
 bool isMovingCrainGun = false;
 bool isMovingCrainGun_Front = true;
-<<<<<<< Updated upstream
-=======
 bool isRotatingCrainArm = false;
 bool isRotateCamera_C = false;
 
->>>>>>> Stashed changes
 
 GLfloat rotateSpeed = 4.0f;
 GLfloat moveSpeed = 0.5f;
 GLfloat curRotateRate = 0.0f;
-<<<<<<< Updated upstream
-=======
 GLfloat curRotateArmRate = 0.0f;
->>>>>>> Stashed changes
 
 // 투영 변환
 bool projectionMode = true;
@@ -87,11 +78,6 @@ bool rotatingCamera_z = false;
 float rotatingCameraRate = 0.0f;
 float rotatingCameraRate_z = 0.0f;
 
-<<<<<<< Updated upstream
-=======
-
-
->>>>>>> Stashed changes
 void Keyboard(unsigned char key, int x, int y);
 
 int main(int argc, char** argv)
@@ -157,13 +143,10 @@ GLvoid Reset()
 
 	ObjMgr.CreateCoordinate();
 
-<<<<<<< Updated upstream
 	CameraPos.x = 0.5f; 
 	CameraPos.y = 0.5f;
 	CameraPos.z = 0.0f;
-=======
 	CameraPos = glm::vec3(0.5f, 0.5f, 0.0f);
->>>>>>> Stashed changes
 
 	int idx = 0;
 
@@ -193,13 +176,10 @@ GLvoid Reset()
 
 	//// 크레인 팔 왼쪽
 	ObjMgr.CreateCube(255.0f, 0.0f, 255.0f);
-<<<<<<< Updated upstream
 	ObjMgr.SetScale(6, 0.15f, 0.5f, 0.15f);
 	ObjMgr.SetPosition(6, 0.0f, 0.9f, 0.15f);
-=======
 	ObjMgr.SetScale(6, 0.15f, 0.8f, 0.15f);
 	ObjMgr.SetPosition(6, 0.0f, 0.9f, 0.7f);
->>>>>>> Stashed changes
 
 	//// 크레인 팔 오른쪽
 	ObjMgr.CreateCube(255.0f, 0.0f, 255.0f);
@@ -473,8 +453,6 @@ GLvoid MovingCrainGun(int isAnim)
 	if (isMovingCrainGun) glutTimerFunc(30, MovingCrainGun, isMovingCrainGun);
 }
 
-<<<<<<< Updated upstream
-=======
 GLvoid RotatingCrainArm(int isAnim)
 {
 	int idx1 = 6;
@@ -495,7 +473,6 @@ GLvoid RotatingCrainArm(int isAnim)
 	if (isRotatingCrainArm) glutTimerFunc(30, RotatingCrainArm, isRotatingCrainArm);
 }
 
->>>>>>> Stashed changes
 float angle_camera = 0;
 GLvoid RotatingCamera(int isAnim)
 {
@@ -574,9 +551,7 @@ void Keyboard(unsigned char key, int x, int y)
 		isMovingCrainGun = true;
 		if (isMovingCrainGun)glutTimerFunc(30, MovingCrainGun, isMovingCrainGun);
 		break;
-<<<<<<< Updated upstream
 	// 애니메이션 :: 카메라
-=======
 	case 'T':
 	case 't':
 		if (isRotatingCrainArm) isRotatingCrainArm = false;
@@ -584,7 +559,6 @@ void Keyboard(unsigned char key, int x, int y)
 		if (isRotatingCrainArm) glutTimerFunc(30, RotatingCrainArm, isRotatingCrainArm);
 		break;
 		// 애니메이션 :: 카메라
->>>>>>> Stashed changes
 	case 'X':
 		CameraPos.x += 0.1f;
 		break;
