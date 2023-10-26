@@ -60,6 +60,9 @@ bool isRotatingCrainArm = false;
 bool isRotateCamera_Y = false;
 bool isRotateCamera_X = false;
 
+bool rotateCamera_mode_X = false;
+bool rotateCamera_mode_Y = false;
+
 
 GLfloat rotateSpeed = 4.0f;
 GLfloat moveSpeed = 0.5f;
@@ -144,8 +147,8 @@ GLvoid Reset()
 	StopAllAnim();
 	ObjMgr.Reset();
 
-	isRotateCamera_X = false;
-	isRotateCamera_Y = false;
+	rotateCamera_mode_X = false;
+	rotateCamera_mode_Y = false;
 
 	ObjMgr.CreateCoordinate();
 
@@ -220,13 +223,13 @@ GLvoid drawScene()
 	glm::mat4 view = glm::mat4(1.0f);
 
 
-	if (isRotateCamera_X)
+	if (rotateCamera_mode_X)
 	{
 		view = glm::rotate(view, glm::radians(rotatingCameraRate_x), glm::vec3(1.0f, 0.0f, 0.0f));
 		view = glm::translate(view, glm::vec3(0.0f, -0.15f, -0.6f));
 		view = glm::rotate(view, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	}
-	else if(isRotateCamera_Y)
+	else if(rotateCamera_mode_Y)
 	{
 		view = glm::rotate(view, glm::radians(rotatingCameraRate_y), glm::vec3(0.0f, 1.0f, 0.0f));
 		view = glm::translate(view, glm::vec3(0.0f, -0.15f, -0.6f));
@@ -598,19 +601,24 @@ void Keyboard(unsigned char key, int x, int y)
 		break;
 	case 'Y':
 	case 'y':
-		rotatingCamera_z = false;
+		rotateCamera_mode_X = false;
+		rotateCamera_mode_Y = false;
 		if (rotatingCarmera) rotatingCarmera = false;
 		else if (rotatingCarmera == false) rotatingCarmera = true;
 		if (rotatingCarmera) glutTimerFunc(30, RotatingCamera, rotatingCarmera);
 		break;
 	case 'R':
 	case 'r':
+		rotateCamera_mode_X = false;
+		rotateCamera_mode_Y = true;
 		if (isRotateCamera_Y) isRotateCamera_Y = false;
 		else isRotateCamera_Y = true;
 		if (isRotateCamera_Y) glutTimerFunc(30, RotatingCamera_Y, isRotateCamera_Y);
 		break;
 	case 'A':
 	case 'a':
+		rotateCamera_mode_X = true;
+		rotateCamera_mode_Y = false;
 		if (isRotateCamera_X) isRotateCamera_X = false;
 		else isRotateCamera_X = true;
 		if (isRotateCamera_X) glutTimerFunc(30, RotatingCamera_X, isRotateCamera_X);
