@@ -44,7 +44,8 @@ GLvoid RotatingCrainArm(int isAnim);
 
 // 애니메이션 :: 카메라
 GLvoid RotatingCamera(int isAnim);
-GLvoid RotatingCamera_Z(int isAnim);
+GLvoid RotatingCamera_Y(int isAnim);
+GLvoid RotatingCamera_X(int isAnim);
 
 // 애니메이션 :: 변수
 bool isMovingCrainBottomX = false;
@@ -56,7 +57,8 @@ bool isRotatingCrainGun_Front = true;
 bool isMovingCrainGun = false;
 bool isMovingCrainGun_Front = true;
 bool isRotatingCrainArm = false;
-bool isRotateCamera_C = false;
+bool isRotateCamera_Y = false;
+bool isRotateCamera_X = false;
 
 
 GLfloat rotateSpeed = 4.0f;
@@ -76,7 +78,8 @@ glm::vec3 AT = glm::vec3(0.0f, 0.0f, 0.0f);
 bool rotatingCarmera = false;
 bool rotatingCamera_z = false;
 float rotatingCameraRate = 0.0f;
-float rotatingCameraRate_z = 0.0f;
+float rotatingCameraRate_x = 0.0f;
+float rotatingCameraRate_y = 0.0f;
 
 void Keyboard(unsigned char key, int x, int y);
 
@@ -141,7 +144,8 @@ GLvoid Reset()
 	StopAllAnim();
 	ObjMgr.Reset();
 
-	isRotateCamera_C = false;
+	isRotateCamera_X = false;
+	isRotateCamera_Y = false;
 
 	ObjMgr.CreateCoordinate();
 
@@ -216,9 +220,15 @@ GLvoid drawScene()
 	glm::mat4 view = glm::mat4(1.0f);
 
 
-	if (isRotateCamera_C)
+	if (isRotateCamera_X)
 	{
-		view = glm::rotate(view, glm::radians(rotatingCameraRate_z), glm::vec3(0.0f, 1.0f, 0.0f));
+		view = glm::rotate(view, glm::radians(rotatingCameraRate_x), glm::vec3(1.0f, 0.0f, 0.0f));
+		view = glm::translate(view, glm::vec3(0.0f, -0.15f, -0.6f));
+		view = glm::rotate(view, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	}
+	else if(isRotateCamera_Y)
+	{
+		view = glm::rotate(view, glm::radians(rotatingCameraRate_y), glm::vec3(0.0f, 1.0f, 0.0f));
 		view = glm::translate(view, glm::vec3(0.0f, -0.15f, -0.6f));
 		view = glm::rotate(view, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	}
@@ -358,7 +368,8 @@ GLvoid StopAllAnim()
 	isMovingCrainBottomX_Front = true;
 	isRotatingCrainMidY_Front = true;
 
-	rotatingCamera_z = false;
+	isRotateCamera_X = false;
+	isRotateCamera_Y = false;
 
 	curRotateRate = 0.0f;
 	rotateSpeed = 4.0f;
@@ -496,15 +507,24 @@ GLvoid RotatingCamera(int isAnim)
 	if (rotatingCarmera) glutTimerFunc(30, RotatingCamera, rotatingCarmera);
 }
 
-float angle_camera_z = 0;
-GLvoid RotatingCamera_Z(int isAnim)
+GLvoid RotatingCamera_Y(int isAnim)
 {
-	rotatingCameraRate_z += 5.0f;
+	rotatingCameraRate_y += 5.0f;
 
 	glutPostRedisplay();
 
-	if (rotatingCamera_z) glutTimerFunc(30, RotatingCamera_Z, rotatingCamera_z);
+	if (isRotateCamera_Y) glutTimerFunc(30, RotatingCamera_Y, isRotateCamera_Y);
 }
+
+GLvoid RotatingCamera_X(int isAnim)
+{
+	rotatingCameraRate_x += 5.0f;
+
+	glutPostRedisplay();
+
+	if (isRotateCamera_X) glutTimerFunc(30, RotatingCamera_X, isRotateCamera_X);
+}
+
 void Keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
@@ -585,10 +605,15 @@ void Keyboard(unsigned char key, int x, int y)
 		break;
 	case 'R':
 	case 'r':
-		isRotateCamera_C = true;
-		if (rotatingCamera_z) rotatingCamera_z = false;
-		else rotatingCamera_z = true;
-		if (rotatingCamera_z) glutTimerFunc(30, RotatingCamera_Z, rotatingCamera_z);
+		if (isRotateCamera_Y) isRotateCamera_Y = false;
+		else isRotateCamera_Y = true;
+		if (isRotateCamera_Y) glutTimerFunc(30, RotatingCamera_Y, isRotateCamera_Y);
+		break;
+	case 'A':
+	case 'a':
+		if (isRotateCamera_X) isRotateCamera_X = false;
+		else isRotateCamera_X = true;
+		if (isRotateCamera_X) glutTimerFunc(30, RotatingCamera_X, isRotateCamera_X);
 		break;
 	case 'P':
 	case 'p':
