@@ -22,6 +22,8 @@ GLvoid Init();
 GLvoid Message();
 GLvoid Reset();
 GLvoid drawScene(GLvoid);
+GLvoid drawScene2(GLvoid);
+GLvoid drawScene3(GLvoid);
 GLvoid Reshape(int w, int h);
 GLuint ShaderProgram;
 GLuint VBO[2], EBO;
@@ -105,9 +107,9 @@ int main(int argc, char** argv)
 	Message();
 
 	InitProgram(ShaderProgram);
+	//glutReshapeFunc(Reshape);
 	glutDisplayFunc(drawScene);
 	glutKeyboardFunc(Keyboard);
-	glutReshapeFunc(Reshape);
 	glutMainLoop();
 }
 
@@ -208,7 +210,35 @@ GLvoid drawScene()
 {
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
+	drawScene2();
+
+	glViewport(0, 0, WIDTH / 2, HEIGHT / 2);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	drawScene2();
+
+	glViewport(WIDTH / 2, HEIGHT / 2, WIDTH / 2, HEIGHT / 2);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	drawScene2();
+
+	glutSwapBuffers();
+}
+
+GLvoid drawScene3()
+{
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+	glViewport(WIDTH / 2, HEIGHT / 2, WIDTH / 2, HEIGHT / 2);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	drawScene2();
+
+	glutSwapBuffers();
+}
+
+GLvoid drawScene2()
+{
 	glUseProgram(ShaderProgram);
 
 	if (isDepthTest) glEnable(GL_DEPTH_TEST);
@@ -221,7 +251,6 @@ GLvoid drawScene()
 	glm::vec3 cameraDirection = glm::vec3(AT.x, AT.y, AT.z); //--- 카메라 바라보는 방향
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f); //--- 카메라 위쪽 방향
 	glm::mat4 view = glm::mat4(1.0f);
-
 
 	if (rotateCamera_mode_X)
 	{
@@ -286,13 +315,11 @@ GLvoid drawScene()
 			}
 		}
 	}
-
-	glutSwapBuffers();
 }
 
 GLvoid Reshape(int w, int h)
 {
-	glViewport(0, 0, w, h);
+	//glViewport(0, 0, w, h);
 }
 
 GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL)
