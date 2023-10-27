@@ -42,7 +42,9 @@ public:
 	int GetRandomIntValue(GLfloat min, GLfloat max);
 	GLfloat GetRandomFloatValue(GLfloat min, GLfloat max);
 
+	void CreateTri();
 	void CreateRect();
+	void CreatePenta();
 
 	void SetChangeActive(int mode);
 	void ChangeWireSolidType();

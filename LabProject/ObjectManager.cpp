@@ -88,6 +88,21 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 //	m_ObjectList.emplace_back(temp);
 //}
 
+void ObjectManager::CreateTri()
+{
+	temp.m_pos = new GLfloat[9];
+	temp.m_col = new GLfloat[9];
+	temp.m_inex = new GLint[3];
+
+	for (int i = 0; i < 9; i++) temp.m_pos[i] = Object::TriVertexs[i];
+	for (int i = 0; i < 9; i++) temp.m_col[i] = Object::TriColors[i];
+	for (int i = 0; i < 3; i++) temp.m_inex[i] = Object::TriIndexs[i];
+
+	InitObjectStruct(&temp, 3, 36, 12, 3, GL_TRIANGLES, true, false, true);
+
+	m_ObjectList.emplace_back(temp);
+}
+
 void ObjectManager::CreateRect()
 {
 	temp.m_pos = new GLfloat[12];
@@ -99,6 +114,21 @@ void ObjectManager::CreateRect()
 	for (int i = 0; i < 6; i++) temp.m_inex[i] = Object::RectIndexs[i];
 
 	InitObjectStruct(&temp, 6, 48, 24, 4, GL_TRIANGLES, true, false, true);
+
+	m_ObjectList.emplace_back(temp);
+}
+
+void ObjectManager::CreatePenta()
+{
+	temp.m_pos = new GLfloat[15];
+	temp.m_col = new GLfloat[15];
+	temp.m_inex = new GLint[9];
+
+	for (int i = 0; i < 15; i++) temp.m_pos[i] = Object::PentaVertexs[i];
+	for (int i = 0; i < 15; i++) temp.m_col[i] = Object::PentaColors[i];
+	for (int i = 0; i < 9; i++) temp.m_inex[i] = Object::PentaIndexs[i];
+
+	InitObjectStruct(&temp, 9, 60, 36, 5, GL_TRIANGLES, true, false, true);
 
 	m_ObjectList.emplace_back(temp);
 }

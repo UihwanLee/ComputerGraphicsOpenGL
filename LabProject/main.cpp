@@ -82,7 +82,9 @@ GLvoid Reset()
 {
 	ObjMgr.Reset();
 
+	ObjMgr.CreateTri();
 	ObjMgr.CreateRect();
+	ObjMgr.CreatePenta();
 }
 
 GLvoid drawScene()

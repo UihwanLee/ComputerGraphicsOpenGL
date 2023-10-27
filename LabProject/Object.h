@@ -20,10 +20,21 @@ public:
 	static GLfloat	CoordinateVertexs[18];
 	static GLfloat	CoordinateColors[18];
 
+	// 삼각형
+	static GLfloat	TriVertexs[9];
+	static GLfloat	TriColors[9];
+	static GLint	TriIndexs[3];
+
 	// 사각형
 	static GLfloat	RectVertexs[12];
 	static GLfloat	RectColors[12];
 	static GLint	RectIndexs[6];
 
+	// 오각형
+	static GLfloat	PentaVertexs[15];
+	static GLfloat	PentaColors[15];
+	static GLint	PentaIndexs[9];
 
+
+	// 육각형
 };
