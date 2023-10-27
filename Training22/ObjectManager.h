@@ -53,7 +53,7 @@ public:
 
 	void CreateCoordinate();
 	void CreateCube(float x, float y, float z);
-	void CreateCubeFace(int face);
+	void CreateCubeFace(int face, float x, float y, float z);
 	void CreateTetrahedron();
 	void CreateSquarePyramid();
 	void CreateSquarePyramidFace(int face);
@@ -73,6 +73,7 @@ public:
 	void SetPosition(int idx, float x, float y, float z);
 	void SetRotate(int idx, float x, float y, float z);
 	void SetScale(int idx, float x, float y, float z);
+	void SetActive(int idx, bool bActive);
 
 	void SetAllPositon(float x, float y, float z);
 	void SetAllRotate(float x, float y, float z);

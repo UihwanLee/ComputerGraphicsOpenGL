@@ -126,20 +126,18 @@ GLvoid Message()
 {
 	cout << "h/H : 은면 제거" << endl;
 	cout << "p/P : 직각 투영/ 원근 투영" << endl;
-	cout << "m/M : 솔리드 모델/와이어 모델" << endl;
 	cout << endl;
-	cout << "b/B: 크레인의 아래 몸체가 x축 방향으로 양/음 방향으로 이동한다" << endl;
-	cout << "f/F: 포신이 y축에 대하여 양/음 방향으로 회전하는데, 두 포신이 서로 반대방향으로 회전한다." << endl;
-	cout << "e/E: 2개 포신이 조금씩 이동해서 한 개가 된다/다시 제자리로 이동해서 2개가 된다." << endl;
-	cout << "t/T: 크레인의 맨 위 2개의 팔이 z축에 대하여 양/음 방향으로 서로 반대방향으로 회전한다. " << endl;
+	cout << "o/O: 앞면이 좌우로 열린다." << endl;
 	cout << endl;
-	cout << "z/Z: 카메라가 z축 양/음 방향으로 이동" << endl;
-	cout << "x/X: 카메라가 x축 양/음 방향으로 이동" << endl;
-	cout << "y/Y: 카메라 기준 y축에 대하여 회전" << endl;
-	cout << "r/R: 화면의 중심의 y축에 대하여 카메라가 회전 (중점에 대하여 공전)" << endl;
-	cout << "a/A: r 명령어와 같이 화면의 중심의 축에 대하여 카메라가 회전하는 애니메이션을 진행한다/멈춘다." << endl;
+	cout << "w/a/s/d: 로봇이 앞/뒤/좌/우 방향으로 이동 방향을 바꿔서 걷는다. 가장자리에 도달하면 로봇은 뒤로 돌아 다시 걷는다." << endl;
+	cout << "+/-: 걷는 속도가 빨라지거나/느려진다. 속도가 바뀔 때 걷는 다리의 각도가 늘어나거나/줄어든다." << endl;
+	cout << "j: 로봇이 제자리에서 점프한다. 장애물 위로 점프하여 올라가고 내려갈 수 있다." << endl;
+	cout << "i: 모든 변환을 리셋하고 다시 시작" << endl;
 	cout << endl;
-	cout << "s/S: 모든 움직임 멈추기" << endl;
+	cout << "z/Z: 앞뒤로 이동" << endl;
+	cout << "x/X: 좌우로 이동" << endl;
+	cout << "y/Y: 카메라가 현재 위치에서 화면 중심 y축을 기준으로 공전" << endl;
+	cout << endl;
 	cout << "c/C: 모든 움직임이 초기화된다." << endl;
 	cout << "Q: 프로그램 종료한다." << endl;
 	cout << endl;
@@ -154,21 +152,42 @@ GLvoid Reset()
 	rotateCamera_mode_Y = false;
 
 	ObjMgr.CreateCoordinate();
+	ObjMgr.SetActive(0, false);
 
 	CameraPos = glm::vec3(0.6f, 0.1f, 0.0f);
 
-	int idx = 0;
-
 	// 배경 생성(큐브 , 장애물)
-	ObjMgr.CreateCubeFace(0);
-	ObjMgr.SetPosition(0, 0.0f, 0.0f, 0.0f);
+	ObjMgr.CreateCubeFace(5, 1.0f, 1.0f, 1.0f);
+	ObjMgr.SetScale(1, 0.4f, 0.3f, 0.4f);
+	ObjMgr.SetPosition(1, -0.5f, 0.0f, 0.0f);
+
+	ObjMgr.CreateCubeFace(2, 128.0f / 255.0f, 128.0f / 255.0f, 128.0f / 255.0f);
+	ObjMgr.SetScale(2, 0.4f, 0.3f, 0.4f);
+	ObjMgr.SetPosition(2, -1.5f, 0.0f, 0.0f);
+
+	ObjMgr.CreateCubeFace(3, 150.0f / 255.0f, 75.0f / 255.0f, 0.0f / 255.0f);
+	ObjMgr.SetScale(3, 0.4f, 0.3f, 0.4f);
+	ObjMgr.SetPosition(3, -0.5f, 0.0f, 0.0f);
+
+	ObjMgr.CreateCubeFace(1, 255.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
+	ObjMgr.SetScale(4, 0.4f, 0.3f, 0.4f);
+	ObjMgr.SetPosition(4, -0.5f, 0.0f, 0.0f);
+
+	ObjMgr.CreateCubeFace(5, 0.0f / 255.0f, 204.0f / 255.0f, 255.0f / 255.0f);
+	ObjMgr.SetScale(5, 0.4f, 0.3f, 0.4f);
+	ObjMgr.SetPosition(5, -0.5f, 1.0f, 0.0f);
+
+	// 뚜껑
+	ObjMgr.CreateCubeFace(2, 0.0f / 255.0f, 204.0f / 255.0f, 255.0f / 255.0f);
+	ObjMgr.SetScale(6, 0.4f, 0.3f, 0.4f);
+	ObjMgr.SetPosition(6, -0.5f, 0.0f, 0.0f);
 
 	// 로봇 생성
 }
 
 GLvoid drawScene()
 {
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(ShaderProgram);

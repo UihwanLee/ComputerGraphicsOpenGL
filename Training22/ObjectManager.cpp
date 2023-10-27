@@ -122,7 +122,7 @@ void ObjectManager::CreateCube(float x, float y, float z)
 	m_ObjectList.emplace_back(temp);
 }
 
-void ObjectManager::CreateCubeFace(int face)
+void ObjectManager::CreateCubeFace(int face, float x, float y, float z)
 {
 	// 육면체의 특정 면을 오브젝트로 생성
 	temp.m_pos = new GLfloat[12];
@@ -138,6 +138,8 @@ void ObjectManager::CreateCubeFace(int face)
 	else if (face == 3) { point01 = 3; point02 = 0; point03 = 4; point04 = 7; }
 	else if (face == 4) { point01 = 0; point02 = 1; point03 = 5; point04 = 4; }
 	else if (face == 5) { point01 = 4; point02 = 5; point03 = 6; point04 = 7; }
+
+	bool isColor = (x == 0.0f && y == 0.0f && z == 0.0f) ? false : true;
 
 	int temp_idx = 0;
 	for (int i = point01 * 3; i < (point01 * 3) + 3; i++)
@@ -166,6 +168,16 @@ void ObjectManager::CreateCubeFace(int face)
 		for (int i = 0; i < 12; i++)
 		{
 			if (i % 3 == 1) temp.m_pos[i] = 0.0f;
+		}
+	}
+
+	if (isColor)
+	{
+		for (int i = 0; i < 12; i++)
+		{
+			if (i % 3 == 0) temp.m_col[i] = x;
+			if (i % 3 == 1) temp.m_col[i] = y;
+			if (i % 3 == 2) temp.m_col[i] = z;
 		}
 	}
 
@@ -501,7 +513,7 @@ glm::mat4 ObjectManager::TransformModel(int idx)
 	glm::mat4 rot = glm::mat4(1.0f);
 	glm::mat4 move = glm::mat4(1.0f);
 
-	if (!m_ObjectList.empty() && idx != 0)
+	if (!m_ObjectList.empty())
 	{
 		float scale_x_parent; float scale_y_parent; float scale_z_parent;
 		float move_x_parent; float move_y_parent; float move_z_parent;
@@ -524,79 +536,6 @@ glm::mat4 ObjectManager::TransformModel(int idx)
 		model = glm::rotate(model, glm::radians(rotate_y), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::rotate(model, glm::radians(rotate_z), glm::vec3(0.0f, 0.0f, 1.0f));
 		model = glm::translate(model, glm::vec3(move_x, move_y, move_z));
-
-		if (idx == 3)
-		{
-			scale_x_parent = m_ObjectList[2].m_scale[0];
-			scale_y_parent = m_ObjectList[2].m_scale[1];
-			scale_z_parent = m_ObjectList[2].m_scale[2];
-
-			move_x_parent = m_ObjectList[2].m_pivot[0];
-			move_y_parent = m_ObjectList[2].m_pivot[1];
-			move_z_parent = m_ObjectList[2].m_pivot[2];
-
-			model = glm::mat4(1.0f);
-			scale = glm::mat4(1.0f);
-			rot = glm::mat4(1.0f);
-			move = glm::mat4(1.0f);
-			glm::mat4 move2 = glm::mat4(1.0f);
-
-			model = glm::scale(glm::mat4(1.0f), glm::vec3(scale_x_parent, scale_y_parent, scale_z_parent));
-			model = glm::translate(model, glm::vec3(move_x_parent, move_y_parent, move_z_parent));
-			model = glm::translate(model, glm::vec3(move_x, move_y, move_z));
-			//model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
-			model = glm::rotate(model, glm::radians(rotate_y), glm::vec3(0.0f, 1.0f, 0.0f));
-			model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
-
-			//model = model * move * rot * scale;
-		}
-		else if (idx == 4 || idx == 5)
-		{
-			scale_x_parent = m_ObjectList[2].m_scale[0];
-			scale_y_parent = m_ObjectList[2].m_scale[1];
-			scale_z_parent = m_ObjectList[2].m_scale[2];
-
-			move_x_parent = m_ObjectList[2].m_pivot[0];
-			move_y_parent = m_ObjectList[2].m_pivot[1];
-			move_z_parent = m_ObjectList[2].m_pivot[2];
-
-			model = glm::mat4(1.0f);
-			scale = glm::mat4(1.0f);
-			rot = glm::mat4(1.0f);
-			move = glm::mat4(1.0f);
-			glm::mat4 move2 = glm::mat4(1.0f);
-
-			model = glm::scale(glm::mat4(1.0f), glm::vec3(scale_x_parent, scale_y_parent, scale_z_parent));
-			model = glm::translate(model, glm::vec3(move_x_parent, move_y_parent, move_z_parent));
-			model = glm::translate(model, glm::vec3(move_x, move_y, move_z));
-			model = glm::rotate(model, glm::radians(rotate_y), glm::vec3(0.0f, 1.0f, 0.0f));
-			model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
-		}
-		else if (idx == 6 || idx == 7)
-		{
-			scale_x_parent = m_ObjectList[2].m_scale[0];
-			scale_y_parent = m_ObjectList[2].m_scale[1];
-			scale_z_parent = m_ObjectList[2].m_scale[2];
-
-			move_x_parent = m_ObjectList[2].m_pivot[0];
-			move_y_parent = m_ObjectList[2].m_pivot[1];
-			move_z_parent = m_ObjectList[2].m_pivot[2];
-
-			rotate_y_parent = m_ObjectList[3].m_rotate[1];
-
-			model = glm::mat4(1.0f);
-			scale = glm::mat4(1.0f);
-			rot = glm::mat4(1.0f);
-			move = glm::mat4(1.0f);
-			glm::mat4 move2 = glm::mat4(1.0f);
-
-			model = glm::scale(glm::mat4(1.0f), glm::vec3(scale_x_parent, scale_y_parent, scale_z_parent));
-			model = glm::translate(model, glm::vec3(move_x_parent, move_y_parent, move_z_parent));
-			model = glm::rotate(model, glm::radians(rotate_y_parent), glm::vec3(0.0f, 1.0f, 0.0f));
-			model = glm::rotate(model, glm::radians(rotate_z), glm::vec3(0.0f, 0.0f, 1.0f));
-			model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
-			model = glm::translate(model, glm::vec3(move_x, move_y, move_z));
-		}
 	}
 
 	return model;
@@ -627,6 +566,13 @@ void ObjectManager::SetScale(int idx, float x, float y, float z)
 	m_ObjectList[idx].m_scale[0] = x;
 	m_ObjectList[idx].m_scale[1] = y;
 	m_ObjectList[idx].m_scale[2] = z;
+}
+
+void ObjectManager::SetActive(int idx, bool bActive)
+{
+	if (m_ObjectList.empty()) return;
+
+	m_ObjectList[idx].m_isActive = bActive;
 }
 
 void ObjectManager::SetAllPositon(float x, float y, float z)
