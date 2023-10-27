@@ -37,40 +37,23 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 // 애니메이션 :: 초기화
 GLvoid StopAllAnim();
 
-// 애니메이션 :: 크레인
-GLvoid MovingCrainBottomX(int isAnim);
-GLvoid RotatingCrainMidY(int isAnim);
-GLvoid RotatingCrainGun(int isAnim);
-GLvoid MovingCrainGun(int isAnim);
-GLvoid RotatingCrainArm(int isAnim);
+// 애니메이션 :: 큐브
+GLvoid OpenCloseCubeDoor(int isAnim);
+
+// 애니메이션 :: 로봇
 
 
 // 애니메이션 :: 카메라
 GLvoid RotatingCamera(int isAnim);
-GLvoid RotatingCamera_Y(int isAnim);
-GLvoid RotatingCamera_X(int isAnim);
 
 // 애니메이션 :: 변수
-bool isMovingCrainBottomX = false;
-bool isMovingCrainBottomX_Front = true;
-bool isRotatingCrainMidY = false;
-bool isRotatingCrainMidY_Front = true;
-bool isRotatingCrainGun = false;
-bool isRotatingCrainGun_Front = true;
-bool isMovingCrainGun = false;
-bool isMovingCrainGun_Front = true;
-bool isRotatingCrainArm = false;
-bool isRotateCamera_Y = false;
-bool isRotateCamera_X = false;
-
-bool rotateCamera_mode_X = false;
-bool rotateCamera_mode_Y = false;
+bool isOpenDoor = false;
+bool isRotatingDoor = false;
 
 
 GLfloat rotateSpeed = 4.0f;
 GLfloat moveSpeed = 0.5f;
-GLfloat curRotateRate = 0.0f;
-GLfloat curRotateArmRate = 0.0f;
+GLfloat doorRotateRate = 0.0f;
 
 // 투영 변환
 bool projectionMode = true;
@@ -148,9 +131,6 @@ GLvoid Reset()
 	StopAllAnim();
 	ObjMgr.Reset();
 
-	rotateCamera_mode_X = false;
-	rotateCamera_mode_Y = false;
-
 	ObjMgr.CreateCoordinate();
 	ObjMgr.SetActive(0, false);
 
@@ -212,7 +192,7 @@ GLvoid drawView()
 	glm::mat4 view = glm::mat4(1.0f);
 
 
-	if (rotateCamera_mode_X)
+	/*if (rotateCamera_mode_X)
 	{
 		view = glm::rotate(view, glm::radians(rotatingCameraRate_x), glm::vec3(1.0f, 0.0f, 0.0f));
 		view = glm::translate(view, glm::vec3(0.0f, -0.15f, -0.6f));
@@ -223,11 +203,8 @@ GLvoid drawView()
 		view = glm::rotate(view, glm::radians(rotatingCameraRate_y), glm::vec3(0.0f, 1.0f, 0.0f));
 		view = glm::translate(view, glm::vec3(0.0f, -0.15f, -0.6f));
 		view = glm::rotate(view, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	}
-	else
-	{
-		view = glm::lookAt(cameraPos, cameraDirection, cameraUp);
-	}
+	}*/
+	view = glm::lookAt(cameraPos, cameraDirection, cameraUp);
 
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &view[0][0]);		// 뷰변환
 }
@@ -359,136 +336,30 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 GLvoid StopAllAnim()
 {
 	rotatingCarmera = false;
-	isMovingCrainBottomX = false;
-	isRotatingCrainMidY = false;
-	isRotatingCrainGun = false;
 
-	isMovingCrainBottomX_Front = true;
-	isRotatingCrainMidY_Front = true;
-
-	isRotateCamera_X = false;
-	isRotateCamera_Y = false;
-
-	curRotateRate = 0.0f;
 	rotateSpeed = 4.0f;
+	doorRotateRate = 0.0f;
 }
 
-GLvoid MovingCrainBottomX(int isAnim)
+GLvoid OpenCloseCubeDoor(int isAnim)
 {
-	int idx = 2;
+	float rotateSpeed = (isOpenDoor) ? 5.0f : -5.0f;
 
-	float speed = 0.0f;
-	speed = (isMovingCrainBottomX_Front) ? 0.05f : -0.05f;
+	doorRotateRate += 1;
 
-	ObjMgr.Move(2, speed, 0.0f, 0.0f);
+	ObjMgr.Rotate(6, 0.0f, 0.0f, rotateSpeed);
 
-	glutPostRedisplay();
-
-	if (isMovingCrainBottomX) glutTimerFunc(30, MovingCrainBottomX, isMovingCrainBottomX);
-}
-
-// 크레인 중앙 몸체 Y축 기준으로 회전 -> 팔 2개도 같이 회전해야함
-GLvoid RotatingCrainMidY(int isAnim)
-{
-	int idx = 3;
-
-	float rotateSpeed = 5.0f;
-	rotateSpeed = (isRotatingCrainMidY_Front) ? 5.0f : -5.0f;
-
-	ObjMgr.Rotate(idx, 0.0f, rotateSpeed, 0.0f);
-
-	glutPostRedisplay();
-
-	if (isRotatingCrainMidY) glutTimerFunc(30, RotatingCrainMidY, isRotatingCrainMidY);
-}
-
-GLvoid RotatingCrainGun(int isAnim)
-{
-	int idx1 = 4;
-	int idx2 = 5;
-
-	if (curRotateRate > 20.0f)
+	if (doorRotateRate > 20)
 	{
-		rotateSpeed = rotateSpeed * (-1.0f);
-		curRotateRate = 0.0f;
-	}
-
-	ObjMgr.Rotate(idx1, 0.0f, -rotateSpeed, 0.0f);
-	ObjMgr.Rotate(idx2, 0.0f, rotateSpeed, 0.0f);
-	curRotateRate += 1;
-
-	glutPostRedisplay();
-
-	if (isRotatingCrainGun) glutTimerFunc(30, RotatingCrainGun, isRotatingCrainGun);
-}
-
-GLvoid MovingCrainGun(int isAnim)
-{
-	int idx1 = 4;
-	int idx2 = 5;
-
-	if (ObjMgr.m_ObjectList[idx1].m_rotate[1] != 0)
-	{
-		ObjMgr.Rotate(idx1, 0.0f, 4.0f, 0.0f);
-		ObjMgr.Rotate(idx2, 0.0f, -4.0f, 0.0f);
-	}
-	else
-	{
-		if (isMovingCrainGun_Front)
-		{
-			if (ObjMgr.m_ObjectList[idx1].m_pivot[2] > 0.0f)
-			{
-				ObjMgr.Move(idx1, 0.0f, 0.0f, -0.01f);
-				ObjMgr.Move(idx2, 0.0f, 0.0f, 0.01f);
-			}
-			else
-			{
-				ObjMgr.m_ObjectList[idx1].m_pivot[2] = 0.0f;
-				ObjMgr.m_ObjectList[idx2].m_pivot[2] = 0.0f;
-				isMovingCrainGun_Front = false;
-				isMovingCrainGun = false;
-			}
-		}
-		else
-		{
-			if (ObjMgr.m_ObjectList[idx1].m_pivot[2] < 0.2f)
-			{
-				ObjMgr.Move(idx1, 0.0f, 0.0f, 0.01f);
-				ObjMgr.Move(idx2, 0.0f, 0.0f, -0.01f);
-			}
-			else
-			{
-				ObjMgr.m_ObjectList[idx1].m_pivot[2] = 0.2f;
-				ObjMgr.m_ObjectList[idx2].m_pivot[2] = -0.2f;
-				isMovingCrainGun_Front = true;
-				isMovingCrainGun = false;
-			}
-		}
+		doorRotateRate = 0.0f;
+		isRotatingDoor = false;
+		if (isOpenDoor) isOpenDoor = false;
+		else isOpenDoor = true;
 	}
 
 	glutPostRedisplay();
 
-	if (isMovingCrainGun) glutTimerFunc(30, MovingCrainGun, isMovingCrainGun);
-}
-
-GLvoid RotatingCrainArm(int isAnim)
-{
-	int idx1 = 6;
-	int idx2 = 7;
-
-	if (curRotateArmRate > 2.0f)
-	{
-		rotateSpeed = rotateSpeed * (-1.0f);
-		curRotateArmRate = 0.0f;
-	}
-
-	ObjMgr.Rotate(idx1, 0.0f, 0.0f, -rotateSpeed);
-	ObjMgr.Rotate(idx2, 0.0f, 0.0f, rotateSpeed);
-	curRotateArmRate += 1;
-
-	glutPostRedisplay();
-
-	if (isRotatingCrainArm) glutTimerFunc(30, RotatingCrainArm, isRotatingCrainArm);
+	if (isRotatingDoor) glutTimerFunc(30, OpenCloseCubeDoor, isRotatingDoor);
 }
 
 float angle_camera = 0;
@@ -505,24 +376,6 @@ GLvoid RotatingCamera(int isAnim)
 	if (rotatingCarmera) glutTimerFunc(30, RotatingCamera, rotatingCarmera);
 }
 
-GLvoid RotatingCamera_Y(int isAnim)
-{
-	rotatingCameraRate_y += 5.0f;
-
-	glutPostRedisplay();
-
-	if (isRotateCamera_Y) glutTimerFunc(30, RotatingCamera_Y, isRotateCamera_Y);
-}
-
-GLvoid RotatingCamera_X(int isAnim)
-{
-	rotatingCameraRate_x += 5.0f;
-
-	glutPostRedisplay();
-
-	if (isRotateCamera_X) glutTimerFunc(30, RotatingCamera_X, isRotateCamera_X);
-}
-
 void Keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
@@ -533,53 +386,12 @@ void Keyboard(unsigned char key, int x, int y)
 		if (isDepthTest) isDepthTest = false;
 		else isDepthTest = true;
 		break;
-		// 애니메이션 :: 크레인 아래 몸체 이동
-	case 'B':
-		isMovingCrainBottomX_Front = false;
-		if (isMovingCrainBottomX) isMovingCrainBottomX = false;
-		else isMovingCrainBottomX = true;
-		if (isMovingCrainBottomX) glutTimerFunc(30, MovingCrainBottomX, isMovingCrainBottomX);
-		break;
-	case 'b':
-		isMovingCrainBottomX_Front = true;
-		if (isMovingCrainBottomX) isMovingCrainBottomX = false;
-		else isMovingCrainBottomX = true;
-		if (isMovingCrainBottomX) glutTimerFunc(30, MovingCrainBottomX, isMovingCrainBottomX);
-		break;
-		// 애니메이션 :: 크레인 중앙 몸체 회전
-	case 'M':
-		isRotatingCrainMidY_Front = false;
-		if (isRotatingCrainMidY) isRotatingCrainMidY = false;
-		else isRotatingCrainMidY = true;
-		if (isRotatingCrainMidY) glutTimerFunc(30, RotatingCrainMidY, isRotatingCrainMidY);
-		break;
-	case 'm':
-		isRotatingCrainMidY_Front = true;
-		if (isRotatingCrainMidY) isRotatingCrainMidY = false;
-		else isRotatingCrainMidY = true;
-		if (isRotatingCrainMidY) glutTimerFunc(30, RotatingCrainMidY, isRotatingCrainMidY);
-		break;
-	case 'F':
-		break;
-	case 'f':
-		isRotatingCrainGun_Front = true;
-		if (isRotatingCrainGun) isRotatingCrainGun = false;
-		else isRotatingCrainGun = true;
-		if (isRotatingCrainGun) glutTimerFunc(30, RotatingCrainGun, isRotatingCrainGun);
-		break;
-	case 'E':
-	case 'e':
-		rotateSpeed = 4.0f;
-		curRotateRate = 0.0f;
-		isMovingCrainGun = true;
-		if (isMovingCrainGun)glutTimerFunc(30, MovingCrainGun, isMovingCrainGun);
-		break;
-		// 애니메이션 :: 카메라
-	case 'T':
-	case 't':
-		if (isRotatingCrainArm) isRotatingCrainArm = false;
-		else isRotatingCrainArm = true;
-		if (isRotatingCrainArm) glutTimerFunc(30, RotatingCrainArm, isRotatingCrainArm);
+		// 애니메이션 :: 큐브 뚜껑 회전
+	case 'O':
+	case 'o':
+		if (isRotatingDoor) isRotatingDoor = false;
+		else isRotatingDoor = true;
+		if (isRotatingDoor) glutTimerFunc(30, OpenCloseCubeDoor, isRotatingDoor);
 		break;
 		// 애니메이션 :: 카메라
 	case 'X':
@@ -596,27 +408,9 @@ void Keyboard(unsigned char key, int x, int y)
 		break;
 	case 'Y':
 	case 'y':
-		rotateCamera_mode_X = false;
-		rotateCamera_mode_Y = false;
 		if (rotatingCarmera) rotatingCarmera = false;
 		else if (rotatingCarmera == false) rotatingCarmera = true;
 		if (rotatingCarmera) glutTimerFunc(30, RotatingCamera, rotatingCarmera);
-		break;
-	case 'R':
-	case 'r':
-		rotateCamera_mode_X = false;
-		rotateCamera_mode_Y = true;
-		if (isRotateCamera_Y) isRotateCamera_Y = false;
-		else isRotateCamera_Y = true;
-		if (isRotateCamera_Y) glutTimerFunc(30, RotatingCamera_Y, isRotateCamera_Y);
-		break;
-	case 'A':
-	case 'a':
-		rotateCamera_mode_X = true;
-		rotateCamera_mode_Y = false;
-		if (isRotateCamera_X) isRotateCamera_X = false;
-		else isRotateCamera_X = true;
-		if (isRotateCamera_X) glutTimerFunc(30, RotatingCamera_X, isRotateCamera_X);
 		break;
 	case 'P':
 	case 'p':

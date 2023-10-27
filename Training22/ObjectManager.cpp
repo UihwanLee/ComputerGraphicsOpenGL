@@ -536,6 +536,20 @@ glm::mat4 ObjectManager::TransformModel(int idx)
 		model = glm::rotate(model, glm::radians(rotate_y), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::rotate(model, glm::radians(rotate_z), glm::vec3(0.0f, 0.0f, 1.0f));
 		model = glm::translate(model, glm::vec3(move_x, move_y, move_z));
+
+		if (idx == 6)
+		{
+			model = glm::mat4(1.0f);
+			scale = glm::mat4(1.0f);
+			rot = glm::mat4(1.0f);
+			move = glm::mat4(1.0f);
+
+			model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
+			model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f));
+			model = glm::rotate(model, glm::radians(rotate_z), glm::vec3(0.0f, 0.0f, 1.0f));
+			model = glm::translate(model, glm::vec3(move_x, move_y, move_z));
+			model = glm::translate(model, glm::vec3(0.0f, 0.5f, 0.0f));
+		}
 	}
 
 	return model;
