@@ -41,7 +41,7 @@ GLvoid StopAllAnim();
 GLvoid OpenCloseCubeDoor(int isAnim);
 
 // 애니메이션 :: 로봇
-
+GLvoid RotateRobotByDir();
 
 // 애니메이션 :: 카메라
 GLvoid RotatingCamera(int isAnim);
@@ -49,6 +49,9 @@ GLvoid RotatingCamera(int isAnim);
 // 애니메이션 :: 변수
 bool isOpenDoor = false;
 bool isRotatingDoor = false;
+
+// 로봇 변수
+GLfloat playerSpeed = 0.2f;
 
 
 GLfloat rotateSpeed = 4.0f;
@@ -162,7 +165,28 @@ GLvoid Reset()
 	ObjMgr.SetScale(6, 0.4f, 0.3f, 0.4f);
 	ObjMgr.SetPosition(6, -0.5f, 0.0f, 0.0f);
 
-	// 로봇 생성
+	// 로봇 몸체(최고 부모)
+	ObjMgr.CreateCube(0.0f, 0.0f, 1.0f);
+	ObjMgr.SetScale(7, 0.03f, 0.04f, 0.03f);
+	ObjMgr.SetPosition(7, -1.5f, 0.0f, 0.0f);
+
+	// 로봇 머리
+	ObjMgr.CreateCube(0.0f, 0.0f, 1.0f);
+	ObjMgr.SetScale(8, 0.8f, 1.0f, 0.8f);
+	ObjMgr.SetPosition(8, 0.0f, 0.5f, 0.0f);
+
+	// 로봇 코
+	ObjMgr.CreateCube(1.0f, 0.0f, 0.0f);
+	ObjMgr.SetScale(9, 0.45f, 0.25f, 0.3f);
+	ObjMgr.SetPosition(9, 0.3f, 0.8f, 0.0f);
+
+	// 로봇 오른쪽 팔
+
+	// 로봇 왼쪽 팔
+
+	// 로봇 오른쪽 다리
+
+	// 로봇 왼쪽 다리
 }
 
 GLvoid drawScene()
@@ -362,6 +386,13 @@ GLvoid OpenCloseCubeDoor(int isAnim)
 	if (isRotatingDoor) glutTimerFunc(30, OpenCloseCubeDoor, isRotatingDoor);
 }
 
+// 로봇 회전
+GLvoid RotateRobotByDir()
+{
+	float rotateDir = -90.0f;
+	ObjMgr.SetRotate(7, 0.0f, -90.0f, 0.0f);
+}
+
 float angle_camera = 0;
 GLvoid RotatingCamera(int isAnim)
 {
@@ -393,6 +424,23 @@ void Keyboard(unsigned char key, int x, int y)
 		else isRotatingDoor = true;
 		if (isRotatingDoor) glutTimerFunc(30, OpenCloseCubeDoor, isRotatingDoor);
 		break;
+		// 애니메이션 :: 로봇
+	case 'w':
+		ObjMgr.Move(7, -playerSpeed, 0.0f, 0.0f);
+		ObjMgr.SetRotate(7, 0.0f, 180.0f, 0.0f);
+		break;
+	case 's':
+		ObjMgr.Move(7, playerSpeed, 0.0f, 0.0f);
+		ObjMgr.SetRotate(7, 0.0f, 0.0f, 0.0f);
+		break;
+	case 'a':
+		ObjMgr.Move(7, 0.0f, 0.0f, playerSpeed);
+		ObjMgr.SetRotate(7, 0.0f, -90.0f, 0.0f);
+		break;
+	case 'd':
+		ObjMgr.Move(7, 0.0f, 0.0f, -playerSpeed);
+		ObjMgr.SetRotate(7, 0.0f, 90.0f, 0.0f);
+		break;
 		// 애니메이션 :: 카메라
 	case 'X':
 		CameraPos.x += 0.1f;
@@ -416,12 +464,8 @@ void Keyboard(unsigned char key, int x, int y)
 	case 'p':
 		projectionMode = !projectionMode;
 		break;
-	case 'S':
-	case 's':
-		StopAllAnim();
-		break;
-	case 'C':
-	case 'c':
+	case 'R':
+	case 'r':
 		Reset();
 		break;
 	case 'q':
