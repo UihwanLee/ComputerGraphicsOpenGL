@@ -88,6 +88,10 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 //	m_ObjectList.emplace_back(temp);
 //}
 
+void ObjectManager::CreateLine()
+{
+}
+
 void ObjectManager::CreateTri()
 {
 	temp.m_pos = new GLfloat[9];
@@ -199,6 +203,13 @@ void ObjectManager::SetScale(int idx, float x, float y, float z)
 	m_ObjectList[idx].m_scale[0] = x;
 	m_ObjectList[idx].m_scale[1] = y;
 	m_ObjectList[idx].m_scale[2] = z;
+}
+
+void ObjectManager::SetActive(int idx, bool bActive)
+{
+	if (m_ObjectList.empty()) return;
+
+	m_ObjectList[idx].m_isActive = bActive;
 }
 
 void ObjectManager::SetAllPositon(float x, float y, float z)

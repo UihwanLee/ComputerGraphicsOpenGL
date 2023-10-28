@@ -45,6 +45,9 @@ GLvoid RotatingAnimationY(int isAinm);
 GLfloat moveDir = 0.5f;
 
 void Keyboard(unsigned char key, int x, int y);
+GLvoid MouseClick(int button, int state, int x, int y);
+GLvoid MouseDrag(int x, int y);
+bool g_left_button = false;
 
 int main(int argc, char** argv)
 {
@@ -66,6 +69,8 @@ int main(int argc, char** argv)
 	InitProgram(ShaderProgram);
 	glutDisplayFunc(drawScene);
 	glutKeyboardFunc(Keyboard);
+	glutMouseFunc(MouseClick);
+	glutMotionFunc(MouseDrag);
 	glutReshapeFunc(Reshape);
 	glutMainLoop();
 }
@@ -256,78 +261,49 @@ GLvoid StopAllAnim()
 	return;
 }
 
+GLvoid MouseClick(int button, int state, int x, int y)
+{
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	{
+		// 마우스 클릭 ...
+		cout << "마우스 클릭!" << endl;
+
+		// 선 생성(선 활성화)
+
+		g_left_button = true;
+	}
+
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
+	{
+		// 마우스 클릭 땔 때 ....
+		cout << "마우스 때기!" << endl;
+
+		// 선 제거(선 비활성화)
+
+		g_left_button = false;
+	}
+
+	glutPostRedisplay();
+}
+
+GLvoid MouseDrag(int x, int y)
+{
+	if (g_left_button)
+	{
+		cout << "마우스 드래그!" << endl;
+		// 마우스 드래그에 따른 선 길이 조정
+		//gPlayer.pivot.x = (2.0f * x) / glutGet(GLUT_WINDOW_WIDTH) - 1.0f; // x 끝점
+		//gPlayer.pivot.y = 1.0f - (2.0f * y) / glutGet(GLUT_WINDOW_HEIGHT); // y 끝점
+	}
+
+	glutPostRedisplay();
+}
+
+
 void Keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
-	case 'X':
-	case 'x':
-		moveDir = (key == 'X') ? 0.5f : -0.5f;
-		for (int i = 1; i < ObjMgr.m_ObjectList.size(); i++)
-		{
-			ObjMgr.m_ObjectList[i].m_Initmodel = !ObjMgr.m_ObjectList[i].m_Initmodel;
-		}
-		isRotating = true;
-		StopAllAnim();
-		ObjMgr.m_ObjectList[1].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[2].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[3].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[4].m_isAnimRotating = true;
-		if (ObjMgr.m_ObjectList[1].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 1);
-		if (ObjMgr.m_ObjectList[2].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 2);
-		if (ObjMgr.m_ObjectList[3].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 3);
-		if (ObjMgr.m_ObjectList[4].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 4);
-		break;
-	case 'Y':
-	case 'y':
-		moveDir = (key == 'Y') ? 0.5f : -0.5f;
-		for (int i = 1; i < ObjMgr.m_ObjectList.size(); i++)
-		{
-			ObjMgr.m_ObjectList[i].m_Initmodel = !ObjMgr.m_ObjectList[i].m_Initmodel;
-		}
-		isRotating = true;
-		StopAllAnim();
-		ObjMgr.m_ObjectList[1].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[2].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[3].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[4].m_isAnimRotating = true;
-		if (ObjMgr.m_ObjectList[1].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationY, 1);
-		if (ObjMgr.m_ObjectList[2].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationY, 2);
-		if (ObjMgr.m_ObjectList[3].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationY, 3);
-		if (ObjMgr.m_ObjectList[4].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationY, 4);
-		break;
-	case 'R':
-	case 'r':
-		moveDir = (key == 'R') ? 0.5f : -0.5f;
-		isRotating = false;
-		StopAllAnim();
-		ObjMgr.m_ObjectList[1].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[2].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[3].m_isAnimRotating = true;
-		ObjMgr.m_ObjectList[4].m_isAnimRotating = true;
-		if (ObjMgr.m_ObjectList[1].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 1);
-		if (ObjMgr.m_ObjectList[2].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 2);
-		if (ObjMgr.m_ObjectList[3].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 3);
-		if (ObjMgr.m_ObjectList[4].m_isAnimRotating) glutTimerFunc(30, RotatingAnimationX, 4);
-		break;
-	case 'c':
-	{
-		if (ObjMgr.m_ObjectList[1].m_isActive == true)
-		{
-			ObjMgr.m_ObjectList[1].m_isActive = false;
-			ObjMgr.m_ObjectList[2].m_isActive = false;
-			ObjMgr.m_ObjectList[3].m_isActive = true;
-			ObjMgr.m_ObjectList[4].m_isActive = true;
-		}
-		else
-		{
-			ObjMgr.m_ObjectList[1].m_isActive = true;
-			ObjMgr.m_ObjectList[2].m_isActive = true;
-			ObjMgr.m_ObjectList[3].m_isActive = false;
-			ObjMgr.m_ObjectList[4].m_isActive = false;
-		}
-	}
-	break;
 	case 's':
 		Reset();
 		break;

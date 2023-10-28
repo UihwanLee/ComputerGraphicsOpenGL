@@ -42,6 +42,8 @@ public:
 	int GetRandomIntValue(GLfloat min, GLfloat max);
 	GLfloat GetRandomFloatValue(GLfloat min, GLfloat max);
 
+	void CreateLine();		// 절취선 생성
+
 	void CreateTri();
 	void CreateRect();
 	void CreatePenta();
@@ -52,6 +54,7 @@ public:
 	void SetPosition(int idx, float x, float y, float z);
 	void SetRotate(int idx, float x, float y, float z);
 	void SetScale(int idx, float x, float y, float z);
+	void SetActive(int idx, bool bActive);
 
 	void SetAllPositon(float x, float y, float z);
 	void SetAllRotate(float x, float y, float z);
