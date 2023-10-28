@@ -41,7 +41,7 @@ GLvoid StopAllAnim();
 GLvoid OpenCloseCubeDoor(int isAnim);
 
 // 애니메이션 :: 로봇
-GLvoid RotateRobotByDir();
+GLvoid RotateRobotByDir(int isAnim);
 
 // 애니메이션 :: 카메라
 GLvoid RotatingCamera(int isAnim);
@@ -49,14 +49,18 @@ GLvoid RotatingCamera(int isAnim);
 // 애니메이션 :: 변수
 bool isOpenDoor = false;
 bool isRotatingDoor = false;
+bool isRotatingRobot = false;
 
 // 로봇 변수
 GLfloat playerSpeed = 0.2f;
+GLfloat playerRotateArmSpeed = 5.0f;
+GLfloat playerRotateLegSpeed = 3.0f;
 
 
 GLfloat rotateSpeed = 4.0f;
 GLfloat moveSpeed = 0.5f;
 GLfloat doorRotateRate = 0.0f;
+GLfloat armRotateRate = 0.0f;
 
 // 투영 변환
 bool projectionMode = true;
@@ -74,6 +78,7 @@ float rotatingCameraRate_x = 0.0f;
 float rotatingCameraRate_y = 0.0f;
 
 void Keyboard(unsigned char key, int x, int y);
+void keyboardUp(unsigned char key, int x, int y);
 
 int main(int argc, char** argv)
 {
@@ -96,6 +101,7 @@ int main(int argc, char** argv)
 	InitProgram(ShaderProgram);
 	glutDisplayFunc(drawScene);
 	glutKeyboardFunc(Keyboard);
+	glutKeyboardUpFunc(keyboardUp);
 	glutReshapeFunc(Reshape);
 	glutMainLoop();
 }
@@ -181,12 +187,24 @@ GLvoid Reset()
 	ObjMgr.SetPosition(9, 0.3f, 0.8f, 0.0f);
 
 	// 로봇 오른쪽 팔
+	ObjMgr.CreateCube(1.0f, 0.0f, 0.0f);
+	ObjMgr.SetScale(10, 0.4f, 1.0f, 0.3f);
+	ObjMgr.SetPosition(10, 0.0f, -0.1f, 0.6f);
 
 	// 로봇 왼쪽 팔
+	ObjMgr.CreateCube(0.0f, 1.0f, 0.0f);
+	ObjMgr.SetScale(11, 0.4f, 1.0f, 0.3f);
+	ObjMgr.SetPosition(11, 0.0f, -0.1f, -0.6f);
 
 	// 로봇 오른쪽 다리
+	ObjMgr.CreateCube(138.0f / 255.0f, 43.0f / 255.0f, 226.0f / 255.0f);
+	ObjMgr.SetScale(12, 0.6f, 1.0f, 0.5f);
+	ObjMgr.SetPosition(12, 0.0f, -1.0f, 0.2f);
 
 	// 로봇 왼쪽 다리
+	ObjMgr.CreateCube(255.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
+	ObjMgr.SetScale(13, 0.6f, 1.0f, 0.5f);
+	ObjMgr.SetPosition(13, 0.0f, -1.0f, -0.2f);
 }
 
 GLvoid drawScene()
@@ -386,11 +404,32 @@ GLvoid OpenCloseCubeDoor(int isAnim)
 	if (isRotatingDoor) glutTimerFunc(30, OpenCloseCubeDoor, isRotatingDoor);
 }
 
-// 로봇 회전
-GLvoid RotateRobotByDir()
+// 로봇 팔, 다리 회전
+GLvoid RotateRobotByDir(int isAnim)
 {
-	float rotateDir = -90.0f;
-	ObjMgr.SetRotate(7, 0.0f, -90.0f, 0.0f);
+	int idx1 = 10;
+	int idx2 = 11;
+	int idx3 = 12;
+	int idx4 = 13;
+	
+	ObjMgr.Rotate(idx1, 0.0f, 0.0f, playerRotateArmSpeed);
+	ObjMgr.Rotate(idx2, 0.0f, 0.0f, -playerRotateArmSpeed);
+	ObjMgr.Rotate(idx3, 0.0f, 0.0f, -playerRotateLegSpeed);
+	ObjMgr.Rotate(idx4, 0.0f, 0.0f, playerRotateLegSpeed);
+
+
+	if (armRotateRate > 10)
+	{
+		playerRotateArmSpeed = playerRotateArmSpeed * (-1.0f);
+		playerRotateLegSpeed = playerRotateLegSpeed * (-1.0f);
+		armRotateRate = 0.0f;
+	}
+
+	armRotateRate += 1;
+
+	glutPostRedisplay();
+
+	if (isRotatingRobot) glutTimerFunc(30, RotateRobotByDir, isRotatingRobot);
 }
 
 float angle_camera = 0;
@@ -428,18 +467,26 @@ void Keyboard(unsigned char key, int x, int y)
 	case 'w':
 		ObjMgr.Move(7, -playerSpeed, 0.0f, 0.0f);
 		ObjMgr.SetRotate(7, 0.0f, 180.0f, 0.0f);
+		isRotatingRobot = true;
+		if (isRotatingRobot)glutTimerFunc(30, RotateRobotByDir, isRotatingRobot);
 		break;
 	case 's':
 		ObjMgr.Move(7, playerSpeed, 0.0f, 0.0f);
 		ObjMgr.SetRotate(7, 0.0f, 0.0f, 0.0f);
+		isRotatingRobot = true;
+		if (isRotatingRobot)glutTimerFunc(30, RotateRobotByDir, isRotatingRobot);
 		break;
 	case 'a':
 		ObjMgr.Move(7, 0.0f, 0.0f, playerSpeed);
 		ObjMgr.SetRotate(7, 0.0f, -90.0f, 0.0f);
+		isRotatingRobot = true;
+		if (isRotatingRobot)glutTimerFunc(30, RotateRobotByDir, isRotatingRobot);
 		break;
 	case 'd':
 		ObjMgr.Move(7, 0.0f, 0.0f, -playerSpeed);
 		ObjMgr.SetRotate(7, 0.0f, 90.0f, 0.0f);
+		isRotatingRobot = true;
+		if (isRotatingRobot)glutTimerFunc(30, RotateRobotByDir, isRotatingRobot);
 		break;
 		// 애니메이션 :: 카메라
 	case 'X':
@@ -464,12 +511,29 @@ void Keyboard(unsigned char key, int x, int y)
 	case 'p':
 		projectionMode = !projectionMode;
 		break;
-	case 'R':
-	case 'r':
+	case 'I':
+	case 'i':
 		Reset();
 		break;
 	case 'q':
 		glutLeaveMainLoop();
+		break;
+	default:
+		break;
+	}
+
+	glutPostRedisplay();
+}
+
+void keyboardUp(unsigned char key, int x, int y)
+{
+	switch (key)
+	{
+	case 'w':
+	case 's':
+	case 'a':
+	case 'd':
+		isRotatingRobot = false;
 		break;
 	default:
 		break;
