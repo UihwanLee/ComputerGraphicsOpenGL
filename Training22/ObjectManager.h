@@ -6,6 +6,8 @@
 #include <vector>
 #include <random>
 
+#define GRAVITY 9.8f
+
 using namespace std;
 
 typedef struct ObjectInfo
@@ -13,6 +15,8 @@ typedef struct ObjectInfo
 	float		m_pivot[3];
 	float		m_rotate[3];
 	float		m_scale[3];
+	float		m_vel[3];
+	float		m_mass;
 	GLfloat* m_pos;
 	GLfloat* m_col;
 	GLint* m_inex;
@@ -66,6 +70,7 @@ public:
 
 	void SetChangeActive(int mode);
 	void ChangeWireSolidType();
+	void SetWireSolidType(int idx, int type);
 
 	// 좌표계 변화
 	glm::mat4 TransformModel(int idx);
@@ -82,6 +87,9 @@ public:
 	void Move(int idx, float x, float y, float z);
 	void Rotate(int idx, float x, float y, float z);
 	void Scale(int idx, float x, float y, float z);
+
+	void AddForce(int idx, float x, float y, float z, float elapsedTime);
+	void UpdatePos(int idx, float elapsedTime);
 
 	// 자식 설정
 	void SetChild(int idx, int idx_child);

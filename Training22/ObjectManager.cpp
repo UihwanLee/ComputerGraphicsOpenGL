@@ -63,6 +63,12 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 	objInfo->m_scale[1] = 0.5f;
 	objInfo->m_scale[2] = 0.5f;
 
+	objInfo->m_vel[0] = 0.0f;
+	objInfo->m_vel[1] = 0.0f;
+	objInfo->m_vel[2] = 0.0f;
+
+	objInfo->m_mass = 1.0f;
+
 	objInfo->m_isModeIDX = modeIDX;
 	objInfo->m_isAnimRotating = isAinm;
 	objInfo->m_isActive = isActive;
@@ -503,6 +509,11 @@ void ObjectManager::ChangeWireSolidType()
 	}
 }
 
+void ObjectManager::SetWireSolidType(int idx, int type)
+{
+	m_ObjectList[idx].m_DRAW_TYPE = type;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////  [ 변환 ] //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -559,8 +570,8 @@ glm::mat4 ObjectManager::TransformModel(int idx)
 			model = glm::rotate(model, glm::radians(rotate_y), glm::vec3(0.0f, 1.0f, 0.0f));
 			model = glm::rotate(model, glm::radians(rotate_z), glm::vec3(0.0f, 0.0f, 1.0f));
 		}
-		// 로봇 머리
-		else if (idx == 8 || idx == 9)
+		// 로봇 머리, 코, ColiisionBox
+		else if (idx == 8 || idx == 9 || idx == 14)
 		{
 			int index_parent = 7;
 
@@ -657,6 +668,8 @@ void ObjectManager::SetScale(int idx, float x, float y, float z)
 	m_ObjectList[idx].m_scale[0] = x;
 	m_ObjectList[idx].m_scale[1] = y;
 	m_ObjectList[idx].m_scale[2] = z;
+
+	m_ObjectList[idx].m_mass = (x * 100) * (y * 100) * (z * 100);
 }
 
 void ObjectManager::SetActive(int idx, bool bActive)
@@ -721,6 +734,108 @@ void ObjectManager::Scale(int idx, float x, float y, float z)
 	m_ObjectList[idx].m_scale[0] += x;
 	m_ObjectList[idx].m_scale[1] += y;
 	m_ObjectList[idx].m_scale[2] += z;
+
+	float mass_x = m_ObjectList[idx].m_scale[0];
+	float mass_y = m_ObjectList[idx].m_scale[1];
+	float mass_z = m_ObjectList[idx].m_scale[2];
+
+	m_ObjectList[idx].m_mass = (mass_x * 100) * (mass_y * 100) * (mass_z * 100);
+}
+
+void ObjectManager::AddForce(int idx, float x, float y, float z, float elapsedTime)
+{
+	float m_mass = m_ObjectList[idx].m_mass;
+
+	float accX = x / 1.0f;
+	float accY = y / 1.0f;
+	float accZ = z / 1.0f;
+
+	m_ObjectList[idx].m_vel[0] = m_ObjectList[idx].m_vel[0] + accX * elapsedTime;
+	m_ObjectList[idx].m_vel[1] = m_ObjectList[idx].m_vel[1] + accY * elapsedTime;
+	m_ObjectList[idx].m_vel[2] = m_ObjectList[idx].m_vel[2] + accZ * elapsedTime;
+}
+
+void ObjectManager::UpdatePos(int idx, float elapsedTime)
+{
+	float m_mass = 1.0f;
+
+	float m_velX = m_ObjectList[idx].m_vel[0];
+	float m_velY = m_ObjectList[idx].m_vel[1];
+	float m_velZ = m_ObjectList[idx].m_vel[2];
+
+	float normalForce = m_mass * GRAVITY;
+
+	float frictionCoef = 50.f;
+
+	float friction = frictionCoef * normalForce;
+
+	float frictionDirX = -m_velX;
+	float frictionDirZ = -m_velZ;
+
+	float mag = sqrtf(frictionDirX * frictionDirX + frictionDirZ * frictionDirZ);
+
+
+	if (mag > FLT_EPSILON)
+	{
+		frictionDirX = frictionDirX / mag;
+		frictionDirZ = frictionDirZ / mag;
+
+		float frictionForceX = frictionDirX * friction;
+		float frictionForceZ = frictionDirZ * friction;
+
+		float frictionAccX = frictionForceX / m_mass;
+		float frictionAccZ = frictionForceZ / m_mass;
+
+		float resultVelX = m_velX + frictionAccX * elapsedTime;
+		float resultVelZ = m_velY + frictionAccZ * elapsedTime;
+		float resultVelY = m_velY;
+
+		//cout << resultVelX << ", " << resultVelZ << endl;
+
+		if (resultVelX * m_velX < 0.f)
+		{
+			m_velX = 0.f;
+		}
+		else
+		{
+			m_velX = resultVelX;
+		}
+
+		if (resultVelY * m_velY < 0.f)
+		{
+			m_velY = 0.f;
+		}
+		else
+		{
+			m_velY = resultVelY;
+		}
+
+		if (resultVelZ * m_velZ < 0.f)
+		{
+			m_velZ = 0.f;
+		}
+		else
+		{
+			m_velZ = resultVelZ;
+
+			cout << m_velZ << endl;
+		}
+	}
+
+	m_ObjectList[idx].m_vel[0] = m_velX;
+	m_ObjectList[idx].m_vel[1] = m_velY;
+	m_ObjectList[idx].m_vel[2] = m_velZ;
+
+	m_ObjectList[idx].m_pivot[0] = m_ObjectList[idx].m_pivot[0] + m_velX * elapsedTime;
+	m_ObjectList[idx].m_pivot[1] = m_ObjectList[idx].m_pivot[1] + m_velY * elapsedTime;
+	m_ObjectList[idx].m_pivot[2] = m_ObjectList[idx].m_pivot[2] + m_velZ * elapsedTime;
+
+	//cout << m_velX << ", " << m_velZ << endl;
+
+	if (m_ObjectList[idx].m_pivot[1] < -1.0f)
+	{
+		m_ObjectList[idx].m_pivot[1] = -1.0f;
+	}
 }
 
 void MoveAxisObject(GLfloat* posList, int SIZE, int startIDX, float moveDist)

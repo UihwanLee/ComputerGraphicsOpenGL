@@ -3,6 +3,7 @@
 #include <random>
 #include "InitShader.h"
 #include "ObjectManager.h"
+#include "Timer.h"
 #include <cmath>
 
 #pragma comment(lib, "glew32.lib")
@@ -17,6 +18,12 @@ using namespace std;
 
 // 클래스
 ObjectManager ObjMgr;
+Timer timer;
+
+// 타이머
+float startTime = 0.0f;
+float prevTime = 0.0f;
+GLvoid UpdateRender();
 
 GLvoid Init();
 GLvoid Message();
@@ -42,6 +49,7 @@ GLvoid OpenCloseCubeDoor(int isAnim);
 
 // 애니메이션 :: 로봇
 GLvoid RotateRobotByDir(int isAnim);
+GLvoid JumpRobobot(int isAnim);
 
 // 애니메이션 :: 카메라
 GLvoid RotatingCamera(int isAnim);
@@ -50,11 +58,17 @@ GLvoid RotatingCamera(int isAnim);
 bool isOpenDoor = false;
 bool isRotatingDoor = false;
 bool isRotatingRobot = false;
+bool isRobotJumping = false;
 
 // 로봇 변수
 GLfloat playerSpeed = 0.2f;
 GLfloat playerRotateArmSpeed = 5.0f;
 GLfloat playerRotateLegSpeed = 3.0f;
+GLfloat playerJumpSpeed = 0.2f;
+GLfloat playerJumpRate = 0.0f;
+float forceAmount = 10.0f;
+
+GLvoid CheckCollision();
 
 
 GLfloat rotateSpeed = 4.0f;
@@ -112,6 +126,35 @@ GLvoid Init()
 	glGenBuffers(1, &EBO);
 
 	Reset();
+
+	startTime = glutGet(GLUT_ELAPSED_TIME); // 시작 시간 설정
+}
+
+// 시간을 계산하여 elapsedTime 계산
+GLvoid UpdateRender()
+{
+	int currentTime = glutGet(GLUT_ELAPSED_TIME);
+	float elapsedTime = 0.0f;
+
+	if (prevTime == 0.0f)
+	{
+		elapsedTime = currentTime - currentTime;
+	}
+	else
+	{
+		elapsedTime = currentTime - prevTime;
+	}
+	prevTime = currentTime;
+
+	timer.SetTimer(elapsedTime);
+
+	if (ObjMgr.m_ObjectList.size() >= 14)
+	{
+		//ObjMgr.UpdatePos(7, elapsedTime);
+		//ObjMgr.Move(7, 0.0f, -0.1f, 0.0f);
+
+		CheckCollision();
+	}
 }
 
 GLvoid Message()
@@ -205,10 +248,18 @@ GLvoid Reset()
 	ObjMgr.CreateCube(255.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
 	ObjMgr.SetScale(13, 0.6f, 1.0f, 0.5f);
 	ObjMgr.SetPosition(13, 0.0f, -1.0f, -0.2f);
+
+	// 로봇 CollisionBox
+	ObjMgr.CreateCube(0.0f, 1.0f, 0.0f);
+	ObjMgr.SetScale(14, 1.5f, 2.4f, 1.5f);
+	ObjMgr.SetPosition(14, 0.0f, -0.2f, 0.0f);
+	ObjMgr.SetWireSolidType(14, GL_LINE_LOOP);
 }
 
 GLvoid drawScene()
 {
+	UpdateRender();
+
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -432,6 +483,30 @@ GLvoid RotateRobotByDir(int isAnim)
 	if (isRotatingRobot) glutTimerFunc(30, RotateRobotByDir, isRotatingRobot);
 }
 
+// 로봇 점프
+GLvoid JumpRobobot(int isAnim)
+{
+	int idx = 7;
+
+	if (playerJumpRate > 10.0f)
+	{
+		playerJumpSpeed = -0.2f;
+		if (playerJumpRate > 20.0f)
+		{
+			playerJumpRate = 0.0f;
+			isRobotJumping = false;
+		}
+	}
+
+	playerJumpRate += 1;
+
+	ObjMgr.Move(idx, 0.0f, playerJumpSpeed, 0.0f);
+
+	glutPostRedisplay();
+
+	if (isRobotJumping) glutTimerFunc(30, JumpRobobot, isRobotJumping);
+}
+
 float angle_camera = 0;
 GLvoid RotatingCamera(int isAnim)
 {
@@ -446,8 +521,55 @@ GLvoid RotatingCamera(int isAnim)
 	if (rotatingCarmera) glutTimerFunc(30, RotatingCamera, rotatingCarmera);
 }
 
+GLvoid CheckCollision()
+{
+	int idx = 7;
+	float maxDist_x = 2.0f;
+	float minDist_x = -9.0f;
+
+	float maxDist_z = 5.5f;
+	float minDist_z = -5.5f;
+
+	// 땅에 떨어지지 않게 고정
+	if (ObjMgr.m_ObjectList[idx].m_pivot[1] < -1.5f)
+	{
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = -1.5f;
+	}
+
+	// 벽에 닿으면 반대방향으로 이동
+	if (ObjMgr.m_ObjectList[idx].m_pivot[0] > maxDist_x)
+	{
+		ObjMgr.Move(7, -playerSpeed * 5, 0.0f, 0.0f);
+		ObjMgr.SetRotate(7, 0.0f, 0.0f, 0.0f);
+	}
+
+	if (ObjMgr.m_ObjectList[idx].m_pivot[0] < minDist_x)
+	{
+		ObjMgr.Move(7, playerSpeed * 5, 0.0f, 0.0f);
+		ObjMgr.SetRotate(7, 0.0f, 0.0f, 0.0f);
+	}
+
+	if (ObjMgr.m_ObjectList[idx].m_pivot[2] > maxDist_z)
+	{
+		ObjMgr.Move(7, 0.0f, 0.0f, -playerSpeed * 5);
+		ObjMgr.SetRotate(7, 0.0f, 90.0f, 0.0f);
+	}
+
+	if (ObjMgr.m_ObjectList[idx].m_pivot[2] < minDist_z)
+	{
+		ObjMgr.Move(7, 0.0f, 0.0f, playerSpeed * 5);
+		ObjMgr.SetRotate(7, 0.0f, -90.0f, 0.0f);
+	}
+
+	// 장애물 충돌처리
+
+}
+
 void Keyboard(unsigned char key, int x, int y)
 {
+	float force_x, force_y, force_z;
+	force_x = force_y = force_z = 0.f;
+	bool input_w = false;
 	switch (key)
 	{
 	case 'H':
@@ -465,28 +587,30 @@ void Keyboard(unsigned char key, int x, int y)
 		break;
 		// 애니메이션 :: 로봇
 	case 'w':
-		ObjMgr.Move(7, -playerSpeed, 0.0f, 0.0f);
 		ObjMgr.SetRotate(7, 0.0f, 180.0f, 0.0f);
 		isRotatingRobot = true;
 		if (isRotatingRobot)glutTimerFunc(30, RotateRobotByDir, isRotatingRobot);
 		break;
 	case 's':
-		ObjMgr.Move(7, playerSpeed, 0.0f, 0.0f);
 		ObjMgr.SetRotate(7, 0.0f, 0.0f, 0.0f);
 		isRotatingRobot = true;
 		if (isRotatingRobot)glutTimerFunc(30, RotateRobotByDir, isRotatingRobot);
 		break;
 	case 'a':
-		ObjMgr.Move(7, 0.0f, 0.0f, playerSpeed);
 		ObjMgr.SetRotate(7, 0.0f, -90.0f, 0.0f);
 		isRotatingRobot = true;
 		if (isRotatingRobot)glutTimerFunc(30, RotateRobotByDir, isRotatingRobot);
 		break;
 	case 'd':
-		ObjMgr.Move(7, 0.0f, 0.0f, -playerSpeed);
 		ObjMgr.SetRotate(7, 0.0f, 90.0f, 0.0f);
 		isRotatingRobot = true;
 		if (isRotatingRobot)glutTimerFunc(30, RotateRobotByDir, isRotatingRobot);
+		break;
+	case 'J':
+	case 'j':
+		isRobotJumping = true;
+		playerJumpSpeed = 0.2f;
+		if (isRobotJumping)glutTimerFunc(30, JumpRobobot, isRobotJumping);
 		break;
 		// 애니메이션 :: 카메라
 	case 'X':
@@ -520,6 +644,23 @@ void Keyboard(unsigned char key, int x, int y)
 		break;
 	default:
 		break;
+	}
+
+	if (key == 'w')
+	{
+		ObjMgr.Move(7, -playerSpeed, 0.0f, 0.0f);
+	}
+	if (key == 's')
+	{
+		ObjMgr.Move(7, playerSpeed, 0.0f, 0.0f);
+	}
+	if (key == 'a')
+	{
+		ObjMgr.Move(7, 0.0f, 0.0f, playerSpeed);
+	}
+	if (key == 'd')
+	{
+		ObjMgr.Move(7, 0.0f, 0.0f, -playerSpeed);
 	}
 
 	glutPostRedisplay();
