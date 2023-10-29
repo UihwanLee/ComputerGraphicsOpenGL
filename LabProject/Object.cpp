@@ -18,6 +18,16 @@ GLfloat Object::CoordinateColors[18] = {
 		0.0f, 0.f, 0.f
 };
 
+GLfloat Object::LineVertexs[6] = {
+	1.0f, 0.0f, 0.0f,
+	0.0f, 0.0f, 1.0f
+};
+
+GLfloat Object::LineColors[6] = {
+	0.0f, 0.0f, 0.0f,
+	0.0f, 0.0f, 0.0f
+};
+
 GLfloat Object::TriVertexs[9] = {
 	0.0f, 0.3f, 0.0f,
 	-0.3f, -0.3f, 0.0f,

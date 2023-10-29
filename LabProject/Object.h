@@ -20,6 +20,10 @@ public:
 	static GLfloat	CoordinateVertexs[18];
 	static GLfloat	CoordinateColors[18];
 
+	// 라인
+	static GLfloat	LineVertexs[6];
+	static GLfloat	LineColors[6];
+
 	// 삼각형
 	static GLfloat	TriVertexs[9];
 	static GLfloat	TriColors[9];

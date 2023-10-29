@@ -90,6 +90,15 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 
 void ObjectManager::CreateLine()
 {
+	temp.m_pos = new GLfloat[6];
+	temp.m_col = new GLfloat[6];
+
+	for (int i = 0; i < 6; i++) temp.m_pos[i] = Object::LineVertexs[i];
+	for (int i = 0; i < 6; i++) temp.m_col[i] = Object::LineColors[i];
+
+	InitObjectStruct(&temp, 2, 24, 0, 0, GL_LINES, false, false, true);
+
+	m_ObjectList.emplace_back(temp);
 }
 
 void ObjectManager::CreateTri()
