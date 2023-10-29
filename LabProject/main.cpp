@@ -89,11 +89,10 @@ GLvoid Reset()
 {
 	ObjMgr.Reset();
 
+	ObjMgr.CreateLine();
 	ObjMgr.CreateTri();
 	//ObjMgr.CreateRect();
 	//ObjMgr.CreatePenta();
-
-	ObjMgr.CreateLine();
 }
 
 GLvoid drawScene()
@@ -117,7 +116,14 @@ GLvoid drawScene()
 					ObjMgr.m_ObjectList[i].m_num_vertex, ObjMgr.m_ObjectList[i].m_size_pos, ObjMgr.m_ObjectList[i].m_size_idx, ObjMgr.m_ObjectList[i].m_model,
 					i);
 			}
-			else
+		}
+	}
+
+	for (int i = 0; i < 1; i++)
+	{
+		if (ObjMgr.m_ObjectList[i].m_isActive)
+		{
+			if (ObjMgr.m_ObjectList[i].m_isModeIDX == false)
 			{
 				DrawObjectByArray(ObjMgr.m_ObjectList[i].m_DRAW_TYPE, ObjMgr.m_ObjectList[i].m_pos, ObjMgr.m_ObjectList[i].m_col,
 					ObjMgr.m_ObjectList[i].m_num_vertex, ObjMgr.m_ObjectList[i].m_size_pos);
@@ -273,7 +279,7 @@ Point findIntersection(Point P1, Point P2, Point A, Point B) {
 }
 
 // 직선과의 교차 여부를 검사하는 함수
-vector<Point> doesIntersectTri(Point P1, Point P2, Point A, Point B, Point C) {
+GLvoid doesIntersectTri(Point P1, Point P2, Point A, Point B, Point C) {
 	// 직선의 방정식 계산
 	float m = (P2.y - P1.y) / (P2.x - P1.x);
 	float c = P1.y - m * P1.x;
@@ -282,20 +288,20 @@ vector<Point> doesIntersectTri(Point P1, Point P2, Point A, Point B, Point C) {
 	float lineAB = A.y - m * A.x - c;
 	float lineBC = B.y - m * B.x - c;
 	float lineCA = C.y - m * C.x - c;
-	
+
 	Point intersection;
 	CrossPoint.clear();
 
 	// 모든 세 변이 직선과 만나지 않으면 삼각형과 직선은 만나지 않음
 	if ((lineAB > 0 && lineBC > 0 && lineCA > 0) || (lineAB < 0 && lineBC < 0 && lineCA < 0)) {
-		return CrossPoint;
+		return;
 	}
 	// 위 조건 중 하나라도 만족하면 삼각형과 직선이 만남
 	else
 	{
 		if (lineAB != 0) {
 			intersection = findIntersection(P1, P2, A, B);
-			if(isInsideLine(A, B, intersection)) CrossPoint.push_back(intersection);
+			if (isInsideLine(A, B, intersection)) CrossPoint.push_back(intersection);
 		}
 		if (lineBC != 0) {
 			intersection = findIntersection(P1, P2, B, C);
@@ -327,8 +333,8 @@ GLvoid CheckCollisionWithTri(int line, int tri)
 
 GLvoid CheckCollisionWithLine()
 {
-	int line = ObjMgr.m_ObjectList.size() - 1;
-	int tri = 0; int rect = 1;
+	int line = 0;
+	int tri = 1; int rect = 2;
 
 	CheckCollisionWithTri(line, tri);
 
@@ -363,7 +369,7 @@ GLvoid EndLine(int idx)
 
 GLvoid MouseClick(int button, int state, int x, int y)
 {
-	int idx = ObjMgr.m_ObjectList.size() - 1;
+	int idx = 0;
 
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 	{
@@ -398,8 +404,7 @@ GLvoid MouseDrag(int x, int y)
 {
 	if (g_left_button)
 	{
-
-		int idx = ObjMgr.m_ObjectList.size() - 1;
+		int idx = 0;
 
 		// 마우스 드래그에 따른 선 길이 조정
 		float drag_x = (2.0f * x) / glutGet(GLUT_WINDOW_WIDTH) - 1.0f; // x 끝점
