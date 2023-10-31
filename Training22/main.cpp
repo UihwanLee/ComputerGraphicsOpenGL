@@ -64,12 +64,12 @@ bool isRobotJumping = false;
 GLfloat playerSpeed = 0.2f;
 GLfloat playerRotateArmSpeed = 5.0f;
 GLfloat playerRotateLegSpeed = 3.0f;
-GLfloat playerJumpSpeed = 0.2f;
+GLfloat playerJumpSpeed = 0.5f;
 GLfloat playerJumpRate = 0.0f;
 float forceAmount = 10.0f;
 
 GLvoid CheckCollision();
-
+bool CheckCollisionByBox(float x, float y, float z);
 
 GLfloat rotateSpeed = 4.0f;
 GLfloat moveSpeed = 0.5f;
@@ -78,6 +78,7 @@ GLfloat armRotateRate = 0.0f;
 
 // pre 위치
 GLfloat prevPivot[3];
+bool isCollisionUp = false;
 
 // 투영 변환
 bool projectionMode = true;
@@ -154,7 +155,7 @@ GLvoid UpdateRender()
 	if (ObjMgr.m_ObjectList.size() >= 14)
 	{
 		//ObjMgr.UpdatePos(7, elapsedTime);
-		//ObjMgr.Move(7, 0.0f, -0.1f, 0.0f);
+		ObjMgr.Move(7, 0.0f, -0.1f, 0.0f);
 
 		CheckCollision();
 	}
@@ -172,8 +173,8 @@ GLvoid Message()
 	cout << "j: 로봇이 제자리에서 점프한다. 장애물 위로 점프하여 올라가고 내려갈 수 있다." << endl;
 	cout << "i: 모든 변환을 리셋하고 다시 시작" << endl;
 	cout << endl;
-	cout << "z/Z: 앞뒤로 이동" << endl;
-	cout << "x/X: 좌우로 이동" << endl;
+	cout << "z/Z: 좌우로 이동" << endl;
+	cout << "x/X: 앞뒤로 이동" << endl;
 	cout << "y/Y: 카메라가 현재 위치에서 화면 중심 y축을 기준으로 공전" << endl;
 	cout << endl;
 	cout << "c/C: 모든 움직임이 초기화된다." << endl;
@@ -220,7 +221,7 @@ GLvoid Reset()
 	// 로봇 몸체(최고 부모)
 	ObjMgr.CreateCube(0.0f, 0.0f, 1.0f);
 	ObjMgr.SetScale(7, 0.03f, 0.04f, 0.03f);
-	ObjMgr.SetPosition(7, -1.5f, -3.0f, 0.0f);
+	ObjMgr.SetPosition(7, -1.5f, -4.0f, 0.0f);
 
 	// 로봇 머리
 	ObjMgr.CreateCube(0.0f, 0.0f, 1.0f);
@@ -262,19 +263,37 @@ GLvoid Reset()
 	// 장애물 1
 	ObjMgr.CreateCube(211.0f / 255.0f, 211.0f / 255.0f, 211.0f / 255.0f);
 	ObjMgr.SetScale(15, 0.07f, 0.02f, 0.07f);
-	ObjMgr.SetPosition(15, -1.5f, -5.5f, -1.5f);
+	ObjMgr.SetPosition(15, -1.5f, -6.5f, -1.5f);
 
 	ObjMgr.CreateCube(0.0f, 1.0f, 0.0f);
 	ObjMgr.SetScale(16, 0.07f, 0.02f, 0.07f);
-	ObjMgr.SetPosition(16, -1.5f, -5.5f, -1.5f);
+	ObjMgr.SetPosition(16, -1.5f, -6.5f, -1.5f);
 	ObjMgr.SetWireSolidType(16, GL_LINE_LOOP);
+
+	// 장애물 2
+	ObjMgr.CreateCube(211.0f / 255.0f, 211.0f / 255.0f, 211.0f / 255.0f);
+	ObjMgr.SetScale(17, 0.07f, 0.02f, 0.07f);
+	ObjMgr.SetPosition(17, -4.0f, -6.5f, 2.2f);
+
+	ObjMgr.CreateCube(0.0f, 1.0f, 0.0f);
+	ObjMgr.SetScale(18, 0.07f, 0.02f, 0.07f);
+	ObjMgr.SetPosition(18, -4.0f, -6.5f, 2.2f);
+	ObjMgr.SetWireSolidType(18, GL_LINE_LOOP);
+
+	// 장애물 3
+	ObjMgr.CreateCube(211.0f / 255.0f, 211.0f / 255.0f, 211.0f / 255.0f);
+	ObjMgr.SetScale(19, 0.07f, 0.02f, 0.07f);
+	ObjMgr.SetPosition(19, -0.6f, -6.5f, 1.5f);
+
+	ObjMgr.CreateCube(0.0f, 1.0f, 0.0f);
+	ObjMgr.SetScale(20, 0.07f, 0.02f, 0.07f);
+	ObjMgr.SetPosition(20, -0.6f, -6.5f, 1.5f);
+	ObjMgr.SetWireSolidType(20, GL_LINE_LOOP);
 
 
 	prevPivot[0] = ObjMgr.m_ObjectList[7].m_pivot[0];
 	prevPivot[1] = ObjMgr.m_ObjectList[7].m_pivot[1];
 	prevPivot[2] = ObjMgr.m_ObjectList[7].m_pivot[2];
-
-	cout << prevPivot[1] << endl;
 }
 
 GLvoid drawScene()
@@ -429,9 +448,6 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 
 	ObjMgr.m_ObjectList[idx].m_model = ObjMgr.TransformModel(idx);
 
-	if(idx==14) cout << "Player: " << ObjMgr.m_ObjectList[idx].m_model[3][0] << ", " << ObjMgr.m_ObjectList[idx].m_model[3][1] << ", " << ObjMgr.m_ObjectList[idx].m_model[3][2] << endl;
-	if(idx==15) cout << "Box: " << ObjMgr.m_ObjectList[idx].m_model[3][0] << ", " << ObjMgr.m_ObjectList[idx].m_model[3][1] << ", " << ObjMgr.m_ObjectList[idx].m_model[3][2] << endl;
-
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(ObjMgr.m_ObjectList[idx].m_model));
 
 	glEnableVertexAttribArray(0);
@@ -560,9 +576,27 @@ GLvoid CheckCollision()
 	float minDist_z = -5.5f;
 
 	// 땅에 떨어지지 않게 고정
-	if (ObjMgr.m_ObjectList[idx].m_pivot[1] < -1.5f)
+	// 장애물 판단에 맞게 조정
+
+	if (isCollisionUp)
 	{
-		ObjMgr.m_ObjectList[idx].m_pivot[1] = -1.5f;
+		if (ObjMgr.m_ObjectList[idx].m_pivot[1] < -1.5f)
+		{
+			ObjMgr.m_ObjectList[idx].m_pivot[1] = -1.5f;
+		}
+	}
+	else
+	{
+		/*if (ObjMgr.m_ObjectList[idx].m_pivot[1] >= -1.5f)
+		{
+			cout << "Hello" << endl;
+			ObjMgr.m_ObjectList[idx].m_pivot[1] = -1.5f;
+		}*/
+
+		if (ObjMgr.m_ObjectList[idx].m_pivot[1] < -2.0f)
+		{
+			ObjMgr.m_ObjectList[idx].m_pivot[1] = -2.0f;
+		}
 	}
 
 	// 벽에 닿으면 반대방향으로 이동
@@ -590,33 +624,115 @@ GLvoid CheckCollision()
 		ObjMgr.SetRotate(7, 0.0f, -90.0f, 0.0f);
 	}
 
+
+
 	// 장애물 충돌처리(CollsionBox)
 	// 장애물 1
-	float min_z = ObjMgr.m_ObjectList[16].m_model[3][2] - 0.057;
-	float max_z = ObjMgr.m_ObjectList[16].m_model[3][2] + 0.057;
-	float min_x = ObjMgr.m_ObjectList[16].m_model[3][0] - 0.057;
-	float max_x = ObjMgr.m_ObjectList[16].m_model[3][0] + 0.057;
+	//float min_z = ObjMgr.m_ObjectList[16].m_model[3][2] - 0.057;
+	//float max_z = ObjMgr.m_ObjectList[16].m_model[3][2] + 0.057;
+	//float min_x = ObjMgr.m_ObjectList[16].m_model[3][0] - 0.057;
+	//float max_x = ObjMgr.m_ObjectList[16].m_model[3][0] + 0.057;
+	//
+	//float player_x = ObjMgr.m_ObjectList[14].m_model[3][0];
+	//float player_z = ObjMgr.m_ObjectList[14].m_model[3][2];
+
+	//if (player_x >= min_x && player_x <= max_x && player_z >= min_z && player_z <= max_z)
+	//{
+	//	cout << max_z << ", " << min_z << endl;
+	//	cout << "장애물 충돌!" << endl;
+
+	//	// 이전 위치로 갱신
+	//	ObjMgr.m_ObjectList[7].m_pivot[0] = prevPivot[0];
+	//	ObjMgr.m_ObjectList[7].m_pivot[1] = prevPivot[1];
+	//	ObjMgr.m_ObjectList[7].m_pivot[2] = prevPivot[2];
+	//}
+	//else
+	//{
+	//	prevPivot[0] = ObjMgr.m_ObjectList[7].m_pivot[0];
+	//	prevPivot[1] = ObjMgr.m_ObjectList[7].m_pivot[1];
+	//	prevPivot[2] = ObjMgr.m_ObjectList[7].m_pivot[2];
+
+	//}
+}
+
+bool CheckCollisionByBox(float x, float y, float z)
+{
+	bool isCollision = false;
 	
-	float player_x = ObjMgr.m_ObjectList[14].m_model[3][0];
-	float player_z = ObjMgr.m_ObjectList[14].m_model[3][2];
+	float offset = 0.057;
 
-	if (player_x >= min_x && player_x <= max_x && player_z >= min_z && player_z <= max_z)
+	isCollisionUp = false;
+
+	// 장애물 충돌처리(CollsionBox)
+	
+	// 장애물 1
+	float min_z = ObjMgr.m_ObjectList[16].m_model[3][2] - offset;
+	float max_z = ObjMgr.m_ObjectList[16].m_model[3][2] + offset;
+	float min_x = ObjMgr.m_ObjectList[16].m_model[3][0] - offset;
+	float max_x = ObjMgr.m_ObjectList[16].m_model[3][0] + offset;
+
+	float max_y = ObjMgr.m_ObjectList[16].m_model[3][1] + 0.042;
+
+	// Move 하기 전 충돌 체크
+
+	float player_x = ObjMgr.m_ObjectList[14].m_model[3][0] + x;
+	float player_y = ObjMgr.m_ObjectList[14].m_model[3][1] + y;
+	float player_z = ObjMgr.m_ObjectList[14].m_model[3][2] + z;
+
+	if (player_x >= min_x && player_x <= max_x && player_z >= min_z && player_z <= max_z && player_y <= max_y)
 	{
-		cout << max_z << ", " << min_z << endl;
-		cout << "장애물 충돌!" << endl;
-
-		// 이전 위치로 갱신
-		ObjMgr.m_ObjectList[7].m_pivot[0] = prevPivot[0];
-		ObjMgr.m_ObjectList[7].m_pivot[1] = prevPivot[1];
-		ObjMgr.m_ObjectList[7].m_pivot[2] = prevPivot[2];
+		isCollision = true;
 	}
-	else
+
+	// 점프해서 들어오면 위치 조정
+	if (player_x >= min_x && player_x <= max_x && player_z >= min_z && player_z <= max_z && player_y > max_y)
 	{
-		prevPivot[0] = ObjMgr.m_ObjectList[7].m_pivot[0];
-		prevPivot[1] = ObjMgr.m_ObjectList[7].m_pivot[1];
-		prevPivot[2] = ObjMgr.m_ObjectList[7].m_pivot[2];
-
+		isCollisionUp = true;
 	}
+
+	// 장애물 2
+	min_z = ObjMgr.m_ObjectList[18].m_model[3][2] - offset;
+	max_z = ObjMgr.m_ObjectList[18].m_model[3][2] + offset;
+	min_x = ObjMgr.m_ObjectList[18].m_model[3][0] - offset;
+	max_x = ObjMgr.m_ObjectList[18].m_model[3][0] + offset;
+
+	max_y = ObjMgr.m_ObjectList[18].m_model[3][1] + 0.042;
+
+	// Move 하기 전 충돌 체크
+
+	if (player_x >= min_x && player_x <= max_x && player_z >= min_z && player_z <= max_z && player_y <= max_y)
+	{
+		isCollision = true;
+	}
+
+	// 점프해서 들어오면 위치 조정
+	if (player_x >= min_x && player_x <= max_x && player_z >= min_z && player_z <= max_z && player_y > max_y)
+	{
+		isCollisionUp = true;
+	}
+
+	// 장애물 2
+	min_z = ObjMgr.m_ObjectList[20].m_model[3][2] - offset;
+	max_z = ObjMgr.m_ObjectList[20].m_model[3][2] + offset;
+	min_x = ObjMgr.m_ObjectList[20].m_model[3][0] - offset;
+	max_x = ObjMgr.m_ObjectList[20].m_model[3][0] + offset;
+
+	max_y = ObjMgr.m_ObjectList[20].m_model[3][1] + 0.042;
+
+	// Move 하기 전 충돌 체크
+
+	if (player_x >= min_x && player_x <= max_x && player_z >= min_z && player_z <= max_z && player_y <= max_y)
+	{
+		isCollision = true;
+	}
+
+	// 점프해서 들어오면 위치 조정
+	if (player_x >= min_x && player_x <= max_x && player_z >= min_z && player_z <= max_z && player_y > max_y)
+	{
+		isCollisionUp = true;
+	}
+
+	return isCollision;
 }
 
 void Keyboard(unsigned char key, int x, int y)
@@ -663,7 +779,7 @@ void Keyboard(unsigned char key, int x, int y)
 	case 'J':
 	case 'j':
 		isRobotJumping = true;
-		playerJumpSpeed = 0.2f;
+		playerJumpSpeed = 0.3f;
 		if (isRobotJumping)glutTimerFunc(30, JumpRobobot, isRobotJumping);
 		break;
 		// 애니메이션 :: 카메라
@@ -700,21 +816,26 @@ void Keyboard(unsigned char key, int x, int y)
 		break;
 	}
 
+	float move_speed = 0.006f;
 	if (key == 'w')
 	{
-		ObjMgr.Move(7, -playerSpeed, 0.0f, 0.0f);
+		if(CheckCollisionByBox(-move_speed, 0.0f, 0.0f) == false)
+			ObjMgr.Move(7, -playerSpeed, 0.0f, 0.0f);
 	}
 	if (key == 's')
 	{
-		ObjMgr.Move(7, playerSpeed, 0.0f, 0.0f);
+		if (CheckCollisionByBox(move_speed, 0.0f, 0.0f) == false)
+			ObjMgr.Move(7, playerSpeed, 0.0f, 0.0f);
 	}
 	if (key == 'a')
 	{
-		ObjMgr.Move(7, 0.0f, 0.0f, playerSpeed);
+		if (CheckCollisionByBox(0.0f, 0.0f, move_speed) == false)
+			ObjMgr.Move(7, 0.0f, 0.0f, playerSpeed);
 	}
 	if (key == 'd')
 	{
-		ObjMgr.Move(7, 0.0f, 0.0f, -playerSpeed);
+		if (CheckCollisionByBox(0.0f, 0.0f, -move_speed) == false)
+			ObjMgr.Move(7, 0.0f, 0.0f, -playerSpeed);
 	}
 
 	glutPostRedisplay();
