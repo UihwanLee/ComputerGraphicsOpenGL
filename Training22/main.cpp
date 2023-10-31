@@ -76,6 +76,9 @@ GLfloat moveSpeed = 0.5f;
 GLfloat doorRotateRate = 0.0f;
 GLfloat armRotateRate = 0.0f;
 
+// pre 위치
+GLfloat prevPivot[3];
+
 // 투영 변환
 bool projectionMode = true;
 
@@ -217,7 +220,7 @@ GLvoid Reset()
 	// 로봇 몸체(최고 부모)
 	ObjMgr.CreateCube(0.0f, 0.0f, 1.0f);
 	ObjMgr.SetScale(7, 0.03f, 0.04f, 0.03f);
-	ObjMgr.SetPosition(7, -1.5f, 0.0f, 0.0f);
+	ObjMgr.SetPosition(7, -1.5f, -3.0f, 0.0f);
 
 	// 로봇 머리
 	ObjMgr.CreateCube(0.0f, 0.0f, 1.0f);
@@ -254,6 +257,24 @@ GLvoid Reset()
 	ObjMgr.SetScale(14, 1.5f, 2.4f, 1.5f);
 	ObjMgr.SetPosition(14, 0.0f, -0.2f, 0.0f);
 	ObjMgr.SetWireSolidType(14, GL_LINE_LOOP);
+	//ObjMgr.SetActive(14, false);
+
+	// 장애물 1
+	ObjMgr.CreateCube(211.0f / 255.0f, 211.0f / 255.0f, 211.0f / 255.0f);
+	ObjMgr.SetScale(15, 0.07f, 0.02f, 0.07f);
+	ObjMgr.SetPosition(15, -1.5f, -5.5f, -1.5f);
+
+	ObjMgr.CreateCube(0.0f, 1.0f, 0.0f);
+	ObjMgr.SetScale(16, 0.07f, 0.02f, 0.07f);
+	ObjMgr.SetPosition(16, -1.5f, -5.5f, -1.5f);
+	ObjMgr.SetWireSolidType(16, GL_LINE_LOOP);
+
+
+	prevPivot[0] = ObjMgr.m_ObjectList[7].m_pivot[0];
+	prevPivot[1] = ObjMgr.m_ObjectList[7].m_pivot[1];
+	prevPivot[2] = ObjMgr.m_ObjectList[7].m_pivot[2];
+
+	cout << prevPivot[1] << endl;
 }
 
 GLvoid drawScene()
@@ -408,6 +429,9 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 
 	ObjMgr.m_ObjectList[idx].m_model = ObjMgr.TransformModel(idx);
 
+	if(idx==14) cout << "Player: " << ObjMgr.m_ObjectList[idx].m_model[3][0] << ", " << ObjMgr.m_ObjectList[idx].m_model[3][1] << ", " << ObjMgr.m_ObjectList[idx].m_model[3][2] << endl;
+	if(idx==15) cout << "Box: " << ObjMgr.m_ObjectList[idx].m_model[3][0] << ", " << ObjMgr.m_ObjectList[idx].m_model[3][1] << ", " << ObjMgr.m_ObjectList[idx].m_model[3][2] << endl;
+
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(ObjMgr.m_ObjectList[idx].m_model));
 
 	glEnableVertexAttribArray(0);
@@ -429,9 +453,14 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 GLvoid StopAllAnim()
 {
 	rotatingCarmera = false;
+	isRobotJumping = false;
+	isRotatingDoor = false;
+	isRotatingRobot = false;
 
 	rotateSpeed = 4.0f;
 	doorRotateRate = 0.0f;
+
+	isOpenDoor = false;
 }
 
 GLvoid OpenCloseCubeDoor(int isAnim)
@@ -561,8 +590,33 @@ GLvoid CheckCollision()
 		ObjMgr.SetRotate(7, 0.0f, -90.0f, 0.0f);
 	}
 
-	// 장애물 충돌처리
+	// 장애물 충돌처리(CollsionBox)
+	// 장애물 1
+	float min_z = ObjMgr.m_ObjectList[16].m_model[3][2] - 0.057;
+	float max_z = ObjMgr.m_ObjectList[16].m_model[3][2] + 0.057;
+	float min_x = ObjMgr.m_ObjectList[16].m_model[3][0] - 0.057;
+	float max_x = ObjMgr.m_ObjectList[16].m_model[3][0] + 0.057;
+	
+	float player_x = ObjMgr.m_ObjectList[14].m_model[3][0];
+	float player_z = ObjMgr.m_ObjectList[14].m_model[3][2];
 
+	if (player_x >= min_x && player_x <= max_x && player_z >= min_z && player_z <= max_z)
+	{
+		cout << max_z << ", " << min_z << endl;
+		cout << "장애물 충돌!" << endl;
+
+		// 이전 위치로 갱신
+		ObjMgr.m_ObjectList[7].m_pivot[0] = prevPivot[0];
+		ObjMgr.m_ObjectList[7].m_pivot[1] = prevPivot[1];
+		ObjMgr.m_ObjectList[7].m_pivot[2] = prevPivot[2];
+	}
+	else
+	{
+		prevPivot[0] = ObjMgr.m_ObjectList[7].m_pivot[0];
+		prevPivot[1] = ObjMgr.m_ObjectList[7].m_pivot[1];
+		prevPivot[2] = ObjMgr.m_ObjectList[7].m_pivot[2];
+
+	}
 }
 
 void Keyboard(unsigned char key, int x, int y)
