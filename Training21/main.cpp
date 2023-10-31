@@ -21,8 +21,8 @@ ObjectManager ObjMgr;
 GLvoid Init();
 GLvoid Message();
 GLvoid Reset();
+GLvoid disPlay(GLvoid);
 GLvoid drawScene(GLvoid);
-GLvoid drawScene2(GLvoid);
 GLvoid drawScene3(GLvoid);
 GLvoid Reshape(int w, int h);
 GLuint ShaderProgram;
@@ -64,6 +64,9 @@ bool isRotateCamera_X = false;
 
 bool rotateCamera_mode_X = false;
 bool rotateCamera_mode_Y = false;
+
+bool xzCamera_mode = false;
+bool xyCamera_mode = false;
 
 
 GLfloat rotateSpeed = 4.0f;
@@ -108,7 +111,7 @@ int main(int argc, char** argv)
 
 	InitProgram(ShaderProgram);
 	//glutReshapeFunc(Reshape);
-	glutDisplayFunc(drawScene);
+	glutDisplayFunc(disPlay);
 	glutKeyboardFunc(Keyboard);
 	glutMainLoop();
 }
@@ -206,21 +209,32 @@ GLvoid Reset()
 	//ObjMgr.SetChild(3, 7); // Å©·¹ÀÎ Áß¾Ó ¸öÃ¼ <- Å©·¹ÀÎ ÆÈ ¿À¸¥ÂÊ
 }
 
-GLvoid drawScene()
+GLvoid disPlay()
 {
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-	drawScene2();
 
 	glViewport(0, 0, WIDTH / 2, HEIGHT / 2);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	drawScene2();
+	//projectionMode = true;
+	xzCamera_mode = false;
+	xyCamera_mode = false;
+
+	drawScene();
 
 	glViewport(WIDTH / 2, HEIGHT / 2, WIDTH / 2, HEIGHT / 2);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	drawScene2();
+	xzCamera_mode = false;
+	xyCamera_mode = true;
+
+	drawScene();
+
+	glViewport(WIDTH / 2, 0, WIDTH / 2, HEIGHT / 2);
+
+	xzCamera_mode = true;
+	xyCamera_mode = false;
+
+	drawScene();
 
 	glutSwapBuffers();
 }
@@ -232,12 +246,12 @@ GLvoid drawScene3()
 	glViewport(WIDTH / 2, HEIGHT / 2, WIDTH / 2, HEIGHT / 2);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	drawScene2();
+	drawScene();
 
 	glutSwapBuffers();
 }
 
-GLvoid drawScene2()
+GLvoid drawScene()
 {
 	glUseProgram(ShaderProgram);
 
@@ -262,6 +276,18 @@ GLvoid drawScene2()
 	{
 		view = glm::rotate(view, glm::radians(rotatingCameraRate_y), glm::vec3(0.0f, 1.0f, 0.0f));
 		view = glm::translate(view, glm::vec3(0.0f, -0.15f, -0.6f));
+		view = glm::rotate(view, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	}
+	else if (xyCamera_mode)
+	{
+		view = glm::translate(view, glm::vec3(0.0f, -0.15f, -1.6f));
+		view = glm::rotate(view, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		view = glm::rotate(view, glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	}
+	else if (xzCamera_mode)
+	{
+		//view = glm::rotate(view, glm::radians(rotatingCameraRate_y), glm::vec3(0.0f, 1.0f, 0.0f));
+		view = glm::translate(view, glm::vec3(0.0f, -0.15f, -1.6f));
 		view = glm::rotate(view, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 	else
