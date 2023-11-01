@@ -171,13 +171,12 @@ GLvoid Message()
 	cout << "w/a/s/d: 로봇이 앞/뒤/좌/우 방향으로 이동 방향을 바꿔서 걷는다. 가장자리에 도달하면 로봇은 뒤로 돌아 다시 걷는다." << endl;
 	cout << "+/-: 걷는 속도가 빨라지거나/느려진다. 속도가 바뀔 때 걷는 다리의 각도가 늘어나거나/줄어든다." << endl;
 	cout << "j: 로봇이 제자리에서 점프한다. 장애물 위로 점프하여 올라가고 내려갈 수 있다." << endl;
-	cout << "i: 모든 변환을 리셋하고 다시 시작" << endl;
 	cout << endl;
 	cout << "z/Z: 좌우로 이동" << endl;
 	cout << "x/X: 앞뒤로 이동" << endl;
 	cout << "y/Y: 카메라가 현재 위치에서 화면 중심 y축을 기준으로 공전" << endl;
 	cout << endl;
-	cout << "c/C: 모든 움직임이 초기화된다." << endl;
+	cout << "i: 모든 변환을 리셋하고 다시 시작" << endl;
 	cout << "Q: 프로그램 종료한다." << endl;
 	cout << endl;
 }
@@ -781,6 +780,16 @@ void Keyboard(unsigned char key, int x, int y)
 		isRobotJumping = true;
 		playerJumpSpeed = 0.3f;
 		if (isRobotJumping)glutTimerFunc(30, JumpRobobot, isRobotJumping);
+		break;
+	case '+':
+		playerSpeed += 0.1f;
+		playerRotateArmSpeed += 0.1f;
+		playerRotateLegSpeed += 0.1f;
+		break;
+	case '-':
+		playerSpeed -= 0.1f;
+		playerRotateArmSpeed -= 0.1f;
+		playerRotateLegSpeed -= 0.1f;
 		break;
 		// 애니메이션 :: 카메라
 	case 'X':
