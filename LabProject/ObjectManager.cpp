@@ -66,11 +66,6 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 	objInfo->m_isModeIDX = modeIDX;
 	objInfo->m_isAnimRotating = isAinm;
 	objInfo->m_isActive = isActive;
-
-	objInfo->m_model[0] = 0.0f;
-	objInfo->m_model[1] = 0.0f;
-	objInfo->m_model[2] = 0.0f;
-	objInfo->m_model[3] = 0.0f;
 }
 
 //void ObjectManager::CreateCube()
@@ -264,6 +259,64 @@ void MoveAxisObject(GLfloat* posList, int SIZE, int startIDX, float moveDist)
 		posList[startIDX] += moveDist;
 		startIDX += 3;
 	}
+}
+
+void ObjectManager::Move(int idx, float x, float y, float z)
+{
+	m_ObjectList[idx].m_pivot[0] += x;
+	m_ObjectList[idx].m_pivot[1] += y;
+	m_ObjectList[idx].m_pivot[2] += z;
+}
+
+void ObjectManager::Rotate(int idx, float x, float y, float z)
+{
+	if (x != 0.0f) m_ObjectList[idx].m_rotate[0] += x;
+	else if (y != 0.0f) m_ObjectList[idx].m_rotate[1] += y;
+	else if (z != 0.0f) m_ObjectList[idx].m_rotate[2] += z;
+}
+
+void ObjectManager::Scale(int idx, float x, float y, float z)
+{
+	m_ObjectList[idx].m_scale[0] += x;
+	m_ObjectList[idx].m_scale[1] += y;
+	m_ObjectList[idx].m_scale[2] += z;
+}
+
+glm::mat4 ObjectManager::TransformModel(int idx)
+{
+	glm::mat4 model = glm::mat4(1.0f);
+	glm::mat4 scale = glm::mat4(1.0f);
+	glm::mat4 rot = glm::mat4(1.0f);
+	glm::mat4 move = glm::mat4(1.0f);
+
+	if (!m_ObjectList.empty())
+	{
+		float scale_x_parent; float scale_y_parent; float scale_z_parent;
+		float move_x_parent; float move_y_parent; float move_z_parent;
+		float rotate_y_parent;
+
+		float move_x = m_ObjectList[idx].m_pivot[0];
+		float move_y = m_ObjectList[idx].m_pivot[1];
+		float move_z = m_ObjectList[idx].m_pivot[2];
+
+		float rotate_x = m_ObjectList[idx].m_rotate[0];
+		float rotate_y = m_ObjectList[idx].m_rotate[1];
+		float rotate_z = m_ObjectList[idx].m_rotate[2];
+
+		float scale_x = m_ObjectList[idx].m_scale[0];
+		float scale_y = m_ObjectList[idx].m_scale[1];
+		float scale_z = m_ObjectList[idx].m_scale[2];
+
+		model = glm::mat4(1.0f);
+
+		model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
+		model = glm::rotate(model, glm::radians(rotate_x), glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(rotate_y), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(rotate_z), glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::translate(model, glm::vec3(move_x, move_y, move_z));
+	}
+
+	return model;
 }
 
 void ObjectManager::Reset()

@@ -23,7 +23,9 @@ typedef struct ObjectInfo
 	bool		m_isAnimRotating;
 	bool		m_isActive;
 	bool		m_isModeIDX;
-	float		m_model[4];
+
+	glm::mat4	m_model;
+
 	bool		m_Initmodel = false;
 };
 
@@ -59,6 +61,13 @@ public:
 	void SetAllPositon(float x, float y, float z);
 	void SetAllRotate(float x, float y, float z);
 	void SetAllScale(float x, float y, float z);
+
+	void Move(int idx, float x, float y, float z);
+	void Rotate(int idx, float x, float y, float z);
+	void Scale(int idx, float x, float y, float z);
+
+	// ÁÂÇ¥°è º¯È­
+	glm::mat4 TransformModel(int idx);
 
 	void Reset();
 };

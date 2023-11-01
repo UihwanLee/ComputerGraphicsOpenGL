@@ -28,7 +28,13 @@ bool isDepthTest = false;
 
 GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL);
 GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_color, float* pivot, float* rotateInfo, float* scaleInfo,
-	int NUM_VETEX, int SIZE_COL, int SIZE_IDX, float* modelInfo, int idx);
+	int NUM_VETEX, int SIZE_COL, int SIZE_IDX, glm::mat4& model, int idx);
+
+// 도형 IDX 변수
+int line_idx = 0;
+int box_idx = 1;
+int tri_idx = 2;
+int rect_idx = 3;
 
 // 충돌처리
 struct Point {
@@ -41,7 +47,12 @@ GLvoid CheckCollisionWithTri(int line, int tri);
 GLvoid CheckCollisionWithLine();
 
 
-// 회전 애니메이션
+// 애니메이션
+GLvoid moving_Box_Anim(int isAnim);
+
+// 애니메이션 변수
+bool isMovingBox = false;
+float movingBoxSpeed = 0.05f;
 
 glm::mat4 model = glm::mat4(1.0f);
 
@@ -90,9 +101,19 @@ GLvoid Reset()
 	ObjMgr.Reset();
 
 	ObjMgr.CreateLine();
+	ObjMgr.SetActive(0, false);
+
+	ObjMgr.CreateRect();
+	ObjMgr.SetScale(1, 0.6f, 0.1f, 1.0f);
+	ObjMgr.SetPosition(1, 0.0f, -7.0f, 0.0f);
+
 	ObjMgr.CreateTri();
+	ObjMgr.SetPosition(2, 1.0f, 0.0f, 0.0f);
 	//ObjMgr.CreateRect();
 	//ObjMgr.CreatePenta();
+
+	isMovingBox = true;
+	if (isMovingBox) glutTimerFunc(30, moving_Box_Anim, isMovingBox);
 }
 
 GLvoid drawScene()
@@ -158,7 +179,7 @@ GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VE
 
 	move = glm::translate(move, glm::vec3(0.0f, 0.0f, 0.0f));
 
-	model = model * scale * move * rot;
+	model = model * move * rot * scale;
 
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));		// 모델변환
 
@@ -175,7 +196,7 @@ GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VE
 }
 
 GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_color, float* pivot, float* rotateInfo, float* scaleInfo,
-	int NUM_VETEX, int SIZE_COL, int SIZE_IDX, float* modelInfo, int idx)
+	int NUM_VETEX, int SIZE_COL, int SIZE_IDX, glm::mat4& model, int idx)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
 	glBufferData(GL_ARRAY_BUFFER, SIZE_COL, obj_pos, GL_STATIC_DRAW);
@@ -183,24 +204,12 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, SIZE_IDX, obj_index, GL_STATIC_DRAW);
 
+	// 모델변환
 	unsigned int modelLocation = glGetUniformLocation(ShaderProgram, "modelTransform");
 
-	glm::mat4 model = glm::mat4(1.0f);
-	glm::mat4 scale = glm::mat4(1.0f);
-	glm::mat4 rot = glm::mat4(1.0f);
-	glm::mat4 move = glm::mat4(1.0f);
+	ObjMgr.m_ObjectList[idx].m_model = ObjMgr.TransformModel(idx);
 
-	scale = glm::scale(scale, glm::vec3(scaleInfo[0], scaleInfo[1], scaleInfo[2]));
-
-	rot = glm::rotate(rot, glm::radians(rotateInfo[1]), glm::vec3(1.0f, 0.0f, 0.0f));
-	rot = glm::rotate(rot, glm::radians(rotateInfo[0]), glm::vec3(0.0f, 1.0f, 0.0f));
-
-	move = glm::translate(move, glm::vec3(pivot[0], pivot[1], pivot[2]));
-
-	model = rot * move * scale;
-
-
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));		// 모델변환
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(ObjMgr.m_ObjectList[idx].m_model));
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
@@ -223,14 +232,26 @@ GLvoid StopAllAnim()
 {
 	if (ObjMgr.m_ObjectList.size() < 2) return;
 
-	for (int i = 1; i < ObjMgr.m_ObjectList.size(); i++)
-	{
-		ObjMgr.m_ObjectList[i].m_isAnimRotating = false;
-	}
-
-	Sleep(500);
+	isMovingBox = false;
 
 	return;
+}
+
+GLvoid moving_Box_Anim(int isAnim)
+{
+	float curBoxPos_x = ObjMgr.m_ObjectList[box_idx].m_model[3][0];
+	float moving_offset = 0.8f;
+
+	if (curBoxPos_x > moving_offset || curBoxPos_x < -moving_offset)
+	{
+		movingBoxSpeed = movingBoxSpeed * (-1.0f);
+	}
+
+	ObjMgr.Move(box_idx, movingBoxSpeed, 0.0f, 0.0f);
+
+	glutPostRedisplay();
+
+	if (isMovingBox) glutTimerFunc(30, moving_Box_Anim, isMovingBox);
 }
 
 // 세 점이 주어진 삼각형 내부에 있는지 확인하는 함수
@@ -333,10 +354,7 @@ GLvoid CheckCollisionWithTri(int line, int tri)
 
 GLvoid CheckCollisionWithLine()
 {
-	int line = 0;
-	int tri = 1; int rect = 2;
-
-	CheckCollisionWithTri(line, tri);
+	CheckCollisionWithTri(line_idx, tri_idx);
 
 	if (CrossPoint.size() >= 2)
 	{
