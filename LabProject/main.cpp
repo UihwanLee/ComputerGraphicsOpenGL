@@ -36,10 +36,6 @@ int box_idx = 1;
 int tri_idx = 2;
 int rect_idx = 3;
 
-// 충돌처리
-struct Point {
-	float x, y;
-};
 
 vector<Point> CrossPoint;
 
@@ -53,6 +49,8 @@ GLvoid moving_Box_Anim(int isAnim);
 // 애니메이션 변수
 bool isMovingBox = false;
 float movingBoxSpeed = 0.05f;
+
+int cur_idx = 0;
 
 glm::mat4 model = glm::mat4(1.0f);
 
@@ -102,13 +100,16 @@ GLvoid Reset()
 
 	ObjMgr.CreateLine();
 	ObjMgr.SetActive(0, false);
+	cur_idx++;
 
 	ObjMgr.CreateRect();
 	ObjMgr.SetScale(1, 0.6f, 0.1f, 1.0f);
 	ObjMgr.SetPosition(1, 0.0f, -7.0f, 0.0f);
+	cur_idx++;
 
 	ObjMgr.CreateTri();
-	ObjMgr.SetPosition(2, 1.0f, 0.0f, 0.0f);
+	ObjMgr.SetPosition(2, 1.0f, 1.0f, 0.0f);
+	cur_idx++;
 	//ObjMgr.CreateRect();
 	//ObjMgr.CreatePenta();
 
@@ -274,13 +275,63 @@ bool isInsideLine(Point P1, Point P2, Point P) {
 	float max_y = (P1.y >= P2.y) ? P1.y : P2.y;
 	float min_y = (P1.y < P2.y) ? P1.y : P2.y;
 
-	if (min_x <= P.x && max_x >= P.x && min_y <= P.y && max_y >= P.y)
+	if (min_x <= P.x && max_x >= P.x)
 	{
 		inside = true;
 	}
 
 	// 세 삼각형의 넓이의 합이 삼각형 ABC의 넓이와 같으면 점 P는 삼각형 내부에 있음
 	return inside;
+}
+
+// 뽑아낸 두 교차점을 기준으로 새로운 두 도형 생성
+GLvoid CreatFigureByline(bool AB, bool BC, bool CA, Point A, Point B, Point C)
+{
+	Point P1 = CrossPoint[0]; 
+	Point P2 = CrossPoint[1];
+
+	cout << cur_idx << endl;
+
+	// case 1 : AB / BC -> BP1P2 / AXYC
+	if (AB == true && BC == true)
+	{
+		ObjMgr.CreateTriCustom(B, P1, P2);
+		ObjMgr.SetScale(cur_idx, 1.0f, 1.0f, 1.0f);
+		ObjMgr.SetActive(cur_idx, false);
+		cur_idx++;
+
+		ObjMgr.CreateRectCustom(A, P1, P2, C);
+		ObjMgr.SetScale(cur_idx, 1.0f, 1.0f, 1.0f);
+		cur_idx++;
+	}
+
+	// case 2 : AB / AC -> AXY / BXYC
+	if (AB == true && CA == true)
+	{
+		ObjMgr.CreateTriCustom(A, P1, P2);
+		ObjMgr.SetScale(cur_idx, 1.0f, 1.0f, 1.0f);
+		ObjMgr.SetActive(cur_idx, false);
+		cur_idx++;
+
+		ObjMgr.CreateRectCustom(B, P1, P2, C);
+		ObjMgr.SetScale(cur_idx, 1.0f, 1.0f, 1.0f);
+		cur_idx++;
+	}
+
+	// case 3 : BC / AC -> CXY / AXYB
+	if (BC == true && CA == true)
+	{
+		ObjMgr.CreateTriCustom(C, P1, P2);
+		ObjMgr.SetScale(cur_idx, 1.0f, 1.0f, 1.0f);
+		ObjMgr.SetActive(cur_idx, false);
+		cur_idx++;
+
+		ObjMgr.CreateRectCustom(A, P2, P1, B);
+		ObjMgr.SetScale(cur_idx, 1.0f, 1.0f, 1.0f);
+		cur_idx++;
+	}
+
+	ObjMgr.SetActive(tri_idx, false);
 }
 
 // 두 직선의 교차점을 계산하는 함수
@@ -311,6 +362,10 @@ GLvoid doesIntersectTri(Point P1, Point P2, Point A, Point B, Point C) {
 	float lineCA = C.y - m * C.x - c;
 
 	Point intersection;
+	bool AB = false;
+	bool BC = false;
+	bool CA = false;
+
 	CrossPoint.clear();
 
 	// 모든 세 변이 직선과 만나지 않으면 삼각형과 직선은 만나지 않음
@@ -318,19 +373,49 @@ GLvoid doesIntersectTri(Point P1, Point P2, Point A, Point B, Point C) {
 		return;
 	}
 	// 위 조건 중 하나라도 만족하면 삼각형과 직선이 만남
+	// 두 교차점을 뽑아내고 두 교차점을 기준으로 양분화하기
 	else
 	{
 		if (lineAB != 0) {
 			intersection = findIntersection(P1, P2, A, B);
-			if (isInsideLine(A, B, intersection)) CrossPoint.push_back(intersection);
+			// 교차점이 Line 위에 있는지 확인
+			if (isInsideLine(P1, P2, intersection))
+			{
+				if (isInsideLine(A, B, intersection))
+				{
+					CrossPoint.push_back(intersection);
+					AB = true;
+				}
+			}
 		}
 		if (lineBC != 0) {
 			intersection = findIntersection(P1, P2, B, C);
-			if (isInsideLine(B, C, intersection)) CrossPoint.push_back(intersection);
+			// 교차점이 Line 위에 있는지 확인
+			if (isInsideLine(P1, P2, intersection))
+			{
+				if (isInsideLine(B, C, intersection))
+				{
+					CrossPoint.push_back(intersection);
+					BC = true;
+				}
+			}
 		}
 		if (lineCA != 0) {
 			intersection = findIntersection(P1, P2, C, A);
-			if (isInsideLine(C, A, intersection)) CrossPoint.push_back(intersection);
+			// 교차점이 Line 위에 있는지 확인
+			if (isInsideLine(P1, P2, intersection))
+			{
+				if (isInsideLine(C, A, intersection))
+				{
+					CrossPoint.push_back(intersection);
+					CA = true;
+				}
+			}
+		}
+
+		if (CrossPoint.size() >= 2)
+		{
+			CreatFigureByline(AB, BC, CA, A, B, C);
 		}
 	}
 }
@@ -344,10 +429,15 @@ GLvoid CheckCollisionWithTri(int line, int tri)
 	P1.x = ObjMgr.m_ObjectList[line].m_pos[0]; P2.x = ObjMgr.m_ObjectList[line].m_pos[3];
 	P1.y = ObjMgr.m_ObjectList[line].m_pos[1]; P2.y = ObjMgr.m_ObjectList[line].m_pos[4];
 
-	// 삼각형
-	A.x = ObjMgr.m_ObjectList[tri].m_pos[0]; B.x = ObjMgr.m_ObjectList[tri].m_pos[3]; C.x = ObjMgr.m_ObjectList[tri].m_pos[6];
-	A.y = ObjMgr.m_ObjectList[tri].m_pos[1]; B.y = ObjMgr.m_ObjectList[tri].m_pos[4]; C.y = ObjMgr.m_ObjectList[tri].m_pos[7];
+	// 피봇을 기준으로 삼각형 세 점 뽑기
+	float x = ObjMgr.m_ObjectList[tri].m_model[3][0];
+	float y = ObjMgr.m_ObjectList[tri].m_model[3][1];
 
+	// 삼각형
+	// 0.3 / 2 => 0.15f
+	A.x = x; A.y = y + 0.15f;
+	B.x = x - 0.15f; B.y = y - 0.15f;
+	C.x = x + 0.15f; C.y = y - 0.15f;
 
 	doesIntersectTri(P1, P2, A, B, C);
 }

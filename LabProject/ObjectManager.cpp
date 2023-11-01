@@ -141,6 +141,43 @@ void ObjectManager::CreatePenta()
 	m_ObjectList.emplace_back(temp);
 }
 
+void ObjectManager::CreateTriCustom(Point p1, Point p2, Point p3)
+{
+	temp.m_pos = new GLfloat[9];
+	temp.m_col = new GLfloat[9];
+	temp.m_inex = new GLint[3];
+
+	temp.m_pos[0] = p1.x; temp.m_pos[1] = p1.y; temp.m_pos[2] = 0.0f;
+	temp.m_pos[3] = p2.x; temp.m_pos[4] = p2.y; temp.m_pos[5] = 0.0f;
+	temp.m_pos[6] = p3.x; temp.m_pos[7] = p3.y; temp.m_pos[8] = 0.0f;
+
+	for (int i = 0; i < 9; i++) temp.m_col[i] = Object::TriColors[i];
+	for (int i = 0; i < 3; i++) temp.m_inex[i] = Object::TriIndexs[i];
+
+	InitObjectStruct(&temp, 3, 36, 12, 3, GL_TRIANGLES, true, false, true);
+
+	m_ObjectList.emplace_back(temp);
+}
+
+void ObjectManager::CreateRectCustom(Point p1, Point p2, Point p3, Point p4)
+{
+	temp.m_pos = new GLfloat[12];
+	temp.m_col = new GLfloat[12];
+	temp.m_inex = new GLint[6];
+
+	temp.m_pos[0] = p1.x; temp.m_pos[1] = p1.y; temp.m_pos[2] = 0.0f;
+	temp.m_pos[3] = p2.x; temp.m_pos[4] = p2.y; temp.m_pos[5] = 0.0f;
+	temp.m_pos[6] = p3.x; temp.m_pos[7] = p3.y; temp.m_pos[8] = 0.0f;
+	temp.m_pos[9] = p4.x; temp.m_pos[10] = p4.y; temp.m_pos[11] = 0.0f;
+
+	for (int i = 0; i < 12; i++) temp.m_col[i] = Object::RectColors[i];
+	for (int i = 0; i < 6; i++) temp.m_inex[i] = Object::RectIndexs[i];
+
+	InitObjectStruct(&temp, 6, 48, 24, 4, GL_TRIANGLES, true, false, true);
+
+	m_ObjectList.emplace_back(temp);
+}
+
 
 void ObjectManager::SetChangeActive(int mode)
 {

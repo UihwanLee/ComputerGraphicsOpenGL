@@ -7,6 +7,12 @@
 
 using namespace std;
 
+// 충돌처리
+struct Point {
+	float x = 0.0f;
+	float y = 0.0f;
+};
+
 typedef struct ObjectInfo
 {
 	float		m_pivot[3];
@@ -49,6 +55,9 @@ public:
 	void CreateTri();
 	void CreateRect();
 	void CreatePenta();
+
+	void CreateTriCustom(Point p1, Point p2, Point p3);
+	void CreateRectCustom(Point p1, Point p2, Point p3, Point p4);
 
 	void SetChangeActive(int mode);
 	void ChangeWireSolidType();
