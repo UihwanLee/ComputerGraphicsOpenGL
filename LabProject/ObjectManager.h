@@ -26,7 +26,7 @@ typedef struct ObjectInfo
 	int			m_size_idx;
 	int			m_num_idx;
 	int			m_DRAW_TYPE;
-	bool		m_isAnimRotating;
+	bool		m_isFalling;
 	bool		m_isActive;
 	bool		m_isModeIDX;
 
@@ -56,8 +56,8 @@ public:
 	void CreateRect();
 	void CreatePenta();
 
-	void CreateTriCustom(Point p1, Point p2, Point p3);
-	void CreateRectCustom(Point p1, Point p2, Point p3, Point p4);
+	void CreateTriCustom(Point p1, Point p2, Point p3, float r, float g, float b);
+	void CreateRectCustom(Point p1, Point p2, Point p3, Point p4, float r, float g, float b);
 
 	void SetChangeActive(int mode);
 	void ChangeWireSolidType();

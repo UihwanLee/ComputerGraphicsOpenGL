@@ -44,6 +44,7 @@ GLvoid CheckCollisionWithLine();
 
 
 // 애니메이션
+GLvoid falling_Figure(int idx);
 GLvoid moving_Box_Anim(int isAnim);
 
 // 애니메이션 변수
@@ -238,6 +239,28 @@ GLvoid StopAllAnim()
 	return;
 }
 
+GLvoid Start_Falling(int idx)
+{
+	ObjMgr.m_ObjectList[idx].m_isFalling = true;
+	if (ObjMgr.m_ObjectList[idx].m_isFalling) glutTimerFunc(30, falling_Figure, idx);
+}
+
+GLvoid falling_Figure(int idx)
+{
+	float fall_Speed = ObjMgr.GetRandomFloatValue(0.02f, 0.04f);
+	ObjMgr.Move(idx, 0.0f, -fall_Speed, 0.0f);
+
+	// 땅에 떨어지거나 바구니에 담기면 종료
+	if (ObjMgr.m_ObjectList[idx].m_model[3][1] < -1.5f)
+	{
+		ObjMgr.m_ObjectList[idx].m_isFalling = false;
+	}
+
+	glutPostRedisplay();
+
+	if (ObjMgr.m_ObjectList[idx].m_isFalling) glutTimerFunc(30, falling_Figure, idx);
+}
+
 GLvoid moving_Box_Anim(int isAnim)
 {
 	float curBoxPos_x = ObjMgr.m_ObjectList[box_idx].m_model[3][0];
@@ -285,53 +308,53 @@ bool isInsideLine(Point P1, Point P2, Point P) {
 }
 
 // 뽑아낸 두 교차점을 기준으로 새로운 두 도형 생성
-GLvoid CreatFigureByline(bool AB, bool BC, bool CA, Point A, Point B, Point C)
+GLvoid CreatFigureByline(bool AB, bool BC, bool CA, Point A, Point B, Point C, float r, float g, float b)
 {
 	Point P1 = CrossPoint[0]; 
 	Point P2 = CrossPoint[1];
-
-	cout << cur_idx << endl;
+	int idx = 3;
 
 	// case 1 : AB / BC -> BP1P2 / AXYC
 	if (AB == true && BC == true)
 	{
-		ObjMgr.CreateTriCustom(B, P1, P2);
-		ObjMgr.SetScale(cur_idx, 1.0f, 1.0f, 1.0f);
-		ObjMgr.SetActive(cur_idx, false);
-		cur_idx++;
+		ObjMgr.CreateTriCustom(B, P1, P2, r, g, b);
+		idx = ObjMgr.m_ObjectList.size() - 1;
+		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
+		Start_Falling(idx);
 
-		ObjMgr.CreateRectCustom(A, P1, P2, C);
-		ObjMgr.SetScale(cur_idx, 1.0f, 1.0f, 1.0f);
-		cur_idx++;
+		ObjMgr.CreateRectCustom(A, P1, P2, C, r, g, b);
+		idx = ObjMgr.m_ObjectList.size() - 1;
+		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
+		Start_Falling(idx);
 	}
 
 	// case 2 : AB / AC -> AXY / BXYC
 	if (AB == true && CA == true)
 	{
-		ObjMgr.CreateTriCustom(A, P1, P2);
-		ObjMgr.SetScale(cur_idx, 1.0f, 1.0f, 1.0f);
-		ObjMgr.SetActive(cur_idx, false);
-		cur_idx++;
+		ObjMgr.CreateTriCustom(A, P1, P2, r, g, b);
+		idx = ObjMgr.m_ObjectList.size() - 1;
+		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
+		Start_Falling(idx);
 
-		ObjMgr.CreateRectCustom(B, P1, P2, C);
-		ObjMgr.SetScale(cur_idx, 1.0f, 1.0f, 1.0f);
-		cur_idx++;
+		ObjMgr.CreateRectCustom(B, P1, P2, C, r, g, b);
+		idx = ObjMgr.m_ObjectList.size() - 1;
+		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
+		Start_Falling(idx);
 	}
 
 	// case 3 : BC / AC -> CXY / AXYB
 	if (BC == true && CA == true)
 	{
-		ObjMgr.CreateTriCustom(C, P1, P2);
-		ObjMgr.SetScale(cur_idx, 1.0f, 1.0f, 1.0f);
-		ObjMgr.SetActive(cur_idx, false);
-		cur_idx++;
+		ObjMgr.CreateTriCustom(C, P1, P2, r, g, b);
+		idx = ObjMgr.m_ObjectList.size() - 1;
+		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 
-		ObjMgr.CreateRectCustom(A, P2, P1, B);
-		ObjMgr.SetScale(cur_idx, 1.0f, 1.0f, 1.0f);
-		cur_idx++;
+		ObjMgr.CreateRectCustom(A, P2, P1, B, r, g, b);
+		idx = ObjMgr.m_ObjectList.size() - 1;
+		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 	}
 
-	ObjMgr.SetActive(tri_idx, false);
+	//ObjMgr.SetActive(tri_idx, false);
 }
 
 // 두 직선의 교차점을 계산하는 함수
@@ -351,7 +374,8 @@ Point findIntersection(Point P1, Point P2, Point A, Point B) {
 }
 
 // 직선과의 교차 여부를 검사하는 함수
-GLvoid doesIntersectTri(Point P1, Point P2, Point A, Point B, Point C) {
+GLvoid doesIntersectTri(Point P1, Point P2, Point A, Point B, Point C, float r, float g, float b) 
+{
 	// 직선의 방정식 계산
 	float m = (P2.y - P1.y) / (P2.x - P1.x);
 	float c = P1.y - m * P1.x;
@@ -415,7 +439,7 @@ GLvoid doesIntersectTri(Point P1, Point P2, Point A, Point B, Point C) {
 
 		if (CrossPoint.size() >= 2)
 		{
-			CreatFigureByline(AB, BC, CA, A, B, C);
+			CreatFigureByline(AB, BC, CA, A, B, C, r, g, b);
 		}
 	}
 }
@@ -439,7 +463,12 @@ GLvoid CheckCollisionWithTri(int line, int tri)
 	B.x = x - 0.15f; B.y = y - 0.15f;
 	C.x = x + 0.15f; C.y = y - 0.15f;
 
-	doesIntersectTri(P1, P2, A, B, C);
+	// 색상
+	float r = ObjMgr.m_ObjectList[tri].m_col[0];
+	float g = ObjMgr.m_ObjectList[tri].m_col[1];
+	float b = ObjMgr.m_ObjectList[tri].m_col[2];
+
+	doesIntersectTri(P1, P2, A, B, C, r, g, b);
 }
 
 GLvoid CheckCollisionWithLine()

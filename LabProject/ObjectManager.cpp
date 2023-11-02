@@ -43,7 +43,7 @@ GLfloat ObjectManager::GetRandomFloatValue(GLfloat min, GLfloat max)
 	return value;
 }
 
-GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni, int drawType, bool modeIDX, bool isAinm, bool isActive)
+GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni, int drawType, bool modeIDX, bool isFalling, bool isActive)
 {
 	objInfo->m_num_vertex = num_ver;
 	objInfo->m_size_pos = sp;
@@ -64,7 +64,7 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 	objInfo->m_scale[2] = 0.5f;
 
 	objInfo->m_isModeIDX = modeIDX;
-	objInfo->m_isAnimRotating = isAinm;
+	objInfo->m_isFalling = isFalling;
 	objInfo->m_isActive = isActive;
 }
 
@@ -141,7 +141,7 @@ void ObjectManager::CreatePenta()
 	m_ObjectList.emplace_back(temp);
 }
 
-void ObjectManager::CreateTriCustom(Point p1, Point p2, Point p3)
+void ObjectManager::CreateTriCustom(Point p1, Point p2, Point p3, float r, float g, float b)
 {
 	temp.m_pos = new GLfloat[9];
 	temp.m_col = new GLfloat[9];
@@ -151,7 +151,13 @@ void ObjectManager::CreateTriCustom(Point p1, Point p2, Point p3)
 	temp.m_pos[3] = p2.x; temp.m_pos[4] = p2.y; temp.m_pos[5] = 0.0f;
 	temp.m_pos[6] = p3.x; temp.m_pos[7] = p3.y; temp.m_pos[8] = 0.0f;
 
-	for (int i = 0; i < 9; i++) temp.m_col[i] = Object::TriColors[i];
+	for (int i = 0; i < 9; i++)
+	{
+		if (i % 3 == 0) temp.m_col[i] = r;
+		if (i % 3 == 1) temp.m_col[i] = g;
+		if (i % 3 == 2) temp.m_col[i] = b;
+	}
+
 	for (int i = 0; i < 3; i++) temp.m_inex[i] = Object::TriIndexs[i];
 
 	InitObjectStruct(&temp, 3, 36, 12, 3, GL_TRIANGLES, true, false, true);
@@ -159,7 +165,7 @@ void ObjectManager::CreateTriCustom(Point p1, Point p2, Point p3)
 	m_ObjectList.emplace_back(temp);
 }
 
-void ObjectManager::CreateRectCustom(Point p1, Point p2, Point p3, Point p4)
+void ObjectManager::CreateRectCustom(Point p1, Point p2, Point p3, Point p4, float r, float g, float b)
 {
 	temp.m_pos = new GLfloat[12];
 	temp.m_col = new GLfloat[12];
@@ -170,7 +176,13 @@ void ObjectManager::CreateRectCustom(Point p1, Point p2, Point p3, Point p4)
 	temp.m_pos[6] = p3.x; temp.m_pos[7] = p3.y; temp.m_pos[8] = 0.0f;
 	temp.m_pos[9] = p4.x; temp.m_pos[10] = p4.y; temp.m_pos[11] = 0.0f;
 
-	for (int i = 0; i < 12; i++) temp.m_col[i] = Object::RectColors[i];
+	for (int i = 0; i < 12; i++)
+	{
+		if (i % 3 == 0) temp.m_col[i] = r;
+		if (i % 3 == 1) temp.m_col[i] = g;
+		if (i % 3 == 2) temp.m_col[i] = b;
+	}
+
 	for (int i = 0; i < 6; i++) temp.m_inex[i] = Object::RectIndexs[i];
 
 	InitObjectStruct(&temp, 6, 48, 24, 4, GL_TRIANGLES, true, false, true);
