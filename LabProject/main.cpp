@@ -101,17 +101,18 @@ GLvoid Reset()
 
 	ObjMgr.CreateLine();
 	ObjMgr.SetActive(0, false);
-	cur_idx++;
 
 	ObjMgr.CreateRect();
 	ObjMgr.SetScale(1, 0.6f, 0.1f, 1.0f);
 	ObjMgr.SetPosition(1, 0.0f, -7.0f, 0.0f);
-	cur_idx++;
 
 	ObjMgr.CreateTri();
 	ObjMgr.SetPosition(2, 1.0f, 1.0f, 0.0f);
-	cur_idx++;
-	//ObjMgr.CreateRect();
+
+	ObjMgr.CreateRect();
+	ObjMgr.SetPosition(3, -0.5f, 1.0f, 0.0f);
+
+
 	//ObjMgr.CreatePenta();
 
 	isMovingBox = true;
@@ -303,6 +304,8 @@ bool isInsideLine(Point P1, Point P2, Point P) {
 		inside = true;
 	}
 
+	cout <<  P.x <<  endl;
+
 	// 세 삼각형의 넓이의 합이 삼각형 ABC의 넓이와 같으면 점 P는 삼각형 내부에 있음
 	return inside;
 }
@@ -320,12 +323,16 @@ GLvoid CreatFigureByline(bool AB, bool BC, bool CA, Point A, Point B, Point C, f
 		ObjMgr.CreateTriCustom(B, P1, P2, r, g, b);
 		idx = ObjMgr.m_ObjectList.size() - 1;
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
-		Start_Falling(idx);
+		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
+		ObjMgr.m_ObjectList[idx].m_isCut = true;
+		//Start_Falling(idx);
 
 		ObjMgr.CreateRectCustom(A, P1, P2, C, r, g, b);
 		idx = ObjMgr.m_ObjectList.size() - 1;
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
-		Start_Falling(idx);
+		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
+		ObjMgr.m_ObjectList[idx].m_isCut = true;
+		//(idx);
 	}
 
 	// case 2 : AB / AC -> AXY / BXYC
@@ -334,12 +341,16 @@ GLvoid CreatFigureByline(bool AB, bool BC, bool CA, Point A, Point B, Point C, f
 		ObjMgr.CreateTriCustom(A, P1, P2, r, g, b);
 		idx = ObjMgr.m_ObjectList.size() - 1;
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
-		Start_Falling(idx);
+		ObjMgr.SetPosition(idx, 0.0f, 0.01f, 0.0f);
+		ObjMgr.m_ObjectList[idx].m_isCut = true;
+		//Start_Falling(idx);
 
 		ObjMgr.CreateRectCustom(B, P1, P2, C, r, g, b);
 		idx = ObjMgr.m_ObjectList.size() - 1;
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
-		Start_Falling(idx);
+		ObjMgr.SetPosition(idx, 0.0f, -0.01f, 0.0f);
+		ObjMgr.m_ObjectList[idx].m_isCut = true;
+		//Start_Falling(idx);
 	}
 
 	// case 3 : BC / AC -> CXY / AXYB
@@ -348,13 +359,17 @@ GLvoid CreatFigureByline(bool AB, bool BC, bool CA, Point A, Point B, Point C, f
 		ObjMgr.CreateTriCustom(C, P1, P2, r, g, b);
 		idx = ObjMgr.m_ObjectList.size() - 1;
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
+		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
+		ObjMgr.m_ObjectList[idx].m_isCut = true;
 
 		ObjMgr.CreateRectCustom(A, P2, P1, B, r, g, b);
 		idx = ObjMgr.m_ObjectList.size() - 1;
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
+		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
+		ObjMgr.m_ObjectList[idx].m_isCut = true;
 	}
 
-	//ObjMgr.SetActive(tri_idx, false);
+	ObjMgr.SetActive(tri_idx, false);
 }
 
 // 두 직선의 교차점을 계산하는 함수
@@ -374,79 +389,114 @@ Point findIntersection(Point P1, Point P2, Point A, Point B) {
 }
 
 // 직선과의 교차 여부를 검사하는 함수
-GLvoid doesIntersectTri(Point P1, Point P2, Point A, Point B, Point C, float r, float g, float b) 
+bool doesIntersectTri(Point P1, Point P2, Point A, Point B) 
 {
-	// 직선의 방정식 계산
-	float m = (P2.y - P1.y) / (P2.x - P1.x);
-	float c = P1.y - m * P1.x;
+	float x1 = P1.x, y1 = P1.y;
+	float x2 = P2.x, y2 = P2.y;
+	float x3 = A.x, y3 = A.y;
+	float x4 = B.x, y4 = B.y;
 
-	// 세 변에 대한 직선의 방정식 계산
-	float lineAB = A.y - m * A.x - c;
-	float lineBC = B.y - m * B.x - c;
-	float lineCA = C.y - m * C.x - c;
+	float temp = A.y - B.y;
+
+	float a1 = (y2 - y1) / (x2 - x1);
+	float b1 = y1 - a1 * x1;
+
+	float a2 = (y4 - y3) / (x4 - x3);
 
 	Point intersection;
-	bool AB = false;
-	bool BC = false;
-	bool CA = false;
 
-	CrossPoint.clear();
-
-	// 모든 세 변이 직선과 만나지 않으면 삼각형과 직선은 만나지 않음
-	if ((lineAB > 0 && lineBC > 0 && lineCA > 0) || (lineAB < 0 && lineBC < 0 && lineCA < 0)) {
-		return;
+	// 기울기가 같으면(평행하면) 만나지 않음
+	if (a1 == a2) {
+		cout << "평행!" << endl;
+		return false;
 	}
 	// 위 조건 중 하나라도 만족하면 삼각형과 직선이 만남
 	// 두 교차점을 뽑아내고 두 교차점을 기준으로 양분화하기
 	else
 	{
-		if (lineAB != 0) {
-			intersection = findIntersection(P1, P2, A, B);
-			// 교차점이 Line 위에 있는지 확인
-			if (isInsideLine(P1, P2, intersection))
-			{
-				if (isInsideLine(A, B, intersection))
-				{
-					CrossPoint.push_back(intersection);
-					AB = true;
-				}
-			}
-		}
-		if (lineBC != 0) {
-			intersection = findIntersection(P1, P2, B, C);
-			// 교차점이 Line 위에 있는지 확인
-			if (isInsideLine(P1, P2, intersection))
-			{
-				if (isInsideLine(B, C, intersection))
-				{
-					CrossPoint.push_back(intersection);
-					BC = true;
-				}
-			}
-		}
-		if (lineCA != 0) {
-			intersection = findIntersection(P1, P2, C, A);
-			// 교차점이 Line 위에 있는지 확인
-			if (isInsideLine(P1, P2, intersection))
-			{
-				if (isInsideLine(C, A, intersection))
-				{
-					CrossPoint.push_back(intersection);
-					CA = true;
-				}
-			}
-		}
+		float intersectX = -10;
+		float intersectY = -10;
 
-		if (CrossPoint.size() >= 2)
-		{
-			CreatFigureByline(AB, BC, CA, A, B, C, r, g, b);
+		float m1 = (P2.y - P1.y) / (P2.x - P1.x);
+		float c1 = P1.y - m1 * P1.x;
+
+		float m2 = (B.y - A.y) / (B.x - A.x);
+		float c2 = A.y - m2 * A.x;
+
+		// 두 직선의 교차점을 계산
+		intersectX = (c2 - c1) / (m1 - m2);
+		intersectY = m1 * intersectX + c1;
+
+		if (temp == 0) intersectY = A.y;
+
+		if (intersectX >= std::min(x1, x2) && intersectX <= std::max(x1, x2) &&
+			intersectX >= std::min(x3, x4) && intersectX <= std::max(x3, x4) &&
+			intersectY >= std::min(y1, y2) && intersectY <= std::max(y1, y2) &&
+			intersectY >= std::min(y3, y4) && intersectY <= std::max(y3, y4)) {
+			intersection.x = intersectX;
+			intersection.y = intersectY;
+			CrossPoint.push_back(intersection);
+			return true;
 		}
 	}
+	return false;
+}
+
+bool doLinesIntersectRect(Point p1, Point p2, Point p3, Point p4) {
+	float x1 = p1.x, y1 = p1.y;
+	float x2 = p2.x, y2 = p2.y;
+	float x3 = p3.x, y3 = p3.y;
+	float x4 = p4.x, y4 = p4.y;
+
+	float a1 = x1 - x2;
+	float a2 = y1 - y2;
+	float a3 = x3 - x4;
+	float a4 = y3 - y4;
+
+	float a = (y2 - y1) / (x2 - x1);
+	float b = y1 - a * x1;
+
+	bool isSameX = (a3 == 0) ? true : false;
+	bool isSameY = (a4 == 0) ? true : false;
+	Point intersection;
+
+	if ((a1==0 && a3==0) || (a2==0 && a4==0)) {
+		return false;
+	}
+	else {
+		float intersectX = -10;
+		float intersectY = -10;
+		if (isSameX)
+		{
+			intersectX = x3;
+			intersectY = a * x3 + b;
+		}
+		else if (isSameY)
+		{
+			intersectX = (y3-b)/a;
+			intersectY = y3;
+		}
+
+		// Check if the intersection point is within the line segments
+		if (intersectX >= std::min(x1, x2) && intersectX <= std::max(x1, x2) &&
+			intersectX >= std::min(x3, x4) && intersectX <= std::max(x3, x4) &&
+			intersectY >= std::min(y1, y2) && intersectY <= std::max(y1, y2) &&
+			intersectY >= std::min(y3, y4) && intersectY <= std::max(y3, y4)) {
+			intersection.x = intersectX;
+			intersection.y = intersectY;
+			CrossPoint.push_back(intersection);
+			return true;
+		}
+		cout << endl;
+	}
+
+	return false;
 }
 
 // 선과 삼각형의 만나는 점 있는지 체크
 GLvoid CheckCollisionWithTri(int line, int tri)
 {
+	CrossPoint.clear();
 	Point P1, P2, A, B, C, R1, R2, R3;
 
 	// 선 
@@ -468,21 +518,228 @@ GLvoid CheckCollisionWithTri(int line, int tri)
 	float g = ObjMgr.m_ObjectList[tri].m_col[1];
 	float b = ObjMgr.m_ObjectList[tri].m_col[2];
 
-	doesIntersectTri(P1, P2, A, B, C, r, g, b);
+	bool AB = false;
+	bool BC = false;
+	bool CA = false;
+
+	if (doesIntersectTri(P1, P2, A, B))
+	{
+		AB = true;
+	}
+	if (doesIntersectTri(P1, P2, B, C))
+	{
+		BC = true;
+	}
+	if (doesIntersectTri(P1, P2, C, A))
+	{
+		CA = true;
+	}
+
+	if (CrossPoint.size() >= 2)
+	{
+		CreatFigureByline(AB, BC, CA, A, B, C, r, g, b);
+		return;
+	}
+	else
+	{
+		cout << "삼각형과 만나지 않음!" << endl;
+	}
+}
+
+// 뽑아낸 두 교차점을 기준으로 새로운 두 도형 생성
+GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, Point C, Point D, float r, float g, float b)
+{
+	Point P1 = CrossPoint[0];
+	Point P2 = CrossPoint[1];
+	int idx = 3;
+
+	// case 1 : AB / DA 
+	if (AB == true && DA == true)
+	{
+		ObjMgr.CreateTriCustom(A, P2, P1, r, g, b);
+		idx = ObjMgr.m_ObjectList.size() - 1;
+		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
+		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
+		ObjMgr.m_ObjectList[idx].m_isCut = true;
+		//Start_Falling(idx);
+
+		ObjMgr.CreatePentaCustom(P2, P1, D, B, C, r, g, b);
+		idx = ObjMgr.m_ObjectList.size() - 1;
+		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
+		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
+		ObjMgr.m_ObjectList[idx].m_isCut = true;
+		//(idx);
+	}
+	// case 2 : AB / BC 
+	if (AB == true && BC == true)
+	{
+		ObjMgr.CreateTriCustom(B, P1, P2, r, g, b);
+		idx = ObjMgr.m_ObjectList.size() - 1;
+		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
+		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
+		ObjMgr.m_ObjectList[idx].m_isCut = true;
+		//Start_Falling(idx);
+
+		ObjMgr.CreatePentaCustom(P1, P2, A, C, D, r, g, b);
+		idx = ObjMgr.m_ObjectList.size() - 1;
+		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
+		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
+		ObjMgr.m_ObjectList[idx].m_isCut = true;
+		//Start_Falling(idx);
+	}
+
+	// case 3 : BC / CD
+	if (BC == true && CD == true)
+	{
+		ObjMgr.CreateTriCustom(C, P1, P2, r, g, b);
+		idx = ObjMgr.m_ObjectList.size() - 1;
+		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
+		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
+		ObjMgr.m_ObjectList[idx].m_isCut = true;
+
+		ObjMgr.CreatePentaCustom(P1, P2, B, D, A, r, g, b);
+		idx = ObjMgr.m_ObjectList.size() - 1;
+		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
+		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
+		ObjMgr.m_ObjectList[idx].m_isCut = true;
+	}
+
+	// case 4 : CD / DA
+	if (CD == true && DA == true)
+	{
+		ObjMgr.CreateTriCustom(D, P1, P2, r, g, b);
+		idx = ObjMgr.m_ObjectList.size() - 1;
+		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
+		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
+		ObjMgr.m_ObjectList[idx].m_isCut = true;
+
+		ObjMgr.CreatePentaCustom(P1, P2, C, A, B, r, g, b);
+		idx = ObjMgr.m_ObjectList.size() - 1;
+		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
+		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
+		ObjMgr.m_ObjectList[idx].m_isCut = true;
+	}
+
+	// case 5 : DA / BC
+	if (DA == true && BC == true)
+	{
+		ObjMgr.CreateRectCustom(P2, A, B, P1, r, g, b);
+		idx = ObjMgr.m_ObjectList.size() - 1;
+		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
+		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
+		ObjMgr.m_ObjectList[idx].m_isCut = true;
+
+		ObjMgr.CreateRectCustom(D, P2, P1, C, r, g, b);
+		idx = ObjMgr.m_ObjectList.size() - 1;
+		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
+		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
+		ObjMgr.m_ObjectList[idx].m_isCut = true;
+	}
+
+	// case 6 : AB / CD
+	if (AB == true && CD == true)
+	{
+		ObjMgr.CreateRectCustom(A, P1, P2, D, r, g, b);
+		idx = ObjMgr.m_ObjectList.size() - 1;
+		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
+		ObjMgr.SetPosition(idx, 0.0f, 0.01f, 0.0f);
+		ObjMgr.m_ObjectList[idx].m_isCut = true;
+
+		ObjMgr.CreateRectCustom(P1, B, C, P2, r, g, b);
+		idx = ObjMgr.m_ObjectList.size() - 1;
+		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
+		ObjMgr.SetPosition(idx, 0.0f, -0.01f, 0.0f);
+		ObjMgr.m_ObjectList[idx].m_isCut = true;
+	}
+	
+
+	ObjMgr.SetActive(3, false);
+}
+
+
+// 선과 사각형이 만나는 점 있는지 체크
+GLvoid CheckCollisionWithRect(int line, int rect)
+{
+	CrossPoint.clear();
+	Point P1, P2, A, B, C, D, R1, R2, R3;
+
+	// 선 
+	P1.x = ObjMgr.m_ObjectList[line].m_pos[0]; P2.x = ObjMgr.m_ObjectList[line].m_pos[3];
+	P1.y = ObjMgr.m_ObjectList[line].m_pos[1]; P2.y = ObjMgr.m_ObjectList[line].m_pos[4];
+
+	// 피봇을 기준으로 삼각형 세 점 뽑기
+	float x = ObjMgr.m_ObjectList[rect].m_model[3][0];
+	float y = ObjMgr.m_ObjectList[rect].m_model[3][1];
+
+	// 사각형
+	// 0.3 / 2 => 0.15f
+	A.x = x - 0.15f; A.y = y + 0.15f;
+	B.x = x - 0.15f; B.y = y - 0.15f;
+	C.x = x + 0.15f; C.y = y - 0.15f;
+	D.x = x + 0.15f; D.y = y + 0.15f;
+
+	// 색상
+	float r = ObjMgr.m_ObjectList[rect].m_col[0];
+	float g = ObjMgr.m_ObjectList[rect].m_col[1];
+	float b = ObjMgr.m_ObjectList[rect].m_col[2];
+
+	bool AB = false;
+	bool BC = false;
+	bool CD = false;
+	bool DA = false;
+
+	if (doLinesIntersectRect(P1, P2, A, B))
+	{
+		AB = true;
+	}
+	if (doLinesIntersectRect(P1, P2, B, C))
+	{
+		BC = true;
+	}
+	if (doLinesIntersectRect(P1, P2, C, D))
+	{
+		CD = true;
+	}
+	if (doLinesIntersectRect(P1, P2, D, A))
+	{
+		DA = true;
+	}
+
+	if (CrossPoint.size() >= 2)
+	{
+		cout << "사각형과 만남!" << endl;
+		cout << AB << ",  " << BC << ", " << CD << ", " << DA << endl;
+		CreatFigureByRect(AB, BC, CD, DA, A, B, C, D, r, g, b);
+		return;
+	}
+	else
+	{
+		cout << "사각형과 만나지 않음!" << endl;
+	}
 }
 
 GLvoid CheckCollisionWithLine()
 {
-	CheckCollisionWithTri(line_idx, tri_idx);
-
-	if (CrossPoint.size() >= 2)
+	for (int i = 2; i < ObjMgr.m_ObjectList.size(); i++)
 	{
-		cout << "선과 삼각형이 만남!" << endl;
-	}
-	else
-	{
-		//cout << crossTri.size() << endl;
-		cout << "선과 삼각형이 만나지 않음!" << endl;
+		if (ObjMgr.m_ObjectList[i].m_isActive)
+		{
+			// 삼각형
+			if (ObjMgr.m_ObjectList[i].m_num_idx == 3)
+			{
+				if (ObjMgr.m_ObjectList[i].m_isCut == false)
+				{
+					CheckCollisionWithTri(line_idx, i);
+				}
+			}
+			else if (ObjMgr.m_ObjectList[i].m_num_idx == 4)
+			{
+				if (ObjMgr.m_ObjectList[i].m_isCut == false)
+				{
+					CheckCollisionWithRect(line_idx, i);
+				}
+			}
+		}
 	}
 }
 

@@ -64,6 +64,8 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 	objInfo->m_scale[2] = 0.5f;
 
 	objInfo->m_isModeIDX = modeIDX;
+	objInfo->m_isCut = false;
+	objInfo->m_isDown = false;
 	objInfo->m_isFalling = isFalling;
 	objInfo->m_isActive = isActive;
 }
@@ -186,6 +188,32 @@ void ObjectManager::CreateRectCustom(Point p1, Point p2, Point p3, Point p4, flo
 	for (int i = 0; i < 6; i++) temp.m_inex[i] = Object::RectIndexs[i];
 
 	InitObjectStruct(&temp, 6, 48, 24, 4, GL_TRIANGLES, true, false, true);
+
+	m_ObjectList.emplace_back(temp);
+}
+
+void ObjectManager::CreatePentaCustom(Point p1, Point p2, Point p3, Point p4, Point p5, float r, float g, float b)
+{
+	temp.m_pos = new GLfloat[15];
+	temp.m_col = new GLfloat[15];
+	temp.m_inex = new GLint[9];
+
+	temp.m_pos[0] = p1.x; temp.m_pos[1] = p1.y; temp.m_pos[2] = 0.0f;
+	temp.m_pos[3] = p2.x; temp.m_pos[4] = p2.y; temp.m_pos[5] = 0.0f;
+	temp.m_pos[6] = p3.x; temp.m_pos[7] = p3.y; temp.m_pos[8] = 0.0f;
+	temp.m_pos[9] = p4.x; temp.m_pos[10] = p4.y; temp.m_pos[11] = 0.0f;
+	temp.m_pos[12] = p5.x; temp.m_pos[13] = p5.y; temp.m_pos[14] = 0.0f;
+
+	for (int i = 0; i < 15; i++)
+	{
+		if (i % 3 == 0) temp.m_col[i] = r;
+		if (i % 3 == 1) temp.m_col[i] = g;
+		if (i % 3 == 2) temp.m_col[i] = b;
+	}
+
+	for (int i = 0; i < 9; i++) temp.m_inex[i] = Object::PentaIndexs[i];
+
+	InitObjectStruct(&temp, 9, 60, 36, 5, GL_TRIANGLES, true, false, true);
 
 	m_ObjectList.emplace_back(temp);
 }
