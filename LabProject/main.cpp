@@ -19,6 +19,7 @@ using namespace std;
 ObjectManager ObjMgr;
 
 GLvoid Init();
+GLvoid Message();
 GLvoid Reset();
 GLvoid drawScene(GLvoid);
 GLvoid Reshape(int w, int h);
@@ -44,14 +45,24 @@ GLvoid CheckCollisionWithLine();
 
 
 // 애니메이션
+GLvoid Generate_Figure(int isAnim);
+GLvoid Update_Figure(int isAnim);
 GLvoid falling_Figure(int idx);
 GLvoid moving_Box_Anim(int isAnim);
 
 // 애니메이션 변수
+bool isUpdate = true;
 bool isMovingBox = false;
 float movingBoxSpeed = 0.05f;
 
+unsigned int delay_generate = 2000;
+
+float movingFigureSpeed = 0.03f;
+
 int cur_idx = 0;
+
+bool isChangeDrawType = false;
+int cur_drawType = 0;
 
 glm::mat4 model = glm::mat4(1.0f);
 
@@ -77,6 +88,7 @@ int main(int argc, char** argv)
 		std::cout << "GLEW Initialized\n";
 
 	Init();
+	Message();
 
 	InitProgram(ShaderProgram);
 	glutDisplayFunc(drawScene);
@@ -95,9 +107,21 @@ GLvoid Init()
 	Reset();
 }
 
+GLvoid Message()
+{
+	cout << "m/M : 도형의 모드(LINE/FILL)" << endl;
+	cout << "t/T : 경로 출력하기 on/off" << endl;
+	cout << "+/-: 날아오는 속도 변경" << endl;
+	cout << endl;
+	cout << "q/Q: 프로그램 종료한다." << endl;
+	cout << endl;
+}
+
 GLvoid Reset()
 {
 	ObjMgr.Reset();
+
+	cur_drawType = GL_TRIANGLES;
 
 	ObjMgr.CreateLine();
 	ObjMgr.SetActive(0, false);
@@ -107,16 +131,16 @@ GLvoid Reset()
 	ObjMgr.SetPosition(1, 0.0f, -7.0f, 0.0f);
 
 	ObjMgr.CreateTri();
-	ObjMgr.SetPosition(2, 1.0f, 1.0f, 0.0f);
-
-	ObjMgr.CreateRect();
-	ObjMgr.SetPosition(3, -0.5f, 1.0f, 0.0f);
-
+	ObjMgr.SetPosition(2, -1.5f, 1.5f, 0.0f);
 
 	//ObjMgr.CreatePenta();
 
 	isMovingBox = true;
 	if (isMovingBox) glutTimerFunc(30, moving_Box_Anim, isMovingBox);
+
+	isUpdate = true;
+	glutTimerFunc(30, Update_Figure, isUpdate);
+	glutTimerFunc(0, Generate_Figure, isUpdate);
 }
 
 GLvoid drawScene()
@@ -240,9 +264,45 @@ GLvoid StopAllAnim()
 	return;
 }
 
+// 무작위로 도형 생성
+GLvoid Generate_Figure(int isAnim)
+{
+	int fig = (rand() % 2) + 1;
+
+	if (fig == 1) ObjMgr.CreateTri();
+	else if (fig == 2) ObjMgr.CreateRect();
+
+	int idx = ObjMgr.m_ObjectList.size() - 1;
+	ObjMgr.SetPosition(idx, -1.5f, 1.5f, 0.0f);
+	ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+
+	glutPostRedisplay();
+
+	if (isUpdate) glutTimerFunc(delay_generate, Generate_Figure, isUpdate);
+}
+
+// 도형을 생성하여 사선으로 이동
+// 사선 밖으로 넘어간 도형은 지운다.
+GLvoid Update_Figure(int isAnim)
+{
+	// Cut 안된 도형들 이동
+	for (int i = 2; i < ObjMgr.m_ObjectList.size(); i++)
+	{
+		if (ObjMgr.m_ObjectList[i].m_isCut == false)
+		{
+			ObjMgr.Move(i, movingFigureSpeed, -movingFigureSpeed * 0.3, 0.0f);
+		}
+	}
+
+	glutPostRedisplay();
+
+	if (isUpdate) glutTimerFunc(30, Update_Figure, isUpdate);
+}
+
 GLvoid Start_Falling(int idx)
 {
 	ObjMgr.m_ObjectList[idx].m_isFalling = true;
+
 	if (ObjMgr.m_ObjectList[idx].m_isFalling) glutTimerFunc(30, falling_Figure, idx);
 }
 
@@ -251,11 +311,15 @@ GLvoid falling_Figure(int idx)
 	float fall_Speed = ObjMgr.GetRandomFloatValue(0.02f, 0.04f);
 	ObjMgr.Move(idx, 0.0f, -fall_Speed, 0.0f);
 
-	// 땅에 떨어지거나 바구니에 담기면 종료
-	if (ObjMgr.m_ObjectList[idx].m_model[3][1] < -1.5f)
+	// 땅에 떨어지면 종료
+	if (ObjMgr.m_ObjectList[idx].m_model[3][1] < -2.0f)
 	{
+		ObjMgr.SetActive(idx, false);
 		ObjMgr.m_ObjectList[idx].m_isFalling = false;
 	}
+
+	// 바구니에 담기면 종료
+	
 
 	glutPostRedisplay();
 
@@ -325,14 +389,16 @@ GLvoid CreatFigureByline(bool AB, bool BC, bool CA, Point A, Point B, Point C, f
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
-		//Start_Falling(idx);
+		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		Start_Falling(idx);
 
 		ObjMgr.CreateRectCustom(A, P1, P2, C, r, g, b);
 		idx = ObjMgr.m_ObjectList.size() - 1;
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
-		//(idx);
+		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		Start_Falling(idx);
 	}
 
 	// case 2 : AB / AC -> AXY / BXYC
@@ -343,14 +409,16 @@ GLvoid CreatFigureByline(bool AB, bool BC, bool CA, Point A, Point B, Point C, f
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetPosition(idx, 0.0f, 0.01f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
-		//Start_Falling(idx);
+		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		Start_Falling(idx);
 
 		ObjMgr.CreateRectCustom(B, P1, P2, C, r, g, b);
 		idx = ObjMgr.m_ObjectList.size() - 1;
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetPosition(idx, 0.0f, -0.01f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
-		//Start_Falling(idx);
+		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		Start_Falling(idx);
 	}
 
 	// case 3 : BC / AC -> CXY / AXYB
@@ -361,15 +429,19 @@ GLvoid CreatFigureByline(bool AB, bool BC, bool CA, Point A, Point B, Point C, f
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
+		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		Start_Falling(idx);
 
 		ObjMgr.CreateRectCustom(A, P2, P1, B, r, g, b);
 		idx = ObjMgr.m_ObjectList.size() - 1;
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
+		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		Start_Falling(idx);
 	}
 
-	ObjMgr.SetActive(tri_idx, false);
+	//.SetActive(tri_idx, false);
 }
 
 // 두 직선의 교차점을 계산하는 함수
@@ -407,7 +479,6 @@ bool doesIntersectTri(Point P1, Point P2, Point A, Point B)
 
 	// 기울기가 같으면(평행하면) 만나지 않음
 	if (a1 == a2) {
-		cout << "평행!" << endl;
 		return false;
 	}
 	// 위 조건 중 하나라도 만족하면 삼각형과 직선이 만남
@@ -487,7 +558,6 @@ bool doLinesIntersectRect(Point p1, Point p2, Point p3, Point p4) {
 			CrossPoint.push_back(intersection);
 			return true;
 		}
-		cout << endl;
 	}
 
 	return false;
@@ -538,11 +608,8 @@ GLvoid CheckCollisionWithTri(int line, int tri)
 	if (CrossPoint.size() >= 2)
 	{
 		CreatFigureByline(AB, BC, CA, A, B, C, r, g, b);
+		ObjMgr.SetActive(tri, false);
 		return;
-	}
-	else
-	{
-		cout << "삼각형과 만나지 않음!" << endl;
 	}
 }
 
@@ -561,14 +628,16 @@ GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, P
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
-		//Start_Falling(idx);
+		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		Start_Falling(idx);
 
 		ObjMgr.CreatePentaCustom(P2, P1, D, B, C, r, g, b);
 		idx = ObjMgr.m_ObjectList.size() - 1;
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
-		//(idx);
+		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		Start_Falling(idx);
 	}
 	// case 2 : AB / BC 
 	if (AB == true && BC == true)
@@ -578,14 +647,16 @@ GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, P
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
-		//Start_Falling(idx);
+		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		Start_Falling(idx);
 
 		ObjMgr.CreatePentaCustom(P1, P2, A, C, D, r, g, b);
 		idx = ObjMgr.m_ObjectList.size() - 1;
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
-		//Start_Falling(idx);
+		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		Start_Falling(idx);
 	}
 
 	// case 3 : BC / CD
@@ -596,12 +667,16 @@ GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, P
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
+		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		Start_Falling(idx);
 
 		ObjMgr.CreatePentaCustom(P1, P2, B, D, A, r, g, b);
 		idx = ObjMgr.m_ObjectList.size() - 1;
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
+		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		Start_Falling(idx);
 	}
 
 	// case 4 : CD / DA
@@ -612,12 +687,16 @@ GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, P
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
+		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		Start_Falling(idx);
 
 		ObjMgr.CreatePentaCustom(P1, P2, C, A, B, r, g, b);
 		idx = ObjMgr.m_ObjectList.size() - 1;
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
+		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		Start_Falling(idx);
 	}
 
 	// case 5 : DA / BC
@@ -628,12 +707,16 @@ GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, P
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
+		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		Start_Falling(idx);
 
 		ObjMgr.CreateRectCustom(D, P2, P1, C, r, g, b);
 		idx = ObjMgr.m_ObjectList.size() - 1;
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
+		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		Start_Falling(idx);
 	}
 
 	// case 6 : AB / CD
@@ -644,16 +727,17 @@ GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, P
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetPosition(idx, 0.0f, 0.01f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
+		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		Start_Falling(idx);
 
 		ObjMgr.CreateRectCustom(P1, B, C, P2, r, g, b);
 		idx = ObjMgr.m_ObjectList.size() - 1;
 		ObjMgr.SetScale(idx, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetPosition(idx, 0.0f, -0.01f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
+		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		Start_Falling(idx);
 	}
-	
-
-	ObjMgr.SetActive(3, false);
 }
 
 
@@ -707,14 +791,9 @@ GLvoid CheckCollisionWithRect(int line, int rect)
 
 	if (CrossPoint.size() >= 2)
 	{
-		cout << "사각형과 만남!" << endl;
-		cout << AB << ",  " << BC << ", " << CD << ", " << DA << endl;
 		CreatFigureByRect(AB, BC, CD, DA, A, B, C, D, r, g, b);
+		ObjMgr.SetActive(rect, false);
 		return;
-	}
-	else
-	{
-		cout << "사각형과 만나지 않음!" << endl;
 	}
 }
 
@@ -810,12 +889,51 @@ GLvoid MouseDrag(int x, int y)
 	glutPostRedisplay();
 }
 
+GLvoid PlusSpeed()
+{
+	if (movingFigureSpeed < 0.1f)
+	{
+		cout << "SpeedUp" << endl;
+		movingFigureSpeed += 0.01f;
+	}
+}
+
+GLvoid MinusSpeed()
+{
+	if (movingFigureSpeed > 0.001f)
+	{
+		movingFigureSpeed -= 0.001f;
+	}
+}
 
 
 void Keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
+	case 'M':
+	case 'm':
+		if (isChangeDrawType == false)
+		{
+			cur_drawType = GL_LINE_LOOP;
+			isChangeDrawType = true;
+		}
+		else if (isChangeDrawType)
+		{
+			isChangeDrawType = false;
+			cur_drawType = GL_TRIANGLES;
+		}
+		ObjMgr.ChangeWireSolidType(2);
+		break;
+	case 'T':
+	case 't':
+		break;
+	case '+':
+		PlusSpeed();
+		break;
+	case '-':
+		MinusSpeed();
+		break;
 	case 's':
 		Reset();
 		break;

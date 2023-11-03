@@ -238,8 +238,10 @@ void ObjectManager::SetChangeActive(int mode)
 	return;
 }
 
-void ObjectManager::ChangeWireSolidType()
+void ObjectManager::ChangeWireSolidType(int start_idx)
 {
+	if (m_ObjectList.size() < start_idx + 1) return;
+
 	int drawType;
 
 	if (m_WireType == false)
@@ -253,7 +255,7 @@ void ObjectManager::ChangeWireSolidType()
 		m_WireType = false;
 	}
 
-	for (int i = 1; i < m_ObjectList.size(); i++)
+	for (int i = start_idx; i < m_ObjectList.size(); i++)
 	{
 		m_ObjectList[i].m_DRAW_TYPE = drawType;
 	}

@@ -63,7 +63,7 @@ public:
 	void CreatePentaCustom(Point p1, Point p2, Point p3, Point p4, Point p5, float r, float g, float b);
 
 	void SetChangeActive(int mode);
-	void ChangeWireSolidType();
+	void ChangeWireSolidType(int start_idx);
 
 	void SetPosition(int idx, float x, float y, float z);
 	void SetRotate(int idx, float x, float y, float z);
