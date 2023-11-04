@@ -218,6 +218,58 @@ void ObjectManager::CreatePentaCustom(Point p1, Point p2, Point p3, Point p4, Po
 	m_ObjectList.emplace_back(temp);
 }
 
+void ObjectManager::CreateSqhere(float x, float y, float z)
+{
+	std::vector<float> vertices;
+	std::vector<unsigned int> indices;
+
+	// 구의 정점과 인덱스 생성
+	for (int i = 0; i <= STACKS; ++i) {
+		float phi = static_cast<float>(i) * PI / STACKS;
+		for (int j = 0; j <= SLICES; ++j) {
+			float theta = static_cast<float>(j) * 2.0f * PI / SLICES;
+			float x = RADIUS * sin(phi) * cos(theta);
+			float y = RADIUS * cos(phi);
+			float z = RADIUS * sin(phi) * sin(theta);
+			vertices.push_back(x);
+			vertices.push_back(y);
+			vertices.push_back(z);
+		}
+	}
+
+	for (int i = 0; i < STACKS; ++i) {
+		for (int j = 0; j < STACKS; ++j) {
+			int first = i * (SLICES + 1) + j;
+			int second = first + SLICES + 1;
+			indices.push_back(first);
+			indices.push_back(second);
+			indices.push_back(first + 1);
+
+			indices.push_back(second);
+			indices.push_back(second + 1);
+			indices.push_back(first + 1);
+		}
+	}
+
+	// 원
+	temp.m_pos = new GLfloat[SIZE_SQHERE_VERTEX];
+	temp.m_inex = new GLint[SIZE_SQHERE_INDEX];
+	temp.m_col = new GLfloat[SIZE_SQHERE_VERTEX];
+
+	for (int i = 0; i < vertices.size(); i++)	temp.m_pos[i] = vertices[i];
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		if (i % 3 == 0) temp.m_col[i] = x;
+		if (i % 3 == 1)temp.m_col[i] = y;
+		if (i % 3 == 2)temp.m_col[i] = z;
+	}
+	for (int i = 0; i < indices.size(); i++)	temp.m_inex[i] = indices[i];
+
+	InitObjectStruct(&temp, SIZE_SQHERE_INDEX, 12 * (SIZE_SQHERE_VERTEX / 3), 12 * (SIZE_SQHERE_INDEX / 3), 0, GL_TRIANGLES, true, false, true);
+
+	m_ObjectList.emplace_back(temp);
+}
+
 
 void ObjectManager::SetChangeActive(int mode)
 {

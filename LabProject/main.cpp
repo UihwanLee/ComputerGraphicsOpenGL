@@ -51,18 +51,19 @@ GLvoid falling_Figure(int idx);
 GLvoid moving_Box_Anim(int isAnim);
 
 // 애니메이션 변수
+bool isGenerate = true;
 bool isUpdate = true;
 bool isMovingBox = false;
 float movingBoxSpeed = 0.05f;
 
 unsigned int delay_generate = 2000;
-
 float movingFigureSpeed = 0.03f;
 
 int cur_idx = 0;
 
 bool isChangeDrawType = false;
 int cur_drawType = 0;
+int startFigureIDX = 0;
 
 glm::mat4 model = glm::mat4(1.0f);
 
@@ -123,15 +124,36 @@ GLvoid Reset()
 
 	cur_drawType = GL_TRIANGLES;
 
+	startFigureIDX = 0;
+
 	ObjMgr.CreateLine();
 	ObjMgr.SetActive(0, false);
+
+	startFigureIDX += 1;
 
 	ObjMgr.CreateRect();
 	ObjMgr.SetScale(1, 0.6f, 0.1f, 1.0f);
 	ObjMgr.SetPosition(1, 0.0f, -7.0f, 0.0f);
 
-	ObjMgr.CreateTri();
-	ObjMgr.SetPosition(2, -1.5f, 1.5f, 0.0f);
+	startFigureIDX += 1;
+
+	ObjMgr.CreateSqhere(0.0f, 0.0f, 0.0f);
+	ObjMgr.SetScale(2, 0.03f, 0.04f, 1.0f);
+	ObjMgr.SetPosition(2, -20.0f, 18.0f, 0.0f);
+
+	startFigureIDX += 1;
+
+	ObjMgr.CreateSqhere(0.0f, 0.0f, 0.0f);
+	ObjMgr.SetScale(3, 0.03f, 0.04f, 1.0f);
+	ObjMgr.SetPosition(3, 0.0f, 13.0f, 0.0f);
+
+	startFigureIDX += 1;
+
+	ObjMgr.CreateSqhere(0.0f, 0.0f, 0.0f);
+	ObjMgr.SetScale(4, 0.03f, 0.04f, 1.0f);
+	ObjMgr.SetPosition(4, 20.0f, 8.0f, 0.0f);
+
+	startFigureIDX += 1;
 
 	//ObjMgr.CreatePenta();
 
@@ -139,8 +161,9 @@ GLvoid Reset()
 	if (isMovingBox) glutTimerFunc(30, moving_Box_Anim, isMovingBox);
 
 	isUpdate = true;
+	isGenerate = true;
 	glutTimerFunc(30, Update_Figure, isUpdate);
-	glutTimerFunc(0, Generate_Figure, isUpdate);
+	glutTimerFunc(0, Generate_Figure, isGenerate);
 }
 
 GLvoid drawScene()
@@ -278,7 +301,7 @@ GLvoid Generate_Figure(int isAnim)
 
 	glutPostRedisplay();
 
-	if (isUpdate) glutTimerFunc(delay_generate, Generate_Figure, isUpdate);
+	if (isGenerate) glutTimerFunc(delay_generate, Generate_Figure, isGenerate);
 }
 
 // 도형을 생성하여 사선으로 이동
@@ -286,7 +309,7 @@ GLvoid Generate_Figure(int isAnim)
 GLvoid Update_Figure(int isAnim)
 {
 	// Cut 안된 도형들 이동
-	for (int i = 2; i < ObjMgr.m_ObjectList.size(); i++)
+	for (int i = startFigureIDX; i < ObjMgr.m_ObjectList.size(); i++)
 	{
 		if (ObjMgr.m_ObjectList[i].m_isCut == false)
 		{
@@ -923,7 +946,7 @@ void Keyboard(unsigned char key, int x, int y)
 			isChangeDrawType = false;
 			cur_drawType = GL_TRIANGLES;
 		}
-		ObjMgr.ChangeWireSolidType(2);
+		ObjMgr.ChangeWireSolidType(startFigureIDX);
 		break;
 	case 'T':
 	case 't':

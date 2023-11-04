@@ -62,6 +62,8 @@ public:
 	void CreateRectCustom(Point p1, Point p2, Point p3, Point p4, float r, float g, float b);
 	void CreatePentaCustom(Point p1, Point p2, Point p3, Point p4, Point p5, float r, float g, float b);
 
+	void CreateSqhere(float x, float y, float z);
+
 	void SetChangeActive(int mode);
 	void ChangeWireSolidType(int start_idx);
 
