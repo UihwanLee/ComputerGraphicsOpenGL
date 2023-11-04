@@ -47,6 +47,8 @@ GLvoid CheckCollisionWithLine();
 // 애니메이션
 GLvoid Generate_Figure(int isAnim);
 GLvoid Update_Figure(int isAnim);
+bool Moving_Trace_Figure(int idx);
+GLvoid Update_Last_Trace();
 GLvoid falling_Figure(int idx);
 GLvoid moving_Box_Anim(int isAnim);
 
@@ -55,6 +57,11 @@ bool isGenerate = true;
 bool isUpdate = true;
 bool isMovingBox = false;
 float movingBoxSpeed = 0.05f;
+
+// 경로 출력
+bool isTraceShow = false;
+int curFigureIDX = 0;
+int curTraceIDX = 0;
 
 unsigned int delay_generate = 2000;
 float movingFigureSpeed = 0.03f;
@@ -137,21 +144,33 @@ GLvoid Reset()
 
 	startFigureIDX += 1;
 
-	ObjMgr.CreateSqhere(0.0f, 0.0f, 0.0f);
-	ObjMgr.SetScale(2, 0.03f, 0.04f, 1.0f);
-	ObjMgr.SetPosition(2, -20.0f, 18.0f, 0.0f);
+	ObjMgr.CreateSqhere(1.0f, 0.0f, 0.0f);
+	ObjMgr.SetPosition(2, -1.0f, 1.0f, 0.0f);
 
 	startFigureIDX += 1;
 
 	ObjMgr.CreateSqhere(0.0f, 0.0f, 0.0f);
-	ObjMgr.SetScale(3, 0.03f, 0.04f, 1.0f);
-	ObjMgr.SetPosition(3, 0.0f, 13.0f, 0.0f);
+	ObjMgr.SetPosition(3, -0.5f, 0.75f, 0.0f);
 
 	startFigureIDX += 1;
 
 	ObjMgr.CreateSqhere(0.0f, 0.0f, 0.0f);
-	ObjMgr.SetScale(4, 0.03f, 0.04f, 1.0f);
-	ObjMgr.SetPosition(4, 20.0f, 8.0f, 0.0f);
+	ObjMgr.SetPosition(4, 0.0f, 0.5f, 0.0f);
+
+	startFigureIDX += 1;
+
+	ObjMgr.CreateSqhere(0.0f, 0.0f, 0.0f);
+	ObjMgr.SetPosition(5, 0.5f, 0.25f, 0.0f);
+
+	startFigureIDX += 1;
+
+	ObjMgr.CreateSqhere(1.0f, 0.0f, 0.0f);
+	ObjMgr.SetPosition(6, 1.0f, 0.0f, 0.0f);
+
+	startFigureIDX += 1;
+
+	ObjMgr.CreateSqhere(1.0f, 0.0f, 0.0f);
+	ObjMgr.SetPosition(7, 2.5f, -1.0f, 0.0f);
 
 	startFigureIDX += 1;
 
@@ -162,6 +181,7 @@ GLvoid Reset()
 
 	isUpdate = true;
 	isGenerate = true;
+	isTraceShow = true;
 	glutTimerFunc(30, Update_Figure, isUpdate);
 	glutTimerFunc(0, Generate_Figure, isGenerate);
 }
@@ -208,7 +228,6 @@ GLvoid drawScene()
 GLvoid Reshape(int w, int h)
 {
 	glViewport(0, 0, w, h);
-
 }
 
 GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL)
@@ -304,8 +323,8 @@ GLvoid Generate_Figure(int isAnim)
 	if (isGenerate) glutTimerFunc(delay_generate, Generate_Figure, isGenerate);
 }
 
-// 도형을 생성하여 사선으로 이동
-// 사선 밖으로 넘어간 도형은 지운다.
+// 도형을 생성하여 정해진 5개의 Trace 대로 이동
+// 경계 밖으로 넘어간 도형은 지운다.
 GLvoid Update_Figure(int isAnim)
 {
 	// Cut 안된 도형들 이동
@@ -313,14 +332,103 @@ GLvoid Update_Figure(int isAnim)
 	{
 		if (ObjMgr.m_ObjectList[i].m_isCut == false)
 		{
-			ObjMgr.Move(i, movingFigureSpeed, -movingFigureSpeed * 0.3, 0.0f);
+			curFigureIDX = i;
+			curTraceIDX = ObjMgr.m_ObjectList[curFigureIDX].m_traceIDX;
+			// 순서대로 1, 2, 3, 4, 5 Trace를 따라간다.
+			ObjMgr.m_ObjectList[curFigureIDX].m_isTrace[curTraceIDX] = Moving_Trace_Figure(curTraceIDX+2);
+
+			if (ObjMgr.m_ObjectList[curFigureIDX].m_isTrace[curTraceIDX])
+			{
+				if (curTraceIDX == 5)
+				{
+					// 마지막 Trace에 도달하면 도형 비활성화
+					ObjMgr.m_ObjectList[curFigureIDX].m_isActive = false;
+				}
+				else
+				{
+					ObjMgr.m_ObjectList[curFigureIDX].m_traceIDX += 1;
+				}
+			}
 		}
+
+		// 마지막 경로까지 도달했을 시 이동 진행 방향으로 꾸준히 이동할 수 있도록 마지막 Trace point update
+		Update_Last_Trace();
 	}
 
 	glutPostRedisplay();
 
 	if (isUpdate) glutTimerFunc(30, Update_Figure, isUpdate);
 }
+
+// 도형이 Trace 점까지 이동 애니메이션
+bool Moving_Trace_Figure(int idx)
+{
+	bool isDone = false;
+
+	// 도형이 잘라졌거나 해당 트랙 이동이 완료되었으면 바로 애니메이션 종료
+	if (ObjMgr.m_ObjectList[curFigureIDX].m_isCut || ObjMgr.m_ObjectList[curFigureIDX].m_isTrace[idx])
+	{
+		isDone = true;
+		return isDone;
+	}
+
+	float targetX = ObjMgr.m_ObjectList[idx].m_pivot[0];
+	float targetY = ObjMgr.m_ObjectList[idx].m_pivot[1];
+
+	float x = ObjMgr.m_ObjectList[curFigureIDX].m_pivot[0] - targetX;
+	float y = ObjMgr.m_ObjectList[curFigureIDX].m_pivot[1] - targetY;
+
+	// 현재 위치에서 trace point 위치로 이동
+	GLfloat distance = sqrt(x * x + y * y);
+	if (distance > 0.05f) {
+		ObjMgr.m_ObjectList[curFigureIDX].m_pivot[0] -= (x / distance) * movingFigureSpeed;
+		ObjMgr.m_ObjectList[curFigureIDX].m_pivot[1] -= (y / distance) * movingFigureSpeed;
+	}
+	else
+	{
+		isDone = true;
+	}
+
+	return isDone;
+}
+
+// 도형이 끝점에 도달했을 시 이전 이동 방향으로 쭉 이동
+GLvoid Update_Last_Trace()
+{
+	// 끝점과 끝점 전 방향 벡터 계산
+	Point dir;
+	Point p1, p2;
+	p1.x = ObjMgr.m_ObjectList[5].m_pivot[0];
+	p1.y = ObjMgr.m_ObjectList[5].m_pivot[1];
+
+	p2.x = ObjMgr.m_ObjectList[6].m_pivot[0];
+	p2.y = ObjMgr.m_ObjectList[6].m_pivot[1];
+
+	float deltaX = p2.x - p1.x;
+	float deltaY = p2.y - p1.y;
+
+	// 방향 벡터 정규화 
+	float length = sqrt(deltaX * deltaX + deltaY * deltaY);
+
+	if (length == 0) {
+		// p1과 p2가 같은 위치에 있을 경우, 임의의 방향 벡터를 반환하거나 오류를 처리할 수 있습니다.
+		// 여기서는 (0, 0) 벡터를 반환합니다.
+		dir.x = 1.0f;
+		dir.y = -1.0f;
+	}
+	else
+	{
+		dir.x = deltaX / length;
+		dir.y = deltaY / length;
+	}
+
+	int last_trace_idx = 7;
+
+	// 방향 벡터로 마지막 점 설정
+	ObjMgr.m_ObjectList[last_trace_idx].m_pivot[0] = 10.0f * dir.x;
+	ObjMgr.m_ObjectList[last_trace_idx].m_pivot[1] = 10.0f * dir.y;
+}
+
 
 GLvoid Start_Falling(int idx)
 {
@@ -912,6 +1020,14 @@ GLvoid MouseDrag(int x, int y)
 	glutPostRedisplay();
 }
 
+GLvoid ChangeTraceShow(bool isActive)
+{
+	for (int i = 2; i < startFigureIDX; i++)
+	{
+		ObjMgr.m_ObjectList[i].m_isActive = isActive;
+	}
+}
+
 GLvoid PlusSpeed()
 {
 	if (movingFigureSpeed < 0.1f)
@@ -950,15 +1066,15 @@ void Keyboard(unsigned char key, int x, int y)
 		break;
 	case 'T':
 	case 't':
+		if (isTraceShow) isTraceShow = false;
+		else isTraceShow = true;
+		ChangeTraceShow(isTraceShow);
 		break;
 	case '+':
 		PlusSpeed();
 		break;
 	case '-':
 		MinusSpeed();
-		break;
-	case 's':
-		Reset();
 		break;
 	case 'q':
 		glutLeaveMainLoop();

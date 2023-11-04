@@ -8,7 +8,7 @@
 #define SIZE_SQHERE_INDEX 2400
 
 #define CONE_HEIGHT 1.0
-#define RADIUS 0.7
+#define RADIUS 0.05
 #define STACKS 20
 #define SLICES 20
 #define PI 3.1415926535

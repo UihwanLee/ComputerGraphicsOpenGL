@@ -32,6 +32,9 @@ typedef struct ObjectInfo
 	bool		m_isActive;
 	bool		m_isModeIDX;
 
+	int			m_traceIDX;
+	bool		m_isTrace[6];
+
 	glm::mat4	m_model;
 
 	bool		m_Initmodel = false;

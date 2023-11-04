@@ -63,6 +63,9 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 	objInfo->m_scale[1] = 0.5f;
 	objInfo->m_scale[2] = 0.5f;
 
+	objInfo->m_traceIDX = 0;
+	for(int i=0; i<6; i++) objInfo->m_isTrace[i] = false;
+
 	objInfo->m_isModeIDX = modeIDX;
 	objInfo->m_isCut = false;
 	objInfo->m_isDown = false;
