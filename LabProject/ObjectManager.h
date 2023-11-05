@@ -32,6 +32,8 @@ typedef struct ObjectInfo
 	bool		m_isActive;
 	bool		m_isModeIDX;
 
+	GLfloat		m_CollisionBox[4];
+
 	int			m_traceIDX;
 	bool		m_isTrace[6];
 

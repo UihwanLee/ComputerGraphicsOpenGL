@@ -62,6 +62,9 @@ float movingBoxSpeed = 0.05f;
 bool isTraceShow = false;
 int curFigureIDX = 0;
 int curTraceIDX = 0;
+int curClickTraceIDX = -1;
+float mx = 0.0f;
+float my = 0.0f;
 
 unsigned int delay_generate = 2000;
 float movingFigureSpeed = 0.03f;
@@ -144,7 +147,7 @@ GLvoid Reset()
 
 	startFigureIDX += 1;
 
-	ObjMgr.CreateSqhere(1.0f, 0.0f, 0.0f);
+	ObjMgr.CreateSqhere(0.0f, 1.0f, 0.0f);
 	ObjMgr.SetPosition(2, -1.0f, 1.0f, 0.0f);
 
 	startFigureIDX += 1;
@@ -971,6 +974,42 @@ GLvoid EndLine(int idx)
 	ObjMgr.m_ObjectList[idx].m_isActive = false;
 }
 
+float GetClickPos(float value, float fromLow, float fromHigh, float toLow, float toHigh) {
+	return (value - fromLow) / (fromHigh - fromLow) * (toHigh - toLow) + toLow;
+}
+
+bool CheckCollisinWithMouse(float min_x, float min_y, float max_x, float max_y)
+{
+	bool isCollision = false;
+
+	if (min_x <= mx && mx <= max_x && min_y <= my && my <= max_y)
+	{
+		isCollision = true;
+	}
+
+	return isCollision;
+}
+
+GLvoid CheckClickObject()
+{
+	curClickTraceIDX = -1;
+	float trace_x = 0.0f;
+	float trace_y = 0.0f;
+	float offset = 0.03f;
+
+	for (int i = 2; i < curFigureIDX; i++)
+	{
+		trace_x = ObjMgr.m_ObjectList[i].m_pivot[0];
+		trace_y = ObjMgr.m_ObjectList[i].m_pivot[1];
+
+		if (CheckCollisinWithMouse(trace_x - offset, trace_y - offset, trace_x + offset, trace_y + offset))
+		{
+			curClickTraceIDX = i;
+			return;
+		}
+	}
+}
+
 GLvoid MouseClick(int button, int state, int x, int y)
 {
 	int idx = 0;
@@ -980,10 +1019,20 @@ GLvoid MouseClick(int button, int state, int x, int y)
 		// 마우스 클릭 ...
 
 		float start_x = (2.0f * x) / glutGet(GLUT_WINDOW_WIDTH) - 1.0f; // x 끝점
-		float start_z = 1.0f - (2.0f * y) / glutGet(GLUT_WINDOW_HEIGHT); // y 끝점
+		float start_y = 1.0f - (2.0f * y) / glutGet(GLUT_WINDOW_HEIGHT); // y 끝점
 
-		// 선 생성(선 활성화)
-		StartLine(idx, start_x, start_z);
+		mx = GetClickPos(x, 0.0f, 800.0f, -2.0f, 2.0f);
+		my = GetClickPos(y, 0.0f, 600.0f, 2.0f, -2.0f);
+
+		// Trace Point를 클릭했는지 체크
+		CheckClickObject();
+
+		// Trace Point를 클릭하면 선 생성 X
+		if (curClickTraceIDX == -1)
+		{
+			// 선 생성(선 활성화)
+			StartLine(idx, start_x, start_y);
+		}
 
 		g_left_button = true;
 	}
@@ -1014,7 +1063,17 @@ GLvoid MouseDrag(int x, int y)
 		float drag_x = (2.0f * x) / glutGet(GLUT_WINDOW_WIDTH) - 1.0f; // x 끝점
 		float drag_z = 1.0f - (2.0f * y) / glutGet(GLUT_WINDOW_HEIGHT); // y 끝점
 
-		DragLine(idx, drag_x, drag_z);
+
+		float change_x = GetClickPos(x, 0.0f, 800.0f, -2.0f, 2.0f);
+		float change_y = GetClickPos(y, 0.0f, 600.0f, 2.0f, -2.0f);
+
+		if(curClickTraceIDX==-1) DragLine(idx, drag_x, drag_z);
+		else
+		{
+			// 마우스 드래그에 따른 Trace Point 이동
+			ObjMgr.m_ObjectList[curClickTraceIDX].m_pivot[0] = change_x;
+			ObjMgr.m_ObjectList[curClickTraceIDX].m_pivot[1] = change_y;
+		}
 	}
 
 	glutPostRedisplay();
