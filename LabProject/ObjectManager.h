@@ -32,6 +32,7 @@ typedef struct ObjectInfo
 	bool		m_isActive;
 	bool		m_isModeIDX;
 
+	float		m_bx, m_by, m_tx, m_ty;
 	GLfloat		m_CollisionBox[4];
 
 	int			m_traceIDX;
@@ -87,6 +88,14 @@ public:
 
 	// 좌표계 변화
 	glm::mat4 TransformModel(int idx);
+
+	// 충돌 처리 검사
+	void SetCollide(int idx, float bx, float by, float tx, float ty);
+	void SetTriCollide(int idx, Point a, Point b, Point c);
+	void SetRectCollide(int idx, Point a, Point b, Point c, Point d);
+	void SetPentaCollide(int idx, Point a, Point b, Point c, Point d, Point e);
+	void UpdateCollisionBox(int idx);
+	bool CheckCollide(int a, int b);
 
 	void Reset();
 };

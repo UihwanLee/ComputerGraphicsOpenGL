@@ -63,6 +63,8 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 	objInfo->m_scale[1] = 0.5f;
 	objInfo->m_scale[2] = 0.5f;
 
+	objInfo->m_bx = 0.0f; objInfo->m_by = 0.0f;
+	objInfo->m_tx = 0.0f; objInfo->m_ty = 0.0f;
 	for (int i = 0; i < 4; i++) objInfo->m_CollisionBox[i] = 0.0f;
 
 	objInfo->m_traceIDX = 0;
@@ -453,6 +455,112 @@ glm::mat4 ObjectManager::TransformModel(int idx)
 	}
 
 	return model;
+}
+
+void ObjectManager::SetCollide(int idx, float bx, float by, float tx, float ty)
+{
+	m_ObjectList[idx].m_bx = bx;
+	m_ObjectList[idx].m_by = by;
+	m_ObjectList[idx].m_tx = tx;
+	m_ObjectList[idx].m_ty = ty;
+}
+
+void ObjectManager::SetTriCollide(int idx, Point a, Point b, Point c)
+{
+	float tx = max(a.x, b.x);
+	float ty = max(a.y, b.y);
+	tx = max(tx, c.x);
+	ty = max(ty, c.y);
+
+	float bx = min(a.x, b.x);
+	float by = min(a.y, b.y);
+	bx = min(bx, c.x);
+	by = min(by, c.y);
+
+	SetCollide(idx, bx, by, tx, ty);
+}
+
+void ObjectManager::SetRectCollide(int idx, Point a, Point b, Point c, Point d)
+{
+	float tx_1 = max(a.x, b.x);
+	float ty_1 = max(a.y, b.y);
+	float tx_2 = max(c.x, d.x);
+	float ty_2 = max(c.y, d.y);
+
+	float tx = max(tx_1, tx_2);
+	float ty = max(ty_1, ty_2);
+
+	float bx_1 = min(a.x, b.x);
+	float by_1 = min(a.y, b.y);
+	float bx_2 = min(c.x, d.x);
+	float by_2 = min(c.y, d.y);
+
+	float bx = min(bx_1, bx_2);
+	float by = min(by_1, by_2);
+
+	SetCollide(idx, bx, by, tx, ty);
+}
+
+void ObjectManager::SetPentaCollide(int idx, Point a, Point b, Point c, Point d, Point e)
+{
+	float tx_1 = max(a.x, b.x);
+	float ty_1 = max(a.y, b.y);
+	float tx_2 = max(c.x, d.x);
+	float ty_2 = max(c.y, d.y);
+	float tx_3 = max(tx_1, tx_2);
+	float ty_3 = max(ty_1, ty_2);
+
+	float tx = max(tx_3, e.x);
+	float ty = max(ty_3, e.y);
+
+	float bx_1 = min(a.x, b.x);
+	float by_1 = min(a.y, b.y);
+	float bx_2 = min(c.x, d.x);
+	float by_2 = min(c.y, d.y);
+	float bx_3 = min(bx_1, bx_2);
+	float by_3 = min(by_1, by_2);
+
+	float bx = min(tx_3, e.x);
+	float by = min(ty_3, e.y);
+
+	SetCollide(idx, bx, by, tx, ty);
+}
+
+void ObjectManager::UpdateCollisionBox(int idx)
+{
+	float pivot_x = m_ObjectList[idx].m_pivot[0];
+	float pivot_y = m_ObjectList[idx].m_pivot[1];
+
+	m_ObjectList[idx].m_CollisionBox[0] = pivot_x + m_ObjectList[idx].m_bx;
+	m_ObjectList[idx].m_CollisionBox[1] = pivot_y + m_ObjectList[idx].m_by;
+	m_ObjectList[idx].m_CollisionBox[2] = pivot_x + m_ObjectList[idx].m_tx;
+	m_ObjectList[idx].m_CollisionBox[3] = pivot_y + m_ObjectList[idx].m_ty;
+
+}
+
+bool ObjectManager::CheckCollide(int a, int b)
+{
+	float bx_a = m_ObjectList[a].m_CollisionBox[0];
+	float by_a = m_ObjectList[a].m_CollisionBox[1];
+	float tx_a = m_ObjectList[a].m_CollisionBox[2];
+	float ty_a = m_ObjectList[a].m_CollisionBox[3];
+
+	float bx_b = m_ObjectList[b].m_CollisionBox[0];
+	float by_b = m_ObjectList[b].m_CollisionBox[1];
+	float tx_b = m_ObjectList[b].m_CollisionBox[2];
+	float ty_b = m_ObjectList[b].m_CollisionBox[3];
+
+	float pivot_y = m_ObjectList[a].m_pivot[1];
+
+	if (bx_a > tx_b) return false;
+	if (tx_a < bx_b) return false;
+	if (ty_a < by_b) return false;
+	if (by_a > ty_b) return false;
+
+	// 밑에서 충돌하는 경우 제외
+	if (by_a < ty_b - 0.05f) return false;
+
+	return true;
 }
 
 void ObjectManager::Reset()

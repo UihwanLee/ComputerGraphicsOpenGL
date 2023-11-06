@@ -56,7 +56,7 @@ GLvoid moving_Box_Anim(int isAnim);
 bool isGenerate = true;
 bool isUpdate = true;
 bool isMovingBox = false;
-float movingBoxSpeed = 0.05f;
+float movingBoxSpeed = 0.01f;
 
 // 경로 출력
 bool isTraceShow = false;
@@ -142,8 +142,9 @@ GLvoid Reset()
 	startFigureIDX += 1;
 
 	ObjMgr.CreateRect();
-	ObjMgr.SetScale(1, 0.6f, 0.1f, 1.0f);
+	ObjMgr.SetScale(1, 1.0f, 0.1f, 1.0f);
 	ObjMgr.SetPosition(1, 0.0f, -7.0f, 0.0f);
+	ObjMgr.SetCollide(1, -0.15f, 6.2f, 0.15f, 6.3f);
 
 	startFigureIDX += 1;
 
@@ -445,6 +446,9 @@ GLvoid falling_Figure(int idx)
 	float fall_Speed = ObjMgr.GetRandomFloatValue(0.02f, 0.04f);
 	ObjMgr.Move(idx, 0.0f, -fall_Speed, 0.0f);
 
+	// 충돌 박스 업데이트
+	ObjMgr.UpdateCollisionBox(idx);
+
 	// 땅에 떨어지면 종료
 	if (ObjMgr.m_ObjectList[idx].m_model[3][1] < -2.0f)
 	{
@@ -453,6 +457,11 @@ GLvoid falling_Figure(int idx)
 	}
 
 	// 바구니에 담기면 종료
+	if (ObjMgr.CheckCollide(idx, 1))
+	{
+		ObjMgr.m_ObjectList[idx].m_isDown = true;
+		ObjMgr.m_ObjectList[idx].m_isFalling = false;
+	}
 	
 
 	glutPostRedisplay();
@@ -471,6 +480,16 @@ GLvoid moving_Box_Anim(int isAnim)
 	}
 
 	ObjMgr.Move(box_idx, movingBoxSpeed, 0.0f, 0.0f);
+	ObjMgr.UpdateCollisionBox(1);
+
+	// 바구니에 앉은 오브젝트가 있으면 동시에 움직임.
+	for (int i = 2; i < ObjMgr.m_ObjectList.size(); i++)
+	{
+		if (ObjMgr.m_ObjectList[i].m_isDown)
+		{
+			ObjMgr.Move(i, movingBoxSpeed, 0.0f, 0.0f);
+		}
+	}
 
 	glutPostRedisplay();
 
@@ -524,6 +543,9 @@ GLvoid CreatFigureByline(bool AB, bool BC, bool CA, Point A, Point B, Point C, f
 		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
 		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = 0.0f;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 0.0f;
+		ObjMgr.SetTriCollide(idx, B, P1, P2);
 		Start_Falling(idx);
 
 		ObjMgr.CreateRectCustom(A, P1, P2, C, r, g, b);
@@ -532,6 +554,9 @@ GLvoid CreatFigureByline(bool AB, bool BC, bool CA, Point A, Point B, Point C, f
 		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
 		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = 0.0f;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 0.0f;
+		ObjMgr.SetRectCollide(idx, A, P1, P2, C);
 		Start_Falling(idx);
 	}
 
@@ -544,6 +569,9 @@ GLvoid CreatFigureByline(bool AB, bool BC, bool CA, Point A, Point B, Point C, f
 		ObjMgr.SetPosition(idx, 0.0f, 0.01f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
 		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = 0.0f;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 0.0f;
+		ObjMgr.SetTriCollide(idx, A, P1, P2);
 		Start_Falling(idx);
 
 		ObjMgr.CreateRectCustom(B, P1, P2, C, r, g, b);
@@ -552,6 +580,9 @@ GLvoid CreatFigureByline(bool AB, bool BC, bool CA, Point A, Point B, Point C, f
 		ObjMgr.SetPosition(idx, 0.0f, -0.01f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
 		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = 0.0f;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 0.0f;
+		ObjMgr.SetRectCollide(idx, B, P1, P2, C);
 		Start_Falling(idx);
 	}
 
@@ -564,6 +595,9 @@ GLvoid CreatFigureByline(bool AB, bool BC, bool CA, Point A, Point B, Point C, f
 		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
 		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = 0.0f;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 0.0f;
+		ObjMgr.SetTriCollide(idx, C, P1, P2);
 		Start_Falling(idx);
 
 		ObjMgr.CreateRectCustom(A, P2, P1, B, r, g, b);
@@ -572,6 +606,9 @@ GLvoid CreatFigureByline(bool AB, bool BC, bool CA, Point A, Point B, Point C, f
 		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
 		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = 0.0f;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 0.0f;
+		ObjMgr.SetRectCollide(idx, A, P2, P1, B);
 		Start_Falling(idx);
 	}
 
@@ -763,6 +800,9 @@ GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, P
 		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
 		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = 0.0f;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 0.0f;
+		ObjMgr.SetTriCollide(idx, A, P2, P1);
 		Start_Falling(idx);
 
 		ObjMgr.CreatePentaCustom(P2, P1, D, B, C, r, g, b);
@@ -771,6 +811,9 @@ GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, P
 		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
 		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = 0.0f;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 0.0f;
+		ObjMgr.SetPentaCollide(idx, P2, P1, D, B, C);
 		Start_Falling(idx);
 	}
 	// case 2 : AB / BC 
@@ -782,6 +825,9 @@ GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, P
 		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
 		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = 0.0f;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 0.0f;
+		ObjMgr.SetTriCollide(idx, B, P1, P2);
 		Start_Falling(idx);
 
 		ObjMgr.CreatePentaCustom(P1, P2, A, C, D, r, g, b);
@@ -790,6 +836,9 @@ GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, P
 		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
 		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = 0.0f;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 0.0f;
+		ObjMgr.SetPentaCollide(idx, P1, P2, A, C, D);
 		Start_Falling(idx);
 	}
 
@@ -802,6 +851,9 @@ GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, P
 		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
 		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = 0.0f;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 0.0f;
+		ObjMgr.SetTriCollide(idx, C, P1, P2);
 		Start_Falling(idx);
 
 		ObjMgr.CreatePentaCustom(P1, P2, B, D, A, r, g, b);
@@ -810,6 +862,9 @@ GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, P
 		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
 		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = 0.0f;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 0.0f;
+		ObjMgr.SetPentaCollide(idx, P1, P2, B, D, A);
 		Start_Falling(idx);
 	}
 
@@ -822,6 +877,9 @@ GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, P
 		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
 		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = 0.0f;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 0.0f;
+		ObjMgr.SetTriCollide(idx, D, P1, P2);
 		Start_Falling(idx);
 
 		ObjMgr.CreatePentaCustom(P1, P2, C, A, B, r, g, b);
@@ -830,6 +888,9 @@ GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, P
 		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
 		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = 0.0f;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 0.0f;
+		ObjMgr.SetPentaCollide(idx, P1, P2, C, A, B);
 		Start_Falling(idx);
 	}
 
@@ -842,6 +903,9 @@ GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, P
 		ObjMgr.SetPosition(idx, -0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
 		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = 0.0f;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 0.0f;
+		ObjMgr.SetRectCollide(idx, P2, A, B, P1);
 		Start_Falling(idx);
 
 		ObjMgr.CreateRectCustom(D, P2, P1, C, r, g, b);
@@ -850,6 +914,9 @@ GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, P
 		ObjMgr.SetPosition(idx, 0.01f, 0.0f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
 		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = 0.0f;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 0.0f;
+		ObjMgr.SetRectCollide(idx, D, P2, P1, C);
 		Start_Falling(idx);
 	}
 
@@ -862,6 +929,9 @@ GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, P
 		ObjMgr.SetPosition(idx, 0.0f, 0.01f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
 		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = 0.0f;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 0.0f;
+		ObjMgr.SetRectCollide(idx, A, P1, P2, D);
 		Start_Falling(idx);
 
 		ObjMgr.CreateRectCustom(P1, B, C, P2, r, g, b);
@@ -870,6 +940,9 @@ GLvoid CreatFigureByRect(bool AB, bool BC, bool CD, bool DA, Point A, Point B, P
 		ObjMgr.SetPosition(idx, 0.0f, -0.01f, 0.0f);
 		ObjMgr.m_ObjectList[idx].m_isCut = true;
 		ObjMgr.m_ObjectList[idx].m_DRAW_TYPE = cur_drawType;
+		ObjMgr.m_ObjectList[idx].m_pivot[0] = 0.0f;
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 0.0f;
+		ObjMgr.SetRectCollide(idx, P1, B, C, P2);
 		Start_Falling(idx);
 	}
 }
