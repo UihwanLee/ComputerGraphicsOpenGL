@@ -43,12 +43,13 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 
 // 애니메이션 :: 초기화
 GLvoid StopAllAnim();
-
+GLvoid MoveObject(int isAnim);
 
 // 애니메이션 :: 카메라
 GLvoid RotatingCamera(int isAnim);
 
 // 애니메이션 :: 변수
+bool isMovingObject = false;
 
 GLvoid CheckCollision();
 bool CheckCollisionByBox(float x, float y, float z);
@@ -76,9 +77,10 @@ void keyboardUp(unsigned char key, int x, int y);
 GLvoid MouseClick(int button, int state, int x, int y);
 GLvoid MouseDrag(int x, int y);
 
-float mx = 0.0f;
-float my = 0.0f;
 bool g_left_button = false;
+float curAngle = 0.0f;
+float preAngle = 0.0f;
+float dirAngle = 0.0f;
 
 int main(int argc, char** argv)
 {
@@ -187,7 +189,7 @@ GLvoid Reset()
 	// 다보탑
 	ObjMgr.CreateCube(1.0f, 0.0f, 0.0f);
 	ObjMgr.SetScale(6, 0.2f, 0.1f, 0.1f);
-	ObjMgr.SetPosition(6, -5.0f, -3.5f, 3.5f);
+	ObjMgr.SetPosition(6, -5.0f, -3.5f, 0.0f);
 
 	ObjMgr.CreateCube(0.0f, 1.0f, 0.0f);
 	ObjMgr.SetScale(7, 0.8f, 0.8f, 0.8f);
@@ -196,6 +198,9 @@ GLvoid Reset()
 	ObjMgr.CreateCube(0.0f, 0.0f, 1.0f);
 	ObjMgr.SetScale(8, 0.5f, 0.5f, 0.5f);
 	ObjMgr.SetPosition(8, 0.7f, -0.1f, 0.2f);
+
+	isMovingObject = true;
+	if (isMovingObject) glutTimerFunc(30, MoveObject, isMovingObject);
 }
 
 GLvoid drawScene()
@@ -379,12 +384,103 @@ GLvoid StopAllAnim()
 GLvoid CheckCollision()
 {
 
-
 }
 
 GLvoid RotateCube()
 {
 	ObjMgr.Rotate(2, 30.0f, 0.0f, 0.0f);
+}
+
+GLvoid MoveObject(int isAnim)
+{
+	int idx = 6;
+
+	// 마우스 회전에 따른 이동
+
+	// mx 양 -> 왼쪽 mx 음 -> 오른쪽 
+		// 3.5 ~ -3.5 양끝
+
+		// 0 ~ 90 -> x (0.0 ~ 3.5) -
+		// 90 ~ 180 -> y (-3.5 ~ 3.5) +
+		// 180 ~ 
+
+	float angle = int(curAngle) % 360;
+	float moveSpeed = 0.1f;
+	float dir = 1.0f;
+
+	if (dirAngle >= 0.0f)
+	{
+		dir = 1.0f;
+	}
+	else
+	{
+		dir = -1.0f;
+	}
+
+	cout << angle << endl;
+	if (angle > 0 && angle < 90)
+	{
+		moveSpeed = 0.1f;
+		ObjMgr.Move(idx, 0.0f, 0.0f, moveSpeed);
+	}
+	if (angle > 90 && angle < 180)
+	{
+		moveSpeed = 0.1f;
+		ObjMgr.Move(idx, 0.0f, moveSpeed, 0.0f);
+	}
+	if (angle > 180 && angle < 270)
+	{
+		moveSpeed = -0.1f;
+		ObjMgr.Move(idx, 0.0f, 0.0f, moveSpeed);
+	}
+	if (angle > 270 && angle < 360)
+	{
+		moveSpeed = -0.1f;
+		ObjMgr.Move(idx, 0.0f, moveSpeed, 0.0f);
+	}
+
+
+	if (angle > -90 && angle < 0)
+	{
+		moveSpeed = -0.1f;
+		ObjMgr.Move(idx, 0.0f, 0.0f, moveSpeed);
+	}
+	if (angle > -180 && angle < -90)
+	{
+		moveSpeed = 0.1f;
+		ObjMgr.Move(idx, 0.0f, moveSpeed, 0.0f);
+	}
+	if (angle > -270 && angle < -180)
+	{
+		moveSpeed = 0.1f;
+		ObjMgr.Move(idx, 0.0f, 0.0f, moveSpeed);
+	}
+	if (angle > -360 && angle < 0)
+	{
+		moveSpeed = -0.1f;
+		ObjMgr.Move(idx, 0.0f, moveSpeed, 0.0f);
+	}
+
+
+	// 최대 이동 거리 제한
+	if (ObjMgr.m_ObjectList[idx].m_pivot[2] < -3.5f)
+	{
+		ObjMgr.m_ObjectList[idx].m_pivot[2] = -3.5f;
+	}
+	if (ObjMgr.m_ObjectList[idx].m_pivot[2] > 3.5f)
+	{
+		ObjMgr.m_ObjectList[idx].m_pivot[2] = 3.5f;
+	}
+	if (ObjMgr.m_ObjectList[idx].m_pivot[1] < -3.5f)
+	{
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = -3.5f;
+	}
+	if (ObjMgr.m_ObjectList[idx].m_pivot[1] > 3.5f)
+	{
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 3.5f;
+	}
+
+	if (isMovingObject) glutTimerFunc(10, MoveObject, isMovingObject);
 }
 
 bool CheckCollisionByBox(float x, float y, float z)
@@ -449,8 +545,7 @@ GLvoid MouseClick(int button, int state, int x, int y)
 		float start_x = (2.0f * x) / glutGet(GLUT_WINDOW_WIDTH) - 1.0f; // x 끝점
 		float start_y = 1.0f - (2.0f * y) / glutGet(GLUT_WINDOW_HEIGHT); // y 끝점
 
-		mx = GetClickPos(x, 0.0f, 800.0f, -60.0f, 60.0f);
-		my = GetClickPos(y, 0.0f, 600.0f, 2.0f, -2.0f);
+		curAngle = GetClickPos(x, 0.0f, 800.0f, -60.0f, 60.0f);
 
 		g_left_button = true;
 	}
@@ -458,6 +553,7 @@ GLvoid MouseClick(int button, int state, int x, int y)
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
 	{
 		// 마우스 클릭 땔 때 ....
+		preAngle = curAngle;
 
 		g_left_button = false;
 	}
@@ -475,13 +571,15 @@ GLvoid MouseDrag(int x, int y)
 		float drag_x = (2.0f * x) / glutGet(GLUT_WINDOW_WIDTH) - 1.0f; // x 끝점
 		float drag_z = 1.0f - (2.0f * y) / glutGet(GLUT_WINDOW_HEIGHT); // y 끝점
 
-		mx = GetClickPos(x, 0.0f, 800.0f, -60.0f, 60.0f);
+		curAngle = GetClickPos(x, 0.0f, 800.0f, -60.0f, 60.0f);
+
+		dirAngle = curAngle - preAngle;
 
 		//float change_x = GetClickPos(x, 0.0f, 800.0f, -2.0f, 2.0f);
 		//float change_y = GetClickPos(y, 0.0f, 600.0f, 2.0f, -2.0f);
 
 		// 마우스 드래그에 따른 Cube Rotate
-		ObjMgr.SetRotate(2, mx, 0.0f, 0.0f);
+		ObjMgr.SetRotate(2, curAngle, 0.0f, 0.0f);
 	}
 
 	glutPostRedisplay();
