@@ -73,6 +73,12 @@ float rotatingCameraRate_y = 0.0f;
 
 void Keyboard(unsigned char key, int x, int y);
 void keyboardUp(unsigned char key, int x, int y);
+GLvoid MouseClick(int button, int state, int x, int y);
+GLvoid MouseDrag(int x, int y);
+
+float mx = 0.0f;
+float my = 0.0f;
+bool g_left_button = false;
 
 int main(int argc, char** argv)
 {
@@ -96,6 +102,8 @@ int main(int argc, char** argv)
 	glutDisplayFunc(drawScene);
 	glutKeyboardFunc(Keyboard);
 	glutKeyboardUpFunc(keyboardUp);
+	glutMouseFunc(MouseClick);
+	glutMotionFunc(MouseDrag);
 	glutReshapeFunc(Reshape);
 	glutMainLoop();
 }
@@ -132,7 +140,13 @@ GLvoid UpdateRender()
 GLvoid Message()
 {
 	cout << "h/H : 은면 제거" << endl;
-	cout << "p/P : 직각 투영/ 원근 투영" << endl;
+	cout << endl;
+	cout << "z/Z: z축으로 양/음 방향으로 이동" << endl;
+	cout << "y/Y: 화면의 Y축에 대하여 시계/반시계 방향으로 회전" << endl;
+	cout << "B: 볼이 새로 생겨서 튕기기 시작한다 (최대 5개)" << endl;
+	cout << endl;
+	cout << "마우스를 왼쪽으로 옮기면 육면체가 z축에 대하여 왼쪽으로 회전" << endl;
+	cout << "마우스를 오른쪽으로 옮기면 육면체가 z축에 대하여 오른쪽으로 회전" << endl;
 	cout << endl;
 	cout << "c/C: 모든 변환을 리셋하고 다시 시작" << endl;
 	cout << "Q: 프로그램 종료한다." << endl;
@@ -151,24 +165,37 @@ GLvoid Reset()
 
 	// 배경 생성(큐브 , 장애물)
 	ObjMgr.CreateCubeFace(5, 1.0f, 1.0f, 1.0f);
-	ObjMgr.SetScale(1, 0.4f, 0.3f, 0.4f);
-	ObjMgr.SetPosition(1, -0.5f, 0.0f, 0.0f);
+	ObjMgr.SetScale(1, 0.8f, 0.8f, 0.8f);
+	ObjMgr.SetPosition(1, -1.0f, 0.0f, 0.0f);
 
 	ObjMgr.CreateCubeFace(2, 128.0f / 255.0f, 128.0f / 255.0f, 128.0f / 255.0f);
-	ObjMgr.SetScale(2, 0.4f, 0.3f, 0.4f);
+	ObjMgr.SetScale(2, 0.8f, 0.8f, 0.8f);
 	ObjMgr.SetPosition(2, -1.5f, 0.0f, 0.0f);
 
 	ObjMgr.CreateCubeFace(3, 150.0f / 255.0f, 75.0f / 255.0f, 0.0f / 255.0f);
-	ObjMgr.SetScale(3, 0.4f, 0.3f, 0.4f);
-	ObjMgr.SetPosition(3, -0.5f, 0.0f, 0.0f);
+	ObjMgr.SetScale(3, 0.8f, 0.8f, 0.8f);
+	ObjMgr.SetPosition(3, -1.0f, 0.0f, 0.0f);
 
 	ObjMgr.CreateCubeFace(1, 255.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
-	ObjMgr.SetScale(4, 0.4f, 0.3f, 0.4f);
-	ObjMgr.SetPosition(4, -0.5f, 0.0f, 0.0f);
+	ObjMgr.SetScale(4, 0.8f, 0.8f, 0.8f);
+	ObjMgr.SetPosition(4, -1.0f, 0.0f, 0.0f);
 
-	ObjMgr.CreateCubeFace(5, 0.0f / 255.0f, 204.0f / 255.0f, 255.0f / 255.0f);
-	ObjMgr.SetScale(5, 0.4f, 0.3f, 0.4f);
-	ObjMgr.SetPosition(5, -0.5f, 1.0f, 0.0f);
+	ObjMgr.CreateCubeFace(0, 0.0f / 255.0f, 204.0f / 255.0f, 255.0f / 255.0f);
+	ObjMgr.SetScale(5, 0.8f, 0.8f, 0.8f);
+	ObjMgr.SetPosition(5, -1.0f, 0.4f, 0.0f);
+
+	// 다보탑
+	ObjMgr.CreateCube(1.0f, 0.0f, 0.0f);
+	ObjMgr.SetScale(6, 0.2f, 0.1f, 0.1f);
+	ObjMgr.SetPosition(6, -5.0f, -3.5f, 3.5f);
+
+	ObjMgr.CreateCube(0.0f, 1.0f, 0.0f);
+	ObjMgr.SetScale(7, 0.8f, 0.8f, 0.8f);
+	ObjMgr.SetPosition(7, 0.4f, -0.0f, 0.1f);
+
+	ObjMgr.CreateCube(0.0f, 0.0f, 1.0f);
+	ObjMgr.SetScale(8, 0.5f, 0.5f, 0.5f);
+	ObjMgr.SetPosition(8, 0.7f, -0.1f, 0.2f);
 }
 
 GLvoid drawScene()
@@ -355,6 +382,11 @@ GLvoid CheckCollision()
 
 }
 
+GLvoid RotateCube()
+{
+	ObjMgr.Rotate(2, 30.0f, 0.0f, 0.0f);
+}
+
 bool CheckCollisionByBox(float x, float y, float z)
 {
 	bool isCollision = false;
@@ -373,6 +405,17 @@ void Keyboard(unsigned char key, int x, int y)
 		if (isDepthTest) isDepthTest = false;
 		else isDepthTest = true;
 		break;
+	case 'F':
+	case 'f':
+		RotateCube();
+		break;
+	// 카메라
+	case 'Z':
+		CameraPos.x += 0.1f;
+		break;
+	case 'z':
+		CameraPos.x -= 0.1f;
+		break;
 	case 'P':
 	case 'p':
 		projectionMode = !projectionMode;
@@ -386,6 +429,59 @@ void Keyboard(unsigned char key, int x, int y)
 		break;
 	default:
 		break;
+	}
+
+	glutPostRedisplay();
+}
+
+float GetClickPos(float value, float fromLow, float fromHigh, float toLow, float toHigh) {
+	return (value - fromLow) / (fromHigh - fromLow) * (toHigh - toLow) + toLow;
+}
+
+GLvoid MouseClick(int button, int state, int x, int y)
+{
+	int idx = 0;
+
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	{
+		// 마우스 클릭 ...
+
+		float start_x = (2.0f * x) / glutGet(GLUT_WINDOW_WIDTH) - 1.0f; // x 끝점
+		float start_y = 1.0f - (2.0f * y) / glutGet(GLUT_WINDOW_HEIGHT); // y 끝점
+
+		mx = GetClickPos(x, 0.0f, 800.0f, -60.0f, 60.0f);
+		my = GetClickPos(y, 0.0f, 600.0f, 2.0f, -2.0f);
+
+		g_left_button = true;
+	}
+
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
+	{
+		// 마우스 클릭 땔 때 ....
+
+		g_left_button = false;
+	}
+
+	glutPostRedisplay();
+}
+
+GLvoid MouseDrag(int x, int y)
+{
+	if (g_left_button)
+	{
+		int idx = 0;
+
+		// 마우스 드래그에 따른 선 길이 조정
+		float drag_x = (2.0f * x) / glutGet(GLUT_WINDOW_WIDTH) - 1.0f; // x 끝점
+		float drag_z = 1.0f - (2.0f * y) / glutGet(GLUT_WINDOW_HEIGHT); // y 끝점
+
+		mx = GetClickPos(x, 0.0f, 800.0f, -60.0f, 60.0f);
+
+		//float change_x = GetClickPos(x, 0.0f, 800.0f, -2.0f, 2.0f);
+		//float change_y = GetClickPos(y, 0.0f, 600.0f, 2.0f, -2.0f);
+
+		// 마우스 드래그에 따른 Cube Rotate
+		ObjMgr.SetRotate(2, mx, 0.0f, 0.0f);
 	}
 
 	glutPostRedisplay();
