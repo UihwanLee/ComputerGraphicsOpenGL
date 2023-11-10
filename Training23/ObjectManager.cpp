@@ -616,6 +616,20 @@ glm::mat4 ObjectManager::TransformModel(int idx)
 			model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
 		}
 		// »ý¼º °ø
+		else if (idx >= 9)
+		{
+			int index_parent = 2;
+			rotate_x_parent = m_ObjectList[index_parent].m_rotate[0];
+
+			model = glm::mat4(1.0f);
+
+			model = glm::rotate(model, glm::radians(rotate_x_parent), glm::vec3(1.0f, 0.0f, 0.0f));
+			model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
+			model = glm::translate(model, glm::vec3(move_x, move_y, move_z));
+			model = glm::rotate(model, glm::radians(rotate_x), glm::vec3(1.0f, 0.0f, 0.0f));
+			model = glm::rotate(model, glm::radians(rotate_y), glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::rotate(model, glm::radians(rotate_z), glm::vec3(0.0f, 0.0f, 1.0f));
+		}
 	}
 
 	return model;

@@ -44,6 +44,7 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 // 애니메이션 :: 초기화
 GLvoid StopAllAnim();
 GLvoid MoveObject(int isAnim);
+GLvoid MovingSqhere(int idx);
 
 // 애니메이션 :: 카메라
 GLvoid RotatingCamera(int isAnim);
@@ -81,6 +82,16 @@ bool g_left_button = false;
 float curAngle = 0.0f;
 float preAngle = 0.0f;
 float dirAngle = 0.0f;
+
+struct Dir {
+	float x = -1.0f;
+	float y = 1.0f;
+	float z = 1.0f;
+};
+
+vector<Dir> dirList;
+int curSqhereIDX = 9;
+GLvoid CreateSqhere();
 
 int main(int argc, char** argv)
 {
@@ -198,6 +209,16 @@ GLvoid Reset()
 	ObjMgr.CreateCube(0.0f, 0.0f, 1.0f);
 	ObjMgr.SetScale(8, 0.5f, 0.5f, 0.5f);
 	ObjMgr.SetPosition(8, 0.7f, -0.1f, 0.2f);
+
+	// 공
+	ObjMgr.CreateSqhere(0.0f, 0.0f, 1.0f);
+	ObjMgr.SetScale(9, 0.05f, 0.05f, 0.05f);
+	ObjMgr.SetPosition(9, -4.0f, 0.0f, 0.0f);
+
+	Dir dir;
+	dirList.emplace_back(dir);
+	glutTimerFunc(30, MovingSqhere, 9);
+
 
 	isMovingObject = true;
 	if (isMovingObject) glutTimerFunc(30, MoveObject, isMovingObject);
@@ -380,6 +401,90 @@ GLvoid StopAllAnim()
 	rotateSpeed = 4.0f;
 }
 
+float angle_camera = 0;
+float angle_rotate = 0.03f;
+GLvoid RotatingCamera(int isAnim)
+{
+	float radius = 2.0f;
+
+	CameraPos.x = sin(angle_camera) * radius;
+	CameraPos.z = cos(angle_camera) * radius;
+
+	angle_camera += angle_rotate;
+
+	glutPostRedisplay();
+
+	if (rotatingCarmera) glutTimerFunc(30, RotatingCamera, rotatingCarmera);
+}
+
+GLvoid CreateSqhere()
+{
+	if (dirList.size() >= 5) return;
+
+	curSqhereIDX += 1;
+
+	Dir dir;
+	dirList.emplace_back(dir);
+
+	ObjMgr.CreateSqhere(0.0f, 0.0f, 1.0f);
+	ObjMgr.SetScale(curSqhereIDX, 0.05f, 0.05f, 0.05f);
+	ObjMgr.SetPosition(curSqhereIDX, -4.0f, 0.0f, 0.0f);
+	glutTimerFunc(30, MovingSqhere, curSqhereIDX);
+}
+
+GLvoid CheckCollision(int idx)
+{
+	float SqhereX = ObjMgr.m_ObjectList[idx].m_pivot[0];
+	float SqhereY = ObjMgr.m_ObjectList[idx].m_pivot[1];
+	float SqhereZ = ObjMgr.m_ObjectList[idx].m_pivot[2];
+
+
+	// X : -5.0 ~ -1.0
+	// Y : -3.5 ~ 3.5
+	// Z : -3.5 ~ 3.5
+	float MAX_X = -3.0f; float MIN_X = -10.0f;
+	float MAX_Y = 3.5f; float MIN_Y = -3.5f;
+	float MAX_Z = 3.5f; float MIN_Z = -3.5f;
+
+	int dirIDX = idx - 9;
+
+	// 천장/바닥에 닿은 경우
+	if (SqhereX < MIN_X || SqhereX > MAX_X)
+	{
+		dirList[dirIDX].x = dirList[dirIDX].x * (-1.0f);
+	}
+
+	// 상하 벽에 닿은 경우
+	if (SqhereY < MIN_Y || SqhereY > MAX_Y)
+	{
+		dirList[dirIDX].y = dirList[dirIDX].y * (-1.0f);
+	}
+
+	// 양쪽 벽에 닿은 경우
+	if (SqhereZ < MIN_Z || SqhereZ > MAX_Z)
+	{
+		dirList[dirIDX].z = dirList[dirIDX].z * (-1.0f);
+	}
+}
+
+GLvoid MovingSqhere(int idx)
+{
+	int dirIDX = idx - 9;
+
+	CheckCollision(idx);
+
+	float move_x = 0.08f * dirList[dirIDX].x;
+	float move_y = 0.05f * dirList[dirIDX].y;
+	float move_z = 0.03f * dirList[dirIDX].z;
+
+	ObjMgr.Move(idx, move_x, move_y, move_z);
+
+	glutPostRedisplay();
+
+	//cout << "Hello" << endl;
+
+	glutTimerFunc(30, MovingSqhere, idx);
+}
 
 GLvoid CheckCollision()
 {
@@ -408,16 +513,7 @@ GLvoid MoveObject(int isAnim)
 	float moveSpeed = 0.1f;
 	float dir = 1.0f;
 
-	if (dirAngle >= 0.0f)
-	{
-		dir = 1.0f;
-	}
-	else
-	{
-		dir = -1.0f;
-	}
 
-	cout << angle << endl;
 	if (angle > 0 && angle < 90)
 	{
 		moveSpeed = 0.1f;
@@ -480,6 +576,8 @@ GLvoid MoveObject(int isAnim)
 		ObjMgr.m_ObjectList[idx].m_pivot[1] = 3.5f;
 	}
 
+	glutPostRedisplay();
+
 	if (isMovingObject) glutTimerFunc(10, MoveObject, isMovingObject);
 }
 
@@ -501,6 +599,11 @@ void Keyboard(unsigned char key, int x, int y)
 		if (isDepthTest) isDepthTest = false;
 		else isDepthTest = true;
 		break;
+	// 공 생성
+	case 'B':
+	case 'b':
+		CreateSqhere();
+		break;
 	case 'F':
 	case 'f':
 		RotateCube();
@@ -511,6 +614,18 @@ void Keyboard(unsigned char key, int x, int y)
 		break;
 	case 'z':
 		CameraPos.x -= 0.1f;
+		break;
+	case 'Y':
+		angle_rotate = -0.03f;
+		if (rotatingCarmera) rotatingCarmera = false;
+		else if (rotatingCarmera == false) rotatingCarmera = true;
+		if (rotatingCarmera) glutTimerFunc(30, RotatingCamera, rotatingCarmera);
+		break;
+	case 'y':
+		angle_rotate = 0.03f;
+		if (rotatingCarmera) rotatingCarmera = false;
+		else if (rotatingCarmera == false) rotatingCarmera = true;
+		if (rotatingCarmera) glutTimerFunc(30, RotatingCamera, rotatingCarmera);
 		break;
 	case 'P':
 	case 'p':
@@ -573,7 +688,7 @@ GLvoid MouseDrag(int x, int y)
 
 		curAngle = GetClickPos(x, 0.0f, 800.0f, -60.0f, 60.0f);
 
-		dirAngle = curAngle - preAngle;
+		//dirAngle = curAngle - preAngle;
 
 		//float change_x = GetClickPos(x, 0.0f, 800.0f, -2.0f, 2.0f);
 		//float change_y = GetClickPos(y, 0.0f, 600.0f, 2.0f, -2.0f);
