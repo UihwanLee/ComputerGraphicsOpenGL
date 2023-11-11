@@ -638,6 +638,121 @@ glm::mat4 ObjectManager::TransformModel(int idx)
 			model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
 			model = glm::translate(model, glm::vec3(0.0f, -initPivot, 0.0f));
 		}
+
+		// ¿€¿∫ ∑Œ∫ø ∏ˆ√º
+		else if (idx == 40)
+		{
+			int index_parent = 7;
+
+			scale_x_parent = m_ObjectList[index_parent].m_scale[0];
+			scale_y_parent = m_ObjectList[index_parent].m_scale[1];
+			scale_z_parent = m_ObjectList[index_parent].m_scale[2];
+
+			move_x_parent = m_ObjectList[index_parent].m_pivot[0];
+			move_y_parent = m_ObjectList[index_parent].m_pivot[1];
+			move_z_parent = m_ObjectList[index_parent].m_pivot[2];
+
+			rotate_y_parent = m_ObjectList[index_parent].m_rotate[1];
+
+			model = glm::mat4(1.0f);
+
+			model = glm::scale(model, glm::vec3(scale_x_parent, scale_y_parent, scale_z_parent));
+			model = glm::translate(model, glm::vec3(move_x_parent, move_y_parent, move_z_parent));
+			model = glm::rotate(model, glm::radians(rotate_y_parent), glm::vec3(0.0f, 1.0f, 0.0f));
+			//model = glm::rotate(model, glm::radians(rotate_z), glm::vec3(0.0f, 0.0f, 1.0f));
+			model = glm::translate(model, glm::vec3(move_x, move_y, move_z));
+			model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
+		}
+		// ¿€¿∫ ∑Œ∫ø ∏”∏Æ, ƒ⁄, ColiisionBox
+		else if (idx == 41 || idx == 42)
+		{
+			int index_parent = 7;
+			int index_parent2 = 40;
+
+			scale_x_parent = m_ObjectList[index_parent].m_scale[0];
+			scale_y_parent = m_ObjectList[index_parent].m_scale[1];
+			scale_z_parent = m_ObjectList[index_parent].m_scale[2];
+
+			move_x_parent = m_ObjectList[index_parent].m_pivot[0];
+			move_y_parent = m_ObjectList[index_parent].m_pivot[1];
+			move_z_parent = m_ObjectList[index_parent].m_pivot[2];
+
+			float scale_x_parent2 = m_ObjectList[index_parent2].m_scale[0];
+			float scale_y_parent2 = m_ObjectList[index_parent2].m_scale[1];
+			float scale_z_parent2 = m_ObjectList[index_parent2].m_scale[2];
+
+			float move_x_parent2 = m_ObjectList[index_parent2].m_pivot[0];
+			float move_y_parent2 = m_ObjectList[index_parent2].m_pivot[1];
+			float move_z_parent2 = m_ObjectList[index_parent2].m_pivot[2];
+
+			rotate_y_parent = m_ObjectList[index_parent].m_rotate[1];
+
+			model = glm::mat4(1.0f);
+
+			model = glm::scale(model, glm::vec3(scale_x_parent, scale_y_parent, scale_z_parent));
+			model = glm::translate(model, glm::vec3(move_x_parent, move_y_parent, move_z_parent));
+			model = glm::rotate(model, glm::radians(rotate_y_parent), glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::translate(model, glm::vec3(move_x_parent2, move_y_parent2, move_z_parent2));
+			model = glm::scale(model, glm::vec3(scale_x_parent2, scale_y_parent2, scale_z_parent2));
+			model = glm::translate(model, glm::vec3(move_x, move_y, move_z));
+			model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
+		}
+
+		// ∑Œ∫ø ∆», ¥Ÿ∏Æ
+		else if (idx == 43 || idx == 44 || idx == 45 || idx == 46)
+		{
+			int index_parent = 7;
+			int index_parent2 = 40;
+
+			scale_x_parent = m_ObjectList[index_parent].m_scale[0];
+			scale_y_parent = m_ObjectList[index_parent].m_scale[1];
+			scale_z_parent = m_ObjectList[index_parent].m_scale[2];
+
+			move_x_parent = m_ObjectList[index_parent].m_pivot[0];
+			move_y_parent = m_ObjectList[index_parent].m_pivot[1];
+			move_z_parent = m_ObjectList[index_parent].m_pivot[2];
+
+			float scale_x_parent2 = m_ObjectList[index_parent2].m_scale[0];
+			float scale_y_parent2 = m_ObjectList[index_parent2].m_scale[1];
+			float scale_z_parent2 = m_ObjectList[index_parent2].m_scale[2];
+
+			float move_x_parent2 = m_ObjectList[index_parent2].m_pivot[0];
+			float move_y_parent2 = m_ObjectList[index_parent2].m_pivot[1];
+			float move_z_parent2 = m_ObjectList[index_parent2].m_pivot[2];
+
+			rotate_y_parent = m_ObjectList[index_parent].m_rotate[1];
+
+			model = glm::mat4(1.0f);
+
+			float initRotate = 0.0f;
+			float initPivot = 0.0f;
+
+			if (idx == 43) {
+				initRotate = 60.0f; initPivot = 0.3f;
+			}
+			else if (idx == 44) {
+				initRotate = 120.0f; initPivot = 0.3f;
+			}
+			if (idx == 45) {
+				initRotate = 30.0f; initPivot = -0.3f;
+			}
+			else if (idx == 46) {
+				initRotate = -30.0f; initPivot = -0.3f;
+			}
+
+
+			model = glm::scale(model, glm::vec3(scale_x_parent, scale_y_parent, scale_z_parent));
+			model = glm::translate(model, glm::vec3(move_x_parent, move_y_parent, move_z_parent));
+			model = glm::rotate(model, glm::radians(rotate_y_parent), glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::translate(model, glm::vec3(move_x_parent2, move_y_parent2, move_z_parent2));
+			model = glm::scale(model, glm::vec3(scale_x_parent2, scale_y_parent2, scale_z_parent2));
+			model = glm::translate(model, glm::vec3(0.0f, initPivot, 0.0f));
+			model = glm::rotate(model, glm::radians(initRotate), glm::vec3(0.0f, 0.0f, 1.0f));
+			model = glm::rotate(model, glm::radians(rotate_z), glm::vec3(0.0f, 0.0f, 1.0f));
+			model = glm::translate(model, glm::vec3(move_x, move_y, move_z));
+			model = glm::scale(model, glm::vec3(scale_x, scale_y, scale_z));
+			model = glm::translate(model, glm::vec3(0.0f, -initPivot, 0.0f));
+		}
 	}
 
 	return model;

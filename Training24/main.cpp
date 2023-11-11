@@ -49,6 +49,7 @@ GLvoid StopAllAnim();
 // 애니메이션 :: 로봇
 GLvoid RotateRobotByDir(int isAnim);
 GLvoid JumpRobobot(int isAnim);
+GLvoid JumpChildRobot(int isAnim);
 
 // 애니메이션 :: 카메라
 GLvoid RotatingCamera(int isAnim);
@@ -58,6 +59,7 @@ bool isOpenDoor = false;
 bool isRotatingDoor = false;
 bool isRotatingRobot = false;
 bool isRobotJumping = false;
+bool isChildRobotJumping = false;
 
 // 로봇 변수
 GLfloat playerSpeed = 0.2f;
@@ -65,6 +67,8 @@ GLfloat playerRotateArmSpeed = 5.0f;
 GLfloat playerRotateLegSpeed = 3.0f;
 GLfloat playerJumpSpeed = 0.5f;
 GLfloat playerJumpRate = 0.0f;
+GLfloat childJumpSpeed = 0.2f;
+GLfloat childJumpRate = 0.0f;
 float forceAmount = 10.0f;
 
 GLvoid CheckCollision();
@@ -93,6 +97,8 @@ bool rotatingCamera_z = false;
 float rotatingCameraRate = 0.0f;
 float rotatingCameraRate_x = 0.0f;
 float rotatingCameraRate_y = 0.0f;
+
+bool isChildGenerate = false;
 
 void Keyboard(unsigned char key, int x, int y);
 void keyboardUp(unsigned char key, int x, int y);
@@ -165,15 +171,12 @@ GLvoid Message()
 	cout << "h/H : 은면 제거" << endl;
 	cout << "p/P : 직각 투영/ 원근 투영" << endl;
 	cout << endl;
-	cout << "o/O: 앞면이 좌우로 열린다." << endl;
-	cout << endl;
 	cout << "w/a/s/d: 로봇이 앞/뒤/좌/우 방향으로 이동 방향을 바꿔서 걷는다. 가장자리에 도달하면 로봇은 뒤로 돌아 다시 걷는다." << endl;
 	cout << "+/-: 걷는 속도가 빨라지거나/느려진다. 속도가 바뀔 때 걷는 다리의 각도가 늘어나거나/줄어든다." << endl;
 	cout << "j: 로봇이 제자리에서 점프한다. 장애물 위로 점프하여 올라가고 내려갈 수 있다." << endl;
 	cout << endl;
-	cout << "z/Z: 좌우로 이동" << endl;
-	cout << "x/X: 앞뒤로 이동" << endl;
-	cout << "y/Y: 카메라가 현재 위치에서 화면 중심 y축을 기준으로 공전" << endl;
+	cout << "t: 작은 로봇 생성/삭제" << endl;
+	cout << "f: 작은 로봇이 점프한다." << endl;
 	cout << endl;
 	cout << "i: 모든 변환을 리셋하고 다시 시작" << endl;
 	cout << "Q: 프로그램 종료한다." << endl;
@@ -318,7 +321,6 @@ GLvoid Reset()
 		ObjMgr.SetPosition(idx, -2.0f, -15.0f, dist);
 		idx += 1;
 		dist -= 1.0f;
-		cout << idx << endl;
 	}
 
 	ObjMgr.CreateCube(0.0f / 255.0f, 204.0f / 255.0f, 255.0f / 255.0f);
@@ -328,6 +330,49 @@ GLvoid Reset()
 	ObjMgr.CreateCube(1.0f, 1.0f, 0.0f);
 	ObjMgr.SetScale(39, 0.1f, 0.01f, 0.1f);
 	ObjMgr.SetPosition(39, 0.0f, -15.0f, -2.0f);
+
+	// 자식 로봇 
+
+	// 자식 로봇 몸체(최고 부모)
+	ObjMgr.CreateCube(0.0f, 0.0f, 1.0f);
+	ObjMgr.SetScale(40, 0.8f, 0.7f, 0.8f);
+	ObjMgr.SetPosition(40, -2.5f, -0.5f, 0.0f);
+
+	// 자식 로봇 머리
+	ObjMgr.CreateCube(0.0f, 0.0f, 1.0f);
+	ObjMgr.SetScale(41, 0.6f, 0.5f, 0.6f);
+	ObjMgr.SetPosition(41, -0.0f, 0.7f, 0.0f);
+
+	// 자식 로봇 코
+	ObjMgr.CreateCube(1.0f, 0.0f, 0.0f);
+	ObjMgr.SetScale(42, 0.3f, 0.2f, 0.3f);
+	ObjMgr.SetPosition(42, 0.3f, 0.7f, 0.0f);
+
+	// 자식 로봇 오른쪽 팔
+	ObjMgr.CreateCube(1.0f, 0.0f, 0.0f);
+	ObjMgr.SetScale(43, 1.0f, 0.4f, 0.3f);
+	ObjMgr.SetPosition(43, -0.4f, 0.3f, 0.6f);
+
+	// 자식 로봇 왼쪽 팔
+	ObjMgr.CreateCube(0.0f, 1.0f, 0.0f);
+	ObjMgr.SetScale(44, 1.0f, 0.4f, 0.3f);
+	ObjMgr.SetPosition(44, -0.4f, 0.3f, -0.6f);
+
+	// 자식 로봇 오른쪽 다리
+	ObjMgr.CreateCube(138.0f / 255.0f, 43.0f / 255.0f, 226.0f / 255.0f);
+	ObjMgr.SetScale(45, 0.4f, 1.2f, 0.3f);
+	ObjMgr.SetPosition(45, -0.0f, -1.0f, 0.3f);
+
+	// 자식 로봇 왼쪽 다리
+	ObjMgr.CreateCube(255.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
+	ObjMgr.SetScale(46, 0.4f, 1.2f, 0.3f);
+	ObjMgr.SetPosition(46, -0.0f, -1.0f, -0.3f);
+
+	for (int i = 40; i < 47; i++)
+	{
+		ObjMgr.SetActive(i, false);
+	}
+
 
 
 	prevPivot[0] = ObjMgr.m_ObjectList[7].m_pivot[0];
@@ -523,10 +568,20 @@ GLvoid RotateRobotByDir(int isAnim)
 	int idx3 = 12;
 	int idx4 = 13;
 
+	int idx5 = 43;
+	int idx6 = 44;
+	int idx7 = 45;
+	int idx8 = 46;
+
 	ObjMgr.Rotate(idx1, 0.0f, 0.0f, playerRotateArmSpeed);
 	ObjMgr.Rotate(idx2, 0.0f, 0.0f, -playerRotateArmSpeed);
 	ObjMgr.Rotate(idx3, 0.0f, 0.0f, -playerRotateLegSpeed);
 	ObjMgr.Rotate(idx4, 0.0f, 0.0f, playerRotateLegSpeed);
+
+	ObjMgr.Rotate(idx5, 0.0f, 0.0f, playerRotateArmSpeed);
+	ObjMgr.Rotate(idx6, 0.0f, 0.0f, -playerRotateArmSpeed);
+	ObjMgr.Rotate(idx7, 0.0f, 0.0f, -playerRotateArmSpeed);
+	ObjMgr.Rotate(idx8, 0.0f, 0.0f, playerRotateArmSpeed);
 
 
 	if (armRotateRate > 10)
@@ -565,6 +620,30 @@ GLvoid JumpRobobot(int isAnim)
 	glutPostRedisplay();
 
 	if (isRobotJumping) glutTimerFunc(30, JumpRobobot, isRobotJumping);
+}
+
+// 자식 로봇 점프
+GLvoid JumpChildRobot(int isAnim)
+{
+	int idx = 40;
+
+	if (childJumpRate > 10.0f)
+	{
+		childJumpSpeed = -0.09f;
+		if (childJumpRate > 20.0f)
+		{
+			childJumpRate = 0.0f;
+			isChildRobotJumping = false;
+		}
+	}
+
+	childJumpRate += 1;
+
+	ObjMgr.Move(idx, 0.0f, childJumpSpeed, 0.0f);
+
+	glutPostRedisplay();
+
+	if (isChildRobotJumping) glutTimerFunc(30, JumpChildRobot, isChildRobotJumping);
 }
 
 float angle_camera = 0;
@@ -750,6 +829,23 @@ bool CheckCollisionByBox(float x, float y, float z)
 	return isCollision;
 }
 
+GLvoid SetActiveChildRobot()
+{
+	if (isChildGenerate == false)
+	{
+		isChildGenerate = true;
+	}
+	else
+	{
+		isChildGenerate = false;
+	}
+
+	for (int i = 40; i < 47; i++)
+	{
+		ObjMgr.SetActive(i, isChildGenerate);
+	}
+}
+
 void Keyboard(unsigned char key, int x, int y)
 {
 	float force_x, force_y, force_z;
@@ -789,6 +885,16 @@ void Keyboard(unsigned char key, int x, int y)
 		isRobotJumping = true;
 		playerJumpSpeed = 0.3f;
 		if (isRobotJumping)glutTimerFunc(30, JumpRobobot, isRobotJumping);
+		break;
+	case 'T':
+	case 't':
+		SetActiveChildRobot();
+		break;
+	case 'F':
+	case 'f':
+		isChildRobotJumping = true;
+		childJumpSpeed = 0.1f;
+		if (isChildRobotJumping)glutTimerFunc(30, JumpChildRobot, isChildRobotJumping);
 		break;
 	case '+':
 		playerSpeed += 0.1f;
