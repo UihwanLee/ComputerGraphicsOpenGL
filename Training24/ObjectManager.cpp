@@ -383,6 +383,68 @@ void ObjectManager::CreateSqhere(float x, float y, float z)
 	m_ObjectList.emplace_back(temp);
 }
 
+void ObjectManager::CreateCylinder(float x, float y, float z)
+{
+	const float height = 1.0f;
+	const float radius = 0.5f;
+	const int sectors = 360;
+	const int stacks = 1; // ÇÑ ¹ø¸¸ ½×À½À¸·Î ¿ø±âµÕÀ¸·Î ¸¸µê
+
+	vector<GLfloat> vertices;
+	vector<GLuint> indices;
+
+	for (int i = 0; i <= stacks; ++i)
+	{
+		float stackHeight = height * static_cast<float>(i) / stacks;
+		for (int j = 0; j <= sectors; ++j)
+		{
+			float theta = glm::radians(static_cast<float>(j));
+			float x = radius * cos(theta);
+			float z = radius * sin(theta);
+
+			// ÁÂÇ¥
+			vertices.push_back(x);
+			vertices.push_back(stackHeight);
+			vertices.push_back(z);
+
+			// ÀÎµ¦½º
+			if (i < stacks && j < sectors)
+			{
+				int currentIdx = i * (sectors + 1) + j;
+				int nextIdx = (i + 1) * (sectors + 1) + j;
+
+				indices.push_back(currentIdx);
+				indices.push_back(nextIdx);
+				indices.push_back(currentIdx + 1);
+
+				indices.push_back(nextIdx);
+				indices.push_back(nextIdx + 1);
+				indices.push_back(currentIdx + 1);
+			}
+		}
+	}
+
+	temp.m_pos = new GLfloat[SIZE_CYLINDER_VERTEX];
+	temp.m_inex = new GLint[SIZE_CYLINDER_INDEX];
+	temp.m_col = new GLfloat[SIZE_CYLINDER_VERTEX];
+
+	cout << vertices.size() << endl;
+	cout << indices.size() << endl;
+
+	for (int i = 0; i < vertices.size(); i++)	temp.m_pos[i] = vertices[i];
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		if (i % 3 == 0) temp.m_col[i] = x;
+		if (i % 3 == 1)temp.m_col[i] = y;
+		if (i % 3 == 2)temp.m_col[i] = z;
+	}
+	for (int i = 0; i < indices.size(); i++)	temp.m_inex[i] = indices[i];
+
+	InitObjectStruct(&temp, SIZE_CYLINDER_INDEX, 12 * (SIZE_CYLINDER_VERTEX / 3), 12 * (SIZE_CYLINDER_INDEX / 3), 0, GL_TRIANGLES, true, false, true);
+
+	m_ObjectList.emplace_back(temp);
+}
+
 
 void ObjectManager::CreateOrbit(float orbit_radius)
 {

@@ -64,6 +64,7 @@ public:
 	void CreateSquarePyramidBottom();
 	void CreateCone();
 	void CreateSqhere(float x, float y, float z);
+	void CreateCylinder(float x, float y, float z);
 
 	void CreateOrbit(float orbit_radius);
 	void CreateOrbit2(float orbit_radius, float dir);
