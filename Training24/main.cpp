@@ -44,7 +44,9 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 // 애니메이션 :: 초기화
 GLvoid StopAllAnim();
 
-// 애니메이션 :: 큐브
+// 애니메이션 :: 장애물
+GLvoid BoxFalling(int idx);
+bool isFalling = false;
 
 // 애니메이션 :: 로봇
 GLvoid RotateRobotByDir(int isAnim);
@@ -85,6 +87,10 @@ bool isCollisionUp = false;
 
 // 투영 변환
 bool projectionMode = true;
+
+// 높이 
+float boxHeight[3] = { -1.0f, -1.0f, -1.0f };
+int currentBoxIDX = 0;
 
 // Camera
 GLfloat y_angle = 0.0f, z_angle = 0.0f, camera_y = 0.0f;
@@ -604,6 +610,32 @@ GLvoid StopAllAnim()
 	doorRotateRate = 0.0f;
 }
 
+GLvoid BoxFalling(int idx)
+{
+	isFalling = true;
+
+	int playerIDX = 7;
+	int boxIDX = idx - 50;
+
+	if (boxHeight[boxIDX] <= -2.0f)
+	{
+		isFalling = false;
+		return;
+	}
+	else
+	{
+		float fallingSpeed = 0.05f;
+		ObjMgr.Move(idx, 0.0f, -fallingSpeed, 0.0f);
+
+		// 플레이어도 함께 Falling
+		boxHeight[boxIDX] -= 0.02f;
+	}
+	
+	glutPostRedisplay();
+
+	if (isFalling) glutTimerFunc(30, BoxFalling, idx);
+}
+
 // 로봇 팔, 다리 회전
 GLvoid RotateRobotByDir(int isAnim)
 {
@@ -718,10 +750,7 @@ GLvoid CheckCollision()
 
 	if (isCollisionUp)
 	{
-		if (ObjMgr.m_ObjectList[idx].m_pivot[1] < -1.0f)
-		{
-			ObjMgr.m_ObjectList[idx].m_pivot[1] = -1.0f;
-		}
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = boxHeight[currentBoxIDX];
 	}
 	else
 	{
@@ -730,6 +759,7 @@ GLvoid CheckCollision()
 			ObjMgr.m_ObjectList[idx].m_pivot[1] = -2.0f;
 		}
 	}
+
 
 	// 벽에 닿으면 반대방향으로 이동
 	if (ObjMgr.m_ObjectList[idx].m_pivot[0] > maxDist_x)
@@ -790,6 +820,7 @@ GLvoid CheckCollision()
 bool CheckCollisionByBox(float x, float y, float z)
 {
 	bool isCollision = false;
+	int playerIDX = 7;
 
 	float offset = 0.057;
 
@@ -826,6 +857,9 @@ bool CheckCollisionByBox(float x, float y, float z)
 	}
 
 	// 장애물 2
+	int box1_idx = 50;
+	int box2_idx = 52;
+	int box3_idx = 51;
 	min_x = -0.147f;
 	max_x = -0.045f;
 	min_z = 0.078f;
@@ -837,13 +871,15 @@ bool CheckCollisionByBox(float x, float y, float z)
 
 	if (player_x >= min_x && player_x <= max_x && player_z >= min_z && player_z <= max_z && player_y <= max_y)
 	{
-		isCollision = true;
+		if(boxHeight[0] > -2.0f) isCollision = true;
 	}
 
 	// 점프해서 들어오면 위치 조정
 	if (player_x >= min_x && player_x <= max_x && player_z >= min_z && player_z <= max_z && player_y > max_y)
 	{
+		currentBoxIDX = 0;
 		isCollisionUp = true;
+		glutTimerFunc(1000, BoxFalling, box1_idx);
 	}
 
 	//// 장애물 2
@@ -858,13 +894,15 @@ bool CheckCollisionByBox(float x, float y, float z)
 
 	if (player_x >= min_x && player_x <= max_x && player_z >= min_z && player_z <= max_z && player_y <= max_y)
 	{
-		isCollision = true;
+		if (boxHeight[2] > -2.0f) isCollision = true;
 	}
 
 	// 점프해서 들어오면 위치 조정
 	if (player_x >= min_x && player_x <= max_x && player_z >= min_z && player_z <= max_z && player_y > max_y)
 	{
+		currentBoxIDX = 2;
 		isCollisionUp = true;
+		glutTimerFunc(1000, BoxFalling, box2_idx);
 	}
 
 	// 장애물3
@@ -879,13 +917,15 @@ bool CheckCollisionByBox(float x, float y, float z)
 
 	if (player_x >= min_x && player_x <= max_x && player_z >= min_z && player_z <= max_z && player_y <= max_y)
 	{
-		isCollision = true;
+		if (boxHeight[1] > -2.0f) isCollision = true;
 	}
 
 	// 점프해서 들어오면 위치 조정
 	if (player_x >= min_x && player_x <= max_x && player_z >= min_z && player_z <= max_z && player_y > max_y)
 	{
+		currentBoxIDX = 1;
 		isCollisionUp = true;
+		glutTimerFunc(1000, BoxFalling, box3_idx);
 	}
 
 	// 원기둥 장애물
