@@ -1,4 +1,4 @@
-﻿#version 330 core
+#version 330 core
 
 in vec3 FragPos;
 in vec3 Normal;
@@ -12,7 +12,7 @@ uniform vec3 viewPos;
 
 void main()
 {
-	vec3 ambientLight = vec3(0.3f, 0.3f, 0.3f); 
+	vec3 ambientLight = vec3(0.7f, 0.7f, 0.7f); 
 	vec3 ambient = ambientLight * lightColor;
 
 	vec3 normalVector = normalize (Normal);

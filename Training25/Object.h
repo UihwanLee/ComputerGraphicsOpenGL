@@ -36,7 +36,7 @@ public:
 
 	// Á¤»ç°¢»Ô
 	static GLfloat	SquarePyramidVertexs[15];
-	static GLfloat	SquarePyramidColors[15];
+	static GLfloat	SquarePyramidNormal[15];
 	static GLint	SquarePyramidIndexs[18];
 
 	// ¿ø»Ô

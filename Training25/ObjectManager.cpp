@@ -222,7 +222,7 @@ void ObjectManager::CreateSquarePyramid()
 
 	for (int i = 0; i < 15; i++)	temp.m_pos[i] = Object::SquarePyramidVertexs[i];
 	for (int i = 0; i < 18; i++)	temp.m_inex[i] = Object::SquarePyramidIndexs[i];
-	for (int i = 0; i < 15; i++)	temp.m_col[i] = Object::SquarePyramidColors[i];
+	for (int i = 0; i < 15; i++)	temp.m_col[i] = Object::SquarePyramidNormal[i];
 
 	InitObjectStruct(&temp, 18, 72, 72, 5, GL_TRIANGLES, true, false, true);
 
@@ -247,17 +247,17 @@ void ObjectManager::CreateSquarePyramidFace(int face)
 	for (int i = point01 * 3; i < (point01 * 3) + 3; i++)
 	{
 		temp.m_pos[temp_idx] = Object::SquarePyramidVertexs[i];
-		temp.m_col[temp_idx++] = Object::SquarePyramidColors[i];
+		temp.m_col[temp_idx++] = Object::SquarePyramidNormal[i];
 	}
 	for (int i = point02 * 3; i < (point02 * 3) + 3; i++)
 	{
 		temp.m_pos[temp_idx] = Object::SquarePyramidVertexs[i];
-		temp.m_col[temp_idx++] = Object::SquarePyramidColors[i];
+		temp.m_col[temp_idx++] = Object::SquarePyramidNormal[i];
 	}
 	for (int i = point03 * 3; i < (point03 * 3) + 3; i++)
 	{
 		temp.m_pos[temp_idx] = Object::SquarePyramidVertexs[i];
-		temp.m_col[temp_idx++] = Object::SquarePyramidColors[i];
+		temp.m_col[temp_idx++] = Object::SquarePyramidNormal[i];
 	}
 
 	for (int i = 0; i < 3; i++)
@@ -279,7 +279,7 @@ void ObjectManager::CreateSquarePyramidBottom()
 	for (int i = 3; i < 15; i++)
 	{
 		temp.m_pos[i] = Object::SquarePyramidVertexs[i];
-		temp.m_col[i] = Object::SquarePyramidColors[i];
+		temp.m_col[i] = Object::SquarePyramidNormal[i];
 	}
 
 	for (int i = 12; i < 18; i++)

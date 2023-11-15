@@ -45,13 +45,18 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 // 애니메이션 :: 초기화
 GLvoid StopAllAnim();
 
+bool isRotatingFigure = false;
+GLvoid RotatingFigure(int idx);
+int figure_idx = 1;
+
 // 애니메이션 :: 카메라
 GLvoid RotatingCamera(int isAnim);
 
 // 애니메이션 :: 변수
-
 GLvoid CheckCollision();
 bool CheckCollisionByBox(float x, float y, float z);
+
+bool isLight = true;
 
 // pre 위치
 GLfloat prevPivot[3];
@@ -66,8 +71,11 @@ int y_dir = 1, z_dir = 1;
 glm::vec3 CameraPos = glm::vec3(0.5f, 0.5f, 0.0f);
 glm::vec3 AT = glm::vec3(0.0f, 0.0f, 0.0f);
 
-glm::vec3 LightPos = glm::vec3(-1.0f, 1.0f, 0.0f);
+glm::vec3 LightPos = glm::vec3(2.0f, 0.0f, 0.0f);
 
+float roatingLightDir = 1.0f;
+bool isShowCube = true;
+bool rotatingLight = false;
 bool rotatingCarmera = false;
 bool rotatingCamera_z = false;
 float rotatingCameraRate = 0.0f;
@@ -166,6 +174,14 @@ GLvoid Reset()
 	ObjMgr.CreateCube(0.0f, 1.0f, 0.0f);
 	ObjMgr.SetScale(1, 0.1f, 0.1f, 0.1f);
 
+	ObjMgr.CreateSquarePyramid();
+	ObjMgr.SetScale(2, 0.1f, 0.1f, 0.1f);
+	ObjMgr.SetActive(2, false);
+
+	/*ObjMgr.CreateCube(0.0f, 1.0f, 0.0f);
+	ObjMgr.SetScale(3, 0.05f, 0.05f, 0.05f);
+	ObjMgr.SetPosition(3, LightPos.x, LightPos.y, LightPos.z);*/
+
 	CameraPos = glm::vec3(0.6f, 0.3f, 0.5f);
 }
 
@@ -252,7 +268,8 @@ GLvoid drawLight()
 	unsigned int lightPosLocation = glGetUniformLocation(ShaderProgram, "lightPos"); //--- lightPos 값 전달: (0.0, 0.0, 5.0);
 	glUniform3f(lightPosLocation, LightPos.x, LightPos.y, LightPos.z);
 	unsigned int lightColorLocation = glGetUniformLocation(ShaderProgram, "lightColor"); //--- lightColor 값 전달: (1.0, 1.0, 1.0) 백색
-	glUniform3f(lightColorLocation, 1.0, 1.0, 1.0);
+	if(isLight) glUniform3f(lightColorLocation, 1.0, 1.0, 1.0);
+	else glUniform3f(lightColorLocation, 0.5, 0.5, 0.5);
 	unsigned int objColorLocation = glGetUniformLocation(ShaderProgram, "objectColor"); //--- object Color값 전달: (1.0, 0.5, 0.3)의 색
 	glUniform3f(objColorLocation, 0.0, 1.0, 0.0);
 	unsigned int viewPosLocation = glGetUniformLocation(ShaderProgram, "viewPos"); //--- viewPos 값 전달: 카메라 위치
@@ -353,6 +370,17 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 GLvoid StopAllAnim()
 {
 	rotatingCarmera = false;
+	rotatingLight = false;
+}
+
+GLvoid RotatingFigure(int idx)
+{
+
+	ObjMgr.Rotate(idx, 0.0f, 1.0f, 0.0f);
+
+	glutPostRedisplay();
+
+	if (isRotatingFigure) glutTimerFunc(30, RotatingFigure, isRotatingFigure);
 }
 
 float angle_camera = 0;
@@ -369,6 +397,23 @@ GLvoid RotatingCamera(int isAnim)
 	if (rotatingCarmera) glutTimerFunc(30, RotatingCamera, rotatingCarmera);
 }
 
+float angle_light = 0;
+GLvoid RotatingLight(int isAnim)
+{
+	float radius = 0.5f;
+	LightPos.x = sin(angle_light) * radius * roatingLightDir;
+	LightPos.z = cos(angle_light) * radius;
+
+	angle_light += 0.03f;
+
+	//ObjMgr.SetPosition(3, LightPos.x, LightPos.y, LightPos.z);
+
+	glutPostRedisplay();
+
+	if (rotatingLight) glutTimerFunc(30, RotatingLight, rotatingLight);
+}
+
+
 void Keyboard(unsigned char key, int x, int y)
 {
 	float force_x, force_y, force_z;
@@ -382,21 +427,60 @@ void Keyboard(unsigned char key, int x, int y)
 		if (isDepthTest) isDepthTest = false;
 		else isDepthTest = true;
 		break;
+	case 'N':
+	case 'n':
+	// 육면체/사각뿔
+		if (isShowCube)
+		{
+			isShowCube = false;
+			ObjMgr.SetActive(1, false);
+			ObjMgr.SetActive(2, true);
+			figure_idx = 2;
+		}
+		else
+		{
+			isShowCube = true;
+			ObjMgr.SetActive(1, true);
+			ObjMgr.SetActive(2, false);
+			figure_idx = 1;
+		}
+		break;
+	// 조명 켜기/끄기
+	case 'M':
+	case 'm':
+		if (isLight) isLight = false;
+		else isLight = true;
+		break;
 	// 조명 이동
 	case 'Z':
-		LightPos.x += 0.5f;
+		LightPos.z += 0.5f;
 		break;
 	case 'z':
-		LightPos.x -= 0.5f;
+		LightPos.z -= 0.5f;
 		break;
 	case 'X':
-		LightPos.y += 0.5f;
+		LightPos.x += 0.5f;
 		break;
 	case 'x':
+		LightPos.x -= 0.5f;
+		break;
+	case 'C':
+		LightPos.y += 0.5f;
+		break;
+	case 'c':
 		LightPos.y -= 0.5f;
 		break;
 	case 'Y':
 	case 'y':
+		if (isRotatingFigure) isRotatingFigure = false;
+		else if (isRotatingFigure == false) { isRotatingFigure = true; }
+		if (isRotatingFigure) glutTimerFunc(30, RotatingFigure, figure_idx);
+		break;
+	case 'R':
+	case 'r':
+		if (rotatingLight) rotatingLight = false;
+		else if (rotatingLight == false) { rotatingLight = true; roatingLightDir *= (-1.0f); }
+		if (rotatingLight) glutTimerFunc(30, RotatingLight, rotatingLight);
 		break;
 	case 'P':
 	case 'p':
@@ -412,6 +496,8 @@ void Keyboard(unsigned char key, int x, int y)
 	default:
 		break;
 	}
+
+	//ObjMgr.SetPosition(3, LightPos.x, LightPos.y, LightPos.z);
 
 	glutPostRedisplay();
 }

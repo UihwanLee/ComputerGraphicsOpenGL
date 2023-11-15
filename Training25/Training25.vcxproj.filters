@@ -18,10 +18,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="fragment.glsl">
+    <None Include="vertex.glsl">
       <Filter>리소스 파일\Shader</Filter>
     </None>
-    <None Include="vertex.glsl">
+    <None Include="fragment.glsl">
       <Filter>리소스 파일\Shader</Filter>
     </None>
   </ItemGroup>

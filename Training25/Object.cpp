@@ -31,15 +31,15 @@ GLfloat Object::CubeVertexs[24] = {
 };
 
 GLfloat Object::CubeNormal[24] = {
-			0.0f,  0.0f, -1.0f,	//0번점
-			0.0f,  0.0f, -1.0f,	//1번점
-			0.0f,  0.0f, -1.0f,	//2번점
-			0.0f,  0.0f, -1.0f,	//3번점
+			0.0f,  1.0f, 0.0f,	//0번점
+			0.0f,  1.0f, 0.0f,	//1번점
+			0.0f,  1.0f, 0.0f,	//2번점
+			0.0f,  1.0f, 0.0f,	//3번점
 
-			0.0f,  0.0f, -1.0f,  //4번점
-			0.0f,  0.0f, -1.0f,  //5번점
-			0.0f,  0.0f, -1.0f,  //6번점
-			0.0f,  0.0f, -1.0f,  //7번점
+			0.0f,  1.0f, 0.0f,  //4번점
+			0.0f,  1.0f, 0.0f,  //5번점
+			0.0f,  1.0f, 0.0f,  //6번점
+			0.0f,  1.0f, 0.0f,  //7번점
 };
 
 GLint Object::CubeIndexs[36] =
@@ -96,13 +96,13 @@ GLfloat Object::SquarePyramidVertexs[15] =
 	0.5f, -0.5f, -0.5f,		// 밑면
 };
 
-GLfloat Object::SquarePyramidColors[15] =
+GLfloat Object::SquarePyramidNormal[15] =
 {
-	1.0f, 1.0f, 1.0f,
-	1.0f, 0.0f, 1.0f,  //4번점
-	0.0f, 0.0f, 1.0f,  //5번점
-	0.0f, 0.0f, 0.0f,  //6번점
-	1.0f, 0.0f, 0.0f,  //7번점
+	0.0f, 0.0f, -1.0f,
+	0.0f, 0.0f, -1.0f,  //4번점
+	0.0f, 0.0f, -1.0f,  //5번점
+	0.0f, 0.0f, -1.0f,  //6번점
+	0.0f, 0.0f, -1.0f,  //7번점
 };
 
 GLint Object::SquarePyramidIndexs[18] =
