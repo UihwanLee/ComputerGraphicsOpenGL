@@ -17,6 +17,15 @@ typedef struct ObjectInfo
 	float		m_scale[3];
 	float		m_vel[3];
 	float		m_mass;
+	vector<unsigned int> vertexIndices, uvIndices, normalIndices;
+	vector<glm::vec3> temp_vertices;
+	vector<glm::vec2> temp_uvs;
+	vector<glm::vec3> temp_normals;
+
+	vector<glm::vec3> vertices;
+	vector<glm::vec2> uvs;
+	vector<glm::vec3> normals;
+
 	GLfloat* m_pos;
 	GLfloat* m_col;
 	GLint* m_inex;
@@ -55,19 +64,7 @@ public:
 	int GetRandomIntValue(GLfloat min, GLfloat max);
 	GLfloat GetRandomFloatValue(GLfloat min, GLfloat max);
 
-	void CreateCoordinate();
-	void CreateCube(float x, float y, float z);
-	void CreateCubeFace(int face, float x, float y, float z);
-	void CreateTetrahedron();
-	void CreateSquarePyramid();
-	void CreateSquarePyramidFace(int face);
-	void CreateSquarePyramidBottom();
-	void CreateCone();
-	void CreateSqhere(float x, float y, float z);
-	void CreateCylinder(float x, float y, float z);
-
-	void CreateOrbit(float orbit_radius);
-	void CreateOrbit2(float orbit_radius, float dir);
+	void LoadCube();
 
 	void SetChangeActive(int mode);
 	void ChangeWireSolidType();
@@ -89,13 +86,9 @@ public:
 	void Rotate(int idx, float x, float y, float z);
 	void Scale(int idx, float x, float y, float z);
 
-	void AddForce(int idx, float x, float y, float z, float elapsedTime);
-	void UpdatePos(int idx, float elapsedTime);
-
-	// 자식 설정
-	void SetChild(int idx, int idx_child);
-
 	void Reset();
+
+	bool RoadObj(const char* file, ObjectInfo* objInfo);
 };
 
 

@@ -25,8 +25,8 @@ public:
 	static GLfloat	CoordinateColors[18];
 
 	// 정육면체
-	static GLfloat	CubeVertexs[24];
-	static GLfloat	CubeNormal[24];
+	static GLfloat	CubeVertexs[108];
+	static GLfloat	CubeNormal[108];
 	static GLint	CubeIndexs[36];
 
 	// 정사면체

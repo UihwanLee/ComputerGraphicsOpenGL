@@ -1,5 +1,7 @@
 #include "ObjectManager.h"
 
+#define _CRT_SECURE_NO_WARNINGS
+
 ObjectManager::ObjectManager()
 {
 
@@ -86,446 +88,56 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 	objInfo->m_model = glm::mat4(1.0f);
 }
 
-void ObjectManager::CreateCoordinate()
+GLvoid InitObject(ObjectInfo* objInfo, int drawType, bool modeIDX, bool isActive)
 {
-	temp.m_pos = new GLfloat[18];
-	temp.m_col = new GLfloat[18];
+	objInfo->m_DRAW_TYPE = drawType;
 
-	for (int i = 0; i < 18; i++)	temp.m_pos[i] = Object::CoordinateVertexs[i];
-	for (int i = 0; i < 18; i++)	temp.m_col[i] = Object::CoordinateColors[i];
+	objInfo->m_pivot[0] = 0.0f;
+	objInfo->m_pivot[1] = 0.0f;
+	objInfo->m_pivot[2] = 0.0f;
 
-	InitObjectStruct(&temp, 6, 72, 0, 0, GL_LINES, false, false, true);
+	objInfo->m_rotate[0] = 0.0f;
+	objInfo->m_rotate[1] = 0.0f;
+	objInfo->m_rotate[2] = 0.0f;
 
-	m_ObjectList.emplace_back(temp);
+	objInfo->m_scale[0] = 0.5f;
+	objInfo->m_scale[1] = 0.5f;
+	objInfo->m_scale[2] = 0.5f;
+
+	objInfo->m_isActive = isActive;
+
+	objInfo->m_isModeIDX = modeIDX;
+
+	objInfo->m_model = glm::mat4(1.0f);
 }
 
-void ObjectManager::CreateCube(float x, float y, float z)
+void ObjectManager::LoadCube()
 {
-	temp.m_pos = new GLfloat[24];
-	temp.m_inex = new GLint[36];
-	temp.m_col = new GLfloat[24];
 
-	for (int i = 0; i < 24; i++)	temp.m_pos[i] = Object::CubeVertexs[i];
-	for (int i = 0; i < 36; i++)	temp.m_inex[i] = Object::CubeIndexs[i];
-
-	// x = 0.0f, y = 0.0f, z = 0.0f이면 기본 색깔 지정
-	if (x == 0.0f && y == 0.0f && z == 0.0f)
-	{
-		for (int i = 0; i < 24; i++)	temp.m_col[i] = Object::CubeNormal[i];
-	}
-	else
-	{
-		for (int i = 0; i < 24; i++)
-		{
-			if (i % 3 == 0) temp.m_col[i] = x;
-			if (i % 3 == 1)	temp.m_col[i] = y;
-			if (i % 3 == 2)	temp.m_col[i] = z;
-		}
+	RoadObj("cube.txt", &temp);
+	
+	// vertexs
+	for (unsigned int i = 0; i < temp.vertexIndices.size(); i++) {
+		unsigned int vertexIndex = temp.vertexIndices[i];
+		glm::vec3 vertex = temp.temp_vertices[vertexIndex - 1];
+		temp.vertices.push_back(vertex);
 	}
 
-	InitObjectStruct(&temp, 36, 96, 144, 8, GL_TRIANGLES, true, false, true);
-
-	m_ObjectList.emplace_back(temp);
-}
-
-void ObjectManager::CreateCubeFace(int face, float x, float y, float z)
-{
-	// 육면체의 특정 면을 오브젝트로 생성
-	temp.m_pos = new GLfloat[12];
-	temp.m_inex = new GLint[6];
-	temp.m_col = new GLfloat[12];
-
-	// 생성하려는 면에 따라 4개의 점 나누기
-	int point01, point02, point03, point04;
-	point01 = point02 = point03 = point04 = 0;
-	if (face == 0) { point01 = 0; point02 = 1; point03 = 2; point04 = 3; }
-	else if (face == 1) { point01 = 1; point02 = 5; point03 = 6; point04 = 2; }
-	else if (face == 2) { point01 = 2; point02 = 6; point03 = 7; point04 = 3; }
-	else if (face == 3) { point01 = 3; point02 = 0; point03 = 4; point04 = 7; }
-	else if (face == 4) { point01 = 0; point02 = 1; point03 = 5; point04 = 4; }
-	else if (face == 5) { point01 = 4; point02 = 5; point03 = 6; point04 = 7; }
-
-	bool isColor = (x == 0.0f && y == 0.0f && z == 0.0f) ? false : true;
-
-	int temp_idx = 0;
-	for (int i = point01 * 3; i < (point01 * 3) + 3; i++)
-	{
-		temp.m_pos[temp_idx] = Object::CubeVertexs[i];
-		temp.m_col[temp_idx++] = Object::CubeNormal[i];
-	}
-	for (int i = point02 * 3; i < (point02 * 3) + 3; i++)
-	{
-		temp.m_pos[temp_idx] = Object::CubeVertexs[i];
-		temp.m_col[temp_idx++] = Object::CubeNormal[i];
-	}
-	for (int i = point03 * 3; i < (point03 * 3) + 3; i++)
-	{
-		temp.m_pos[temp_idx] = Object::CubeVertexs[i];
-		temp.m_col[temp_idx++] = Object::CubeNormal[i];
-	}
-	for (int i = point04 * 3; i < (point04 * 3) + 3; i++)
-	{
-		temp.m_pos[temp_idx] = Object::CubeVertexs[i];
-		temp.m_col[temp_idx++] = Object::CubeNormal[i];
+	// uvs
+	for (unsigned int i = 0; i < temp.uvIndices.size(); i++) {
+		unsigned int uvIndex = temp.uvIndices[i];
+		glm::vec2 uv = temp.temp_uvs[uvIndex - 1];
+		temp.uvs.push_back(uv);
 	}
 
-	if (face == 0)
-	{
-		for (int i = 0; i < 12; i++)
-		{
-			if (i % 3 == 1) temp.m_pos[i] = 0.0f;
-		}
+	// normals
+	for (unsigned int i = 0; i < temp.normalIndices.size(); i++) {
+		unsigned int normalIndex = temp.normalIndices[i];
+		glm::vec3 normal = temp.temp_normals[normalIndex - 1];
+		temp.normals.push_back(normal);
 	}
 
-	if (isColor)
-	{
-		for (int i = 0; i < 12; i++)
-		{
-			if (i % 3 == 0) temp.m_col[i] = x;
-			if (i % 3 == 1) temp.m_col[i] = y;
-			if (i % 3 == 2) temp.m_col[i] = z;
-		}
-	}
-
-	for (int i = 0; i < 6; i++)
-	{
-		temp.m_inex[i] = Object::CubeIndexs[i];
-	}
-
-	InitObjectStruct(&temp, 6, 48, 24, 4, GL_TRIANGLES, true, false, true);
-
-	m_ObjectList.emplace_back(temp);
-}
-
-void ObjectManager::CreateTetrahedron()
-{
-	// 사면체
-	temp.m_pos = new GLfloat[12];
-	temp.m_inex = new GLint[12];
-	temp.m_col = new GLfloat[12];
-
-	for (int i = 0; i < 12; i++)	temp.m_pos[i] = Object::TetrahedronVertexs[i];
-	for (int i = 0; i < 12; i++)	temp.m_inex[i] = Object::TetrahedronIndexs[i];
-	for (int i = 0; i < 12; i++)	temp.m_col[i] = Object::TetrahedronColors[i];
-
-	InitObjectStruct(&temp, 12, 48, 48, 4, GL_TRIANGLES, true, false, true);
-
-	m_ObjectList.emplace_back(temp);
-}
-
-void ObjectManager::CreateSquarePyramid()
-{
-	// 사각뿔
-	temp.m_pos = new GLfloat[15];
-	temp.m_inex = new GLint[18];
-	temp.m_col = new GLfloat[15];
-
-	for (int i = 0; i < 15; i++)	temp.m_pos[i] = Object::SquarePyramidVertexs[i];
-	for (int i = 0; i < 18; i++)	temp.m_inex[i] = Object::SquarePyramidIndexs[i];
-	for (int i = 0; i < 15; i++)	temp.m_col[i] = Object::SquarePyramidNormal[i];
-
-	InitObjectStruct(&temp, 18, 72, 72, 5, GL_TRIANGLES, true, false, true);
-
-	m_ObjectList.emplace_back(temp);
-}
-
-void ObjectManager::CreateSquarePyramidFace(int face)
-{
-	temp.m_pos = new GLfloat[9];
-	temp.m_inex = new GLint[3];
-	temp.m_col = new GLfloat[9];
-
-	// 생성하려는 면에 따라 3개의 점 나누기
-	int point01, point02, point03;
-	point01 = point02 = point03 = 0;
-	if (face == 0) { point01 = 0; point02 = 1; point03 = 2; }
-	else if (face == 1) { point01 = 0; point02 = 2; point03 = 3; }
-	else if (face == 2) { point01 = 0; point02 = 4; point03 = 1; }
-	else if (face == 3) { point01 = 0; point02 = 3; point03 = 4; }
-
-	int temp_idx = 0;
-	for (int i = point01 * 3; i < (point01 * 3) + 3; i++)
-	{
-		temp.m_pos[temp_idx] = Object::SquarePyramidVertexs[i];
-		temp.m_col[temp_idx++] = Object::SquarePyramidNormal[i];
-	}
-	for (int i = point02 * 3; i < (point02 * 3) + 3; i++)
-	{
-		temp.m_pos[temp_idx] = Object::SquarePyramidVertexs[i];
-		temp.m_col[temp_idx++] = Object::SquarePyramidNormal[i];
-	}
-	for (int i = point03 * 3; i < (point03 * 3) + 3; i++)
-	{
-		temp.m_pos[temp_idx] = Object::SquarePyramidVertexs[i];
-		temp.m_col[temp_idx++] = Object::SquarePyramidNormal[i];
-	}
-
-	for (int i = 0; i < 3; i++)
-	{
-		temp.m_inex[i] = Object::SquarePyramidIndexs[i];
-	}
-
-	InitObjectStruct(&temp, 3, 36, 12, 3, GL_TRIANGLES, true, false, true);
-
-	m_ObjectList.emplace_back(temp);
-}
-
-void ObjectManager::CreateSquarePyramidBottom()
-{
-	temp.m_pos = new GLfloat[12];
-	temp.m_inex = new GLint[6];
-	temp.m_col = new GLfloat[12];
-
-	for (int i = 3; i < 15; i++)
-	{
-		temp.m_pos[i] = Object::SquarePyramidVertexs[i];
-		temp.m_col[i] = Object::SquarePyramidNormal[i];
-	}
-
-	for (int i = 12; i < 18; i++)
-	{
-		temp.m_inex[i] = Object::SquarePyramidIndexs[i];
-	}
-
-	InitObjectStruct(&temp, 6, 48, 24, 4, GL_TRIANGLES, true, false, true);
-
-	m_ObjectList.emplace_back(temp);
-}
-
-void ObjectManager::CreateCone()
-{
-	std::vector<float> vertices;
-	std::vector<unsigned int> indices;
-
-	// 원뿔의 정점과 인덱스 생성
-	vertices.push_back(0.0f);  // 원뿔의 꼭대기
-	vertices.push_back(CONE_HEIGHT);
-	vertices.push_back(0.0f);
-
-	for (int i = 0; i <= SLICES; ++i) {
-		float theta = static_cast<float>(i) * 2.0f * PI / SLICES;
-		float x = RADIUS * cos(theta);
-		float z = RADIUS * sin(theta);
-		vertices.push_back(x);
-		vertices.push_back(0.0f);
-		vertices.push_back(z);
-
-		if (i < SLICES) {
-			indices.push_back(0);
-			indices.push_back(i + 1);
-			indices.push_back(i + 2);
-		}
-	}
-
-	// 원뿔
-	temp.m_pos = new GLfloat[SIZE_CONE_VERTEX];
-	temp.m_inex = new GLint[SIZE_CONE_INDEX];
-	temp.m_col = new GLfloat[SIZE_CONE_VERTEX];
-
-	for (int i = 0; i < vertices.size(); i++)	temp.m_pos[i] = vertices[i];
-	for (int i = 0; i < vertices.size(); i++)	temp.m_col[i] = Object::ConeColors[i];
-	for (int i = 0; i < indices.size(); i++)	temp.m_inex[i] = indices[i];
-
-	InitObjectStruct(&temp, SIZE_CONE_INDEX, 12 * (SIZE_CONE_VERTEX / 3), 12 * (SIZE_CONE_INDEX / 3), 0, GL_TRIANGLES, true, false, true);
-
-	m_ObjectList.emplace_back(temp);
-}
-
-void ObjectManager::CreateSqhere(float x, float y, float z)
-{
-	std::vector<float> vertices;
-	std::vector<unsigned int> indices;
-
-	// 구의 정점과 인덱스 생성
-	for (int i = 0; i <= STACKS; ++i) {
-		float phi = static_cast<float>(i) * PI / STACKS;
-		for (int j = 0; j <= SLICES; ++j) {
-			float theta = static_cast<float>(j) * 2.0f * PI / SLICES;
-			float x = RADIUS * sin(phi) * cos(theta);
-			float y = RADIUS * cos(phi);
-			float z = RADIUS * sin(phi) * sin(theta);
-			vertices.push_back(x);
-			vertices.push_back(y);
-			vertices.push_back(z);
-		}
-	}
-
-	for (int i = 0; i < STACKS; ++i) {
-		for (int j = 0; j < STACKS; ++j) {
-			int first = i * (SLICES + 1) + j;
-			int second = first + SLICES + 1;
-			indices.push_back(first);
-			indices.push_back(second);
-			indices.push_back(first + 1);
-
-			indices.push_back(second);
-			indices.push_back(second + 1);
-			indices.push_back(first + 1);
-		}
-	}
-
-	// 원
-	temp.m_pos = new GLfloat[SIZE_SQHERE_VERTEX];
-	temp.m_inex = new GLint[SIZE_SQHERE_INDEX];
-	temp.m_col = new GLfloat[SIZE_SQHERE_VERTEX];
-
-	for (int i = 0; i < vertices.size(); i++)	temp.m_pos[i] = vertices[i];
-	for (int i = 0; i < vertices.size(); i++)
-	{
-		if (i % 3 == 0) temp.m_col[i] = x;
-		if (i % 3 == 1)temp.m_col[i] = y;
-		if (i % 3 == 2)temp.m_col[i] = z;
-	}
-	for (int i = 0; i < indices.size(); i++)	temp.m_inex[i] = indices[i];
-
-	InitObjectStruct(&temp, SIZE_SQHERE_INDEX, 12 * (SIZE_SQHERE_VERTEX / 3), 12 * (SIZE_SQHERE_INDEX / 3), 0, GL_TRIANGLES, true, false, true);
-
-	m_ObjectList.emplace_back(temp);
-}
-
-void ObjectManager::CreateCylinder(float x, float y, float z)
-{
-	const float height = 1.0f;
-	const float radius = 0.5f;
-	const int sectors = 360;
-	const int stacks = 1; // 한 번만 쌓음으로 원기둥으로 만듦
-
-	vector<GLfloat> vertices;
-	vector<GLuint> indices;
-
-	for (int i = 0; i <= stacks; ++i)
-	{
-		float stackHeight = height * static_cast<float>(i) / stacks;
-		for (int j = 0; j <= sectors; ++j)
-		{
-			float theta = glm::radians(static_cast<float>(j));
-			float x = radius * cos(theta);
-			float z = radius * sin(theta);
-
-			// 좌표
-			vertices.push_back(x);
-			vertices.push_back(stackHeight);
-			vertices.push_back(z);
-
-			// 인덱스
-			if (i < stacks && j < sectors)
-			{
-				int currentIdx = i * (sectors + 1) + j;
-				int nextIdx = (i + 1) * (sectors + 1) + j;
-
-				indices.push_back(currentIdx);
-				indices.push_back(nextIdx);
-				indices.push_back(currentIdx + 1);
-
-				indices.push_back(nextIdx);
-				indices.push_back(nextIdx + 1);
-				indices.push_back(currentIdx + 1);
-			}
-		}
-	}
-
-	temp.m_pos = new GLfloat[SIZE_CYLINDER_VERTEX];
-	temp.m_inex = new GLint[SIZE_CYLINDER_INDEX];
-	temp.m_col = new GLfloat[SIZE_CYLINDER_VERTEX];
-
-	cout << vertices.size() << endl;
-	cout << indices.size() << endl;
-
-	for (int i = 0; i < vertices.size(); i++)	temp.m_pos[i] = vertices[i];
-	for (int i = 0; i < vertices.size(); i++)
-	{
-		if (i % 3 == 0) temp.m_col[i] = x;
-		if (i % 3 == 1)temp.m_col[i] = y;
-		if (i % 3 == 2)temp.m_col[i] = z;
-	}
-	for (int i = 0; i < indices.size(); i++)	temp.m_inex[i] = indices[i];
-
-	InitObjectStruct(&temp, SIZE_CYLINDER_INDEX, 12 * (SIZE_CYLINDER_VERTEX / 3), 12 * (SIZE_CYLINDER_INDEX / 3), 0, GL_TRIANGLES, true, false, true);
-
-	m_ObjectList.emplace_back(temp);
-}
-
-
-void ObjectManager::CreateOrbit(float orbit_radius)
-{
-	const int numPoints = 100;  // 궤도를 구성하는 점의 수
-	const float radius = orbit_radius;  // 반지름 크기
-
-	// 궤도를 그리기 위한 배열 초기화
-	std::vector<GLfloat> vertices;  // 궤도의 점들을 저장할 배열
-	std::vector<GLfloat> colors;    // 각 점의 색상을 저장할 배열
-	std::vector<GLuint> indices;    // 궤도를 그리기 위한 인덱스 배열
-
-	for (int i = 0; i < numPoints; ++i) {
-		float angle = 2.0f * PI * i / numPoints;
-		float x = radius * cos(angle);
-		float y = radius * sin(angle);
-
-		vertices.push_back(x);
-		vertices.push_back(0.0f);
-		vertices.push_back(y);
-
-		colors.push_back(0.0f);
-		colors.push_back(0.0f);
-		colors.push_back(0.0f);
-
-		indices.push_back(i);
-	}
-
-	// 궤도
-	temp.m_pos = new GLfloat[vertices.size()];
-	temp.m_inex = new GLint[indices.size()];
-	temp.m_col = new GLfloat[vertices.size()];
-
-	for (int i = 0; i < numPoints; i++) temp.m_inex[i] = indices[i];
-	for (int i = 0; i < vertices.size(); i++) temp.m_pos[i] = vertices[i];
-	for (int i = 0; i < vertices.size(); i++) temp.m_col[i] = colors[i];
-
-	InitObjectStruct(&temp, indices.size(), 12 * (vertices.size() / 3), 12 * (indices.size() / 3), 0, GL_LINE_LOOP, true, false, true);
-
-	m_ObjectList.emplace_back(temp);
-}
-
-void ObjectManager::CreateOrbit2(float orbit_radius, float dir)
-{
-	const int numPoints = 100;  // 궤도를 구성하는 점의 수
-	const float radius = orbit_radius;  // 반지름 크기
-
-	// 궤도를 그리기 위한 배열 초기화
-	std::vector<GLfloat> vertices;  // 궤도의 점들을 저장할 배열
-	std::vector<GLfloat> colors;    // 각 점의 색상을 저장할 배열
-	std::vector<GLuint> indices;    // 궤도를 그리기 위한 인덱스 배열
-
-	for (int i = 0; i < numPoints; ++i) {
-		float angle = 2.0f * PI * i / numPoints;
-
-		angle += glm::radians(45.0f);
-
-		float x = radius * cos(angle);
-		float y = radius * sin(angle);
-		float z = radius * sin(angle);
-
-		vertices.push_back(x);
-		vertices.push_back(y * dir);
-		vertices.push_back(z);
-
-		colors.push_back(0.0f);
-		colors.push_back(0.0f);
-		colors.push_back(0.0f);
-
-		indices.push_back(i);
-	}
-
-	// 궤도
-	temp.m_pos = new GLfloat[vertices.size()];
-	temp.m_inex = new GLint[indices.size()];
-	temp.m_col = new GLfloat[vertices.size()];
-
-	for (int i = 0; i < numPoints; i++) temp.m_inex[i] = indices[i];
-	for (int i = 0; i < vertices.size(); i++) temp.m_pos[i] = vertices[i];
-	for (int i = 0; i < vertices.size(); i++) temp.m_col[i] = colors[i];
-
-	InitObjectStruct(&temp, indices.size(), 12 * (vertices.size() / 3), 12 * (indices.size() / 3), 0, GL_LINE_LOOP, true, false, true);
+	InitObject(&temp, GL_TRIANGLES, true, true);
 
 	m_ObjectList.emplace_back(temp);
 }
@@ -619,7 +231,7 @@ glm::mat4 ObjectManager::TransformModel(int idx)
 
 void ObjectManager::SetPosition(int idx, float x, float y, float z)
 {
-	if (m_ObjectList.empty() || idx == 0) return;
+	if (m_ObjectList.empty()) return;
 
 	m_ObjectList[idx].m_pivot[0] = x;
 	m_ObjectList[idx].m_pivot[1] = y;
@@ -628,7 +240,7 @@ void ObjectManager::SetPosition(int idx, float x, float y, float z)
 
 void ObjectManager::SetRotate(int idx, float x, float y, float z)
 {
-	if (m_ObjectList.empty() || idx == 0) return;
+	if (m_ObjectList.empty()) return;
 
 	m_ObjectList[idx].m_rotate[0] = x;
 	m_ObjectList[idx].m_rotate[1] = y;
@@ -637,7 +249,7 @@ void ObjectManager::SetRotate(int idx, float x, float y, float z)
 
 void ObjectManager::SetScale(int idx, float x, float y, float z)
 {
-	if (m_ObjectList.empty() || idx == 0) return;
+	if (m_ObjectList.empty()) return;
 
 	m_ObjectList[idx].m_scale[0] = x;
 	m_ObjectList[idx].m_scale[1] = y;
@@ -716,119 +328,67 @@ void ObjectManager::Scale(int idx, float x, float y, float z)
 	m_ObjectList[idx].m_mass = (mass_x * 100) * (mass_y * 100) * (mass_z * 100);
 }
 
-void ObjectManager::AddForce(int idx, float x, float y, float z, float elapsedTime)
-{
-	float m_mass = m_ObjectList[idx].m_mass;
-
-	float accX = x / 1.0f;
-	float accY = y / 1.0f;
-	float accZ = z / 1.0f;
-
-	m_ObjectList[idx].m_vel[0] = m_ObjectList[idx].m_vel[0] + accX * elapsedTime;
-	m_ObjectList[idx].m_vel[1] = m_ObjectList[idx].m_vel[1] + accY * elapsedTime;
-	m_ObjectList[idx].m_vel[2] = m_ObjectList[idx].m_vel[2] + accZ * elapsedTime;
-}
-
-void ObjectManager::UpdatePos(int idx, float elapsedTime)
-{
-	float m_mass = 1.0f;
-
-	float m_velX = m_ObjectList[idx].m_vel[0];
-	float m_velY = m_ObjectList[idx].m_vel[1];
-	float m_velZ = m_ObjectList[idx].m_vel[2];
-
-	float normalForce = m_mass * GRAVITY;
-
-	float frictionCoef = 50.f;
-
-	float friction = frictionCoef * normalForce;
-
-	float frictionDirX = -m_velX;
-	float frictionDirZ = -m_velZ;
-
-	float mag = sqrtf(frictionDirX * frictionDirX + frictionDirZ * frictionDirZ);
-
-
-	if (mag > FLT_EPSILON)
-	{
-		frictionDirX = frictionDirX / mag;
-		frictionDirZ = frictionDirZ / mag;
-
-		float frictionForceX = frictionDirX * friction;
-		float frictionForceZ = frictionDirZ * friction;
-
-		float frictionAccX = frictionForceX / m_mass;
-		float frictionAccZ = frictionForceZ / m_mass;
-
-		float resultVelX = m_velX + frictionAccX * elapsedTime;
-		float resultVelZ = m_velY + frictionAccZ * elapsedTime;
-		float resultVelY = m_velY;
-
-		//cout << resultVelX << ", " << resultVelZ << endl;
-
-		if (resultVelX * m_velX < 0.f)
-		{
-			m_velX = 0.f;
-		}
-		else
-		{
-			m_velX = resultVelX;
-		}
-
-		if (resultVelY * m_velY < 0.f)
-		{
-			m_velY = 0.f;
-		}
-		else
-		{
-			m_velY = resultVelY;
-		}
-
-		if (resultVelZ * m_velZ < 0.f)
-		{
-			m_velZ = 0.f;
-		}
-		else
-		{
-			m_velZ = resultVelZ;
-
-			cout << m_velZ << endl;
-		}
-	}
-
-	m_ObjectList[idx].m_vel[0] = m_velX;
-	m_ObjectList[idx].m_vel[1] = m_velY;
-	m_ObjectList[idx].m_vel[2] = m_velZ;
-
-	m_ObjectList[idx].m_pivot[0] = m_ObjectList[idx].m_pivot[0] + m_velX * elapsedTime;
-	m_ObjectList[idx].m_pivot[1] = m_ObjectList[idx].m_pivot[1] + m_velY * elapsedTime;
-	m_ObjectList[idx].m_pivot[2] = m_ObjectList[idx].m_pivot[2] + m_velZ * elapsedTime;
-
-	//cout << m_velX << ", " << m_velZ << endl;
-
-	if (m_ObjectList[idx].m_pivot[1] < -1.0f)
-	{
-		m_ObjectList[idx].m_pivot[1] = -1.0f;
-	}
-}
-
-void MoveAxisObject(GLfloat* posList, int SIZE, int startIDX, float moveDist)
-{
-	for (int i = 0; i < SIZE; i++)
-	{
-		posList[startIDX] += moveDist;
-		startIDX += 3;
-	}
-}
-
-void ObjectManager::SetChild(int idx, int idx_child)
-{
-	m_ObjectList[idx].m_child.emplace_back(idx_child);
-}
-
 void ObjectManager::Reset()
 {
 	m_ObjectList.clear();
+}
+
+bool ObjectManager::RoadObj(const char* file_name, ObjectInfo* objInfo)
+{
+	char bind[128];
+
+	FILE* file;
+	fopen_s(&file, file_name, "r");
+
+	if (file == NULL) {
+		printf("Impossible to open the file !\n");
+		return false;
+	}
+
+	while (!feof(file)) {
+
+		// read the first word of the line
+		fscanf_s(file, "%s", bind, sizeof(bind));
+
+		if (bind[0] == 'v' && bind[1] == '\0') {
+			glm::vec3 vertex;
+			fscanf_s(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
+			objInfo->temp_vertices.push_back(vertex);
+		}
+		if ((bind[0] == 'v' && bind[1] == 't' && bind[2] == '\0')) {
+			glm::vec2 uv;
+			fscanf_s(file, "%f %f\n", &uv.x, &uv.y);
+			objInfo->temp_uvs.push_back(uv);
+		}
+		if ((bind[0] == 'v' && bind[1] == 'n' && bind[2] == '\0')) {
+			glm::vec3 normal;
+			fscanf_s(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
+			objInfo->temp_normals.push_back(normal);
+		}
+		if (bind[0] == 'f' && bind[1] == '\0') {
+			std::string vertex1, vertex2, vertex3;
+			unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
+			int matches = fscanf_s(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n",
+				&vertexIndex[0], &uvIndex[0], &normalIndex[0],
+				&vertexIndex[1], &uvIndex[1], &normalIndex[1],
+				&vertexIndex[2], &uvIndex[2], &normalIndex[2]);
+			if (matches != 9) {
+				printf("File can't be read by our simple parser : ( Try exporting with other options\n");
+				return false;
+			}
+			objInfo->vertexIndices.push_back(vertexIndex[0]);
+			objInfo->vertexIndices.push_back(vertexIndex[1]);
+			objInfo->vertexIndices.push_back(vertexIndex[2]);
+			objInfo->uvIndices.push_back(uvIndex[0]);
+			objInfo->uvIndices.push_back(uvIndex[1]);
+			objInfo->uvIndices.push_back(uvIndex[2]);
+			objInfo->normalIndices.push_back(normalIndex[0]);
+			objInfo->normalIndices.push_back(normalIndex[1]);
+			objInfo->normalIndices.push_back(normalIndex[2]);
+		}
+	}
+
+	return true;
 }
 
 

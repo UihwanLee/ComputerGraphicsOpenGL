@@ -39,8 +39,7 @@ bool isDepthTest = true;
 
 GLvoid drawLight();
 GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL);
-GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_normal, float* pivot, float* rotateInfo, float* scaleInfo,
-	int NUM_VETEX, int SIZE_NOR, int SIZE_IDX, glm::mat4& model, float* modelInfo, int idx);
+GLvoid DrawObjectByIDX(int DRAW_TYPE, glm::mat4& model, int idx);
 
 // 애니메이션 :: 초기화
 GLvoid StopAllAnim();
@@ -168,19 +167,8 @@ GLvoid Reset()
 	StopAllAnim();
 	ObjMgr.Reset();
 
-	ObjMgr.CreateCoordinate();
-	ObjMgr.SetActive(0, false);
-
-	ObjMgr.CreateCube(0.0f, 1.0f, 0.0f);
-	ObjMgr.SetScale(1, 0.1f, 0.1f, 0.1f);
-
-	ObjMgr.CreateSquarePyramid();
-	ObjMgr.SetScale(2, 0.1f, 0.1f, 0.1f);
-	ObjMgr.SetActive(2, false);
-
-	/*ObjMgr.CreateCube(0.0f, 1.0f, 0.0f);
-	ObjMgr.SetScale(3, 0.05f, 0.05f, 0.05f);
-	ObjMgr.SetPosition(3, LightPos.x, LightPos.y, LightPos.z);*/
+	ObjMgr.LoadCube();
+	ObjMgr.SetScale(0, 0.1f, 0.1f, 0.1f);
 
 	CameraPos = glm::vec3(0.6f, 0.3f, 0.5f);
 }
@@ -282,18 +270,7 @@ GLvoid drawModel()
 	{
 		if (ObjMgr.m_ObjectList[i].m_isActive)
 		{
-			if (ObjMgr.m_ObjectList[i].m_isModeIDX)
-			{
-				DrawObjectByIDX(ObjMgr.m_ObjectList[i].m_DRAW_TYPE, ObjMgr.m_ObjectList[i].m_pos, ObjMgr.m_ObjectList[i].m_inex, ObjMgr.m_ObjectList[i].m_col,
-					ObjMgr.m_ObjectList[i].m_pivot, ObjMgr.m_ObjectList[i].m_rotate, ObjMgr.m_ObjectList[i].m_scale,
-					ObjMgr.m_ObjectList[i].m_num_vertex, ObjMgr.m_ObjectList[i].m_size_pos, ObjMgr.m_ObjectList[i].m_size_idx, ObjMgr.m_ObjectList[i].m_model,
-					ObjMgr.m_ObjectList[i].m_modelInfo, i);
-			}
-			/*else
-			{
-				DrawObjectByArray(ObjMgr.m_ObjectList[i].m_DRAW_TYPE, ObjMgr.m_ObjectList[i].m_pos, ObjMgr.m_ObjectList[i].m_col,
-					ObjMgr.m_ObjectList[i].m_num_vertex, ObjMgr.m_ObjectList[i].m_size_pos);
-			}*/
+			DrawObjectByIDX(ObjMgr.m_ObjectList[i].m_DRAW_TYPE, ObjMgr.m_ObjectList[i].m_model, i);
 		}
 	}
 }
@@ -337,14 +314,10 @@ GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VE
 	glDisableVertexAttribArray(1);
 }
 
-GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_normal, float* pivot, float* rotateInfo, float* scaleInfo,
-	int NUM_VETEX, int SIZE_NOR, int SIZE_IDX, glm::mat4& model, float* modelInfo, int idx)
+GLvoid DrawObjectByIDX(int DRAW_TYPE, glm::mat4& model, int idx)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	glBufferData(GL_ARRAY_BUFFER, SIZE_NOR, obj_pos, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, SIZE_IDX, obj_index, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, ObjMgr.m_ObjectList[idx].vertices.size() * sizeof(glm::vec3), &ObjMgr.m_ObjectList[idx].vertices[0], GL_STATIC_DRAW);
 
 	// 모델변환
 	unsigned int modelLocation = glGetUniformLocation(ShaderProgram, "modelTransform");
@@ -352,16 +325,16 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, void* obj_pos, void* obj_index, void* obj_
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(ObjMgr.m_ObjectList[idx].m_model));
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
-	glBufferData(GL_ARRAY_BUFFER, SIZE_NOR, obj_normal, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, ObjMgr.m_ObjectList[idx].normals.size() * sizeof(glm::vec3), &ObjMgr.m_ObjectList[idx].normals[0], GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
 
 
-	glDrawElements(DRAW_TYPE, NUM_VETEX, GL_UNSIGNED_INT, 0);
+	glDrawArrays(DRAW_TYPE, 0, 64);
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
