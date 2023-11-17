@@ -46,7 +46,7 @@ GLvoid StopAllAnim();
 
 bool isRotatingFigure = false;
 GLvoid RotatingFigure(int idx);
-int figure_idx = 1;
+int figure_idx = 0;
 
 // 애니메이션 :: 카메라
 GLvoid RotatingCamera(int isAnim);
@@ -167,8 +167,12 @@ GLvoid Reset()
 	StopAllAnim();
 	ObjMgr.Reset();
 
-	ObjMgr.LoadCube();
+	ObjMgr.CreateCube(0.0f, 1.0f, 0.0f);
 	ObjMgr.SetScale(0, 0.1f, 0.1f, 0.1f);
+
+	ObjMgr.CreateSquarePyramid(1.0f, 0.0f, 0.0f);
+	ObjMgr.SetScale(1, 0.03f, 0.03f, 0.03f);
+	ObjMgr.SetActive(1, false);
 
 	CameraPos = glm::vec3(0.6f, 0.3f, 0.5f);
 }
@@ -258,8 +262,6 @@ GLvoid drawLight()
 	unsigned int lightColorLocation = glGetUniformLocation(ShaderProgram, "lightColor"); //--- lightColor 값 전달: (1.0, 1.0, 1.0) 백색
 	if(isLight) glUniform3f(lightColorLocation, 1.0, 1.0, 1.0);
 	else glUniform3f(lightColorLocation, 0.5, 0.5, 0.5);
-	unsigned int objColorLocation = glGetUniformLocation(ShaderProgram, "objectColor"); //--- object Color값 전달: (1.0, 0.5, 0.3)의 색
-	glUniform3f(objColorLocation, 0.0, 1.0, 0.0);
 	unsigned int viewPosLocation = glGetUniformLocation(ShaderProgram, "viewPos"); //--- viewPos 값 전달: 카메라 위치
 	glUniform3f(viewPosLocation, 0.0f, 0.0f, 0.0f);
 }
@@ -319,6 +321,9 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, glm::mat4& model, int idx)
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
 	glBufferData(GL_ARRAY_BUFFER, ObjMgr.m_ObjectList[idx].vertices.size() * sizeof(glm::vec3), &ObjMgr.m_ObjectList[idx].vertices[0], GL_STATIC_DRAW);
 
+	unsigned int objColorLocation = glGetUniformLocation(ShaderProgram, "objectColor"); //--- object Color값 전달: (1.0, 0.5, 0.3)의 색
+	glUniform3f(objColorLocation, ObjMgr.m_ObjectList[idx].m_color[0], ObjMgr.m_ObjectList[idx].m_color[1], ObjMgr.m_ObjectList[idx].m_color[2]);
+
 	// 모델변환
 	unsigned int modelLocation = glGetUniformLocation(ShaderProgram, "modelTransform");
 	ObjMgr.m_ObjectList[idx].m_model = ObjMgr.TransformModel(idx);
@@ -348,8 +353,7 @@ GLvoid StopAllAnim()
 
 GLvoid RotatingFigure(int idx)
 {
-
-	ObjMgr.Rotate(idx, 0.0f, 1.0f, 0.0f);
+	ObjMgr.Rotate(idx, 0.0f, 10.0f, 0.0f);
 
 	glutPostRedisplay();
 
@@ -406,16 +410,16 @@ void Keyboard(unsigned char key, int x, int y)
 		if (isShowCube)
 		{
 			isShowCube = false;
-			ObjMgr.SetActive(1, false);
-			ObjMgr.SetActive(2, true);
-			figure_idx = 2;
+			ObjMgr.SetActive(0, false);
+			ObjMgr.SetActive(1, true);
+			figure_idx = 1;
 		}
 		else
 		{
 			isShowCube = true;
-			ObjMgr.SetActive(1, true);
-			ObjMgr.SetActive(2, false);
-			figure_idx = 1;
+			ObjMgr.SetActive(0, true);
+			ObjMgr.SetActive(1, false);
+			figure_idx = 0;
 		}
 		break;
 	// 조명 켜기/끄기

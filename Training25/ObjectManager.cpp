@@ -88,7 +88,7 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 	objInfo->m_model = glm::mat4(1.0f);
 }
 
-GLvoid InitObject(ObjectInfo* objInfo, int drawType, bool modeIDX, bool isActive)
+GLvoid InitObject(ObjectInfo* objInfo, float r, float g, float b, int drawType, bool modeIDX, bool isActive)
 {
 	objInfo->m_DRAW_TYPE = drawType;
 
@@ -104,6 +104,10 @@ GLvoid InitObject(ObjectInfo* objInfo, int drawType, bool modeIDX, bool isActive
 	objInfo->m_scale[1] = 0.5f;
 	objInfo->m_scale[2] = 0.5f;
 
+	objInfo->m_color[0] = r;
+	objInfo->m_color[1] = g;
+	objInfo->m_color[2] = b;
+
 	objInfo->m_isActive = isActive;
 
 	objInfo->m_isModeIDX = modeIDX;
@@ -111,35 +115,66 @@ GLvoid InitObject(ObjectInfo* objInfo, int drawType, bool modeIDX, bool isActive
 	objInfo->m_model = glm::mat4(1.0f);
 }
 
-void ObjectManager::LoadCube()
+void ObjectManager::CreateCube(float r, float g, float b)
 {
-
-	RoadObj("cube.txt", &temp);
+	ObjectInfo temp_obj;
+	RoadObj("cube.txt", &temp_obj);
 	
 	// vertexs
-	for (unsigned int i = 0; i < temp.vertexIndices.size(); i++) {
-		unsigned int vertexIndex = temp.vertexIndices[i];
-		glm::vec3 vertex = temp.temp_vertices[vertexIndex - 1];
-		temp.vertices.push_back(vertex);
+	for (unsigned int i = 0; i < temp_obj.vertexIndices.size(); i++) {
+		unsigned int vertexIndex = temp_obj.vertexIndices[i];
+		glm::vec3 vertex = temp_obj.temp_vertices[vertexIndex - 1];
+		temp_obj.vertices.push_back(vertex);
 	}
 
 	// uvs
-	for (unsigned int i = 0; i < temp.uvIndices.size(); i++) {
-		unsigned int uvIndex = temp.uvIndices[i];
-		glm::vec2 uv = temp.temp_uvs[uvIndex - 1];
-		temp.uvs.push_back(uv);
+	for (unsigned int i = 0; i < temp_obj.uvIndices.size(); i++) {
+		unsigned int uvIndex = temp_obj.uvIndices[i];
+		glm::vec2 uv = temp_obj.temp_uvs[uvIndex - 1];
+		temp_obj.uvs.push_back(uv);
 	}
 
 	// normals
-	for (unsigned int i = 0; i < temp.normalIndices.size(); i++) {
-		unsigned int normalIndex = temp.normalIndices[i];
-		glm::vec3 normal = temp.temp_normals[normalIndex - 1];
-		temp.normals.push_back(normal);
+	for (unsigned int i = 0; i < temp_obj.normalIndices.size(); i++) {
+		unsigned int normalIndex = temp_obj.normalIndices[i];
+		glm::vec3 normal = temp_obj.temp_normals[normalIndex - 1];
+		temp_obj.normals.push_back(normal);
 	}
 
-	InitObject(&temp, GL_TRIANGLES, true, true);
+	InitObject(&temp_obj, r, g, b, GL_TRIANGLES, true, true);
 
-	m_ObjectList.emplace_back(temp);
+	m_ObjectList.emplace_back(temp_obj);
+}
+
+void ObjectManager::CreateSquarePyramid(float r, float g, float b)
+{
+	ObjectInfo temp_obj;
+	RoadObj("pyramid.txt", &temp_obj);
+
+	// vertexs
+	for (unsigned int i = 0; i < temp_obj.vertexIndices.size(); i++) {
+		unsigned int vertexIndex = temp_obj.vertexIndices[i];
+		glm::vec3 vertex = temp_obj.temp_vertices[vertexIndex - 1];
+		temp_obj.vertices.push_back(vertex);
+	}
+
+	// uvs
+	for (unsigned int i = 0; i < temp_obj.uvIndices.size(); i++) {
+		unsigned int uvIndex = temp_obj.uvIndices[i];
+		glm::vec2 uv = temp_obj.temp_uvs[uvIndex - 1];
+		temp_obj.uvs.push_back(uv);
+	}
+
+	// normals
+	for (unsigned int i = 0; i < temp_obj.normalIndices.size(); i++) {
+		unsigned int normalIndex = temp_obj.normalIndices[i];
+		glm::vec3 normal = temp_obj.temp_normals[normalIndex - 1];
+		temp_obj.normals.push_back(normal);
+	}
+
+	InitObject(&temp_obj, r, g, b, GL_TRIANGLES, true, true);
+
+	m_ObjectList.emplace_back(temp_obj);
 }
 
 void ObjectManager::SetChangeActive(int mode)

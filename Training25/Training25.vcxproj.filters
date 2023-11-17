@@ -16,6 +16,9 @@
     <Filter Include="리소스 파일\Shader">
       <UniqueIdentifier>{0433c898-03b7-4519-8e2c-fbe851b6cd85}</UniqueIdentifier>
     </Filter>
+    <Filter Include="리소스 파일\Modles">
+      <UniqueIdentifier>{6e197c0d-ad73-45e6-bc31-48442984ccac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="vertex.glsl">
@@ -61,7 +64,10 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="cube.txt">
-      <Filter>리소스 파일</Filter>
+      <Filter>리소스 파일\Modles</Filter>
+    </Text>
+    <Text Include="pyramid.txt">
+      <Filter>리소스 파일\Modles</Filter>
     </Text>
   </ItemGroup>
 </Project>
