@@ -67,6 +67,7 @@ public:
 	int GetRandomIntValue(GLfloat min, GLfloat max);
 	GLfloat GetRandomFloatValue(GLfloat min, GLfloat max);
 
+	void CreateSmallCube(float r, float g, float b);
 	void CreateCube(float r, float g, float b);
 	void CreateSquarePyramid(float r, float g, float b);
 

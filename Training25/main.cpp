@@ -51,6 +51,8 @@ int figure_idx = 0;
 // 애니메이션 :: 카메라
 GLvoid RotatingCamera(int isAnim);
 
+float radius = 0.5f;
+
 // 애니메이션 :: 변수
 GLvoid CheckCollision();
 bool CheckCollisionByBox(float x, float y, float z);
@@ -70,7 +72,7 @@ int y_dir = 1, z_dir = 1;
 glm::vec3 CameraPos = glm::vec3(0.5f, 0.5f, 0.0f);
 glm::vec3 AT = glm::vec3(0.0f, 0.0f, 0.0f);
 
-glm::vec3 LightPos = glm::vec3(2.0f, 0.0f, 0.0f);
+glm::vec3 LightPos = glm::vec3(0.5f, 0.0f, 0.0f);
 
 float roatingLightDir = 1.0f;
 bool isShowCube = true;
@@ -173,6 +175,9 @@ GLvoid Reset()
 	ObjMgr.CreateSquarePyramid(1.0f, 0.0f, 0.0f);
 	ObjMgr.SetScale(1, 0.03f, 0.03f, 0.03f);
 	ObjMgr.SetActive(1, false);
+
+	ObjMgr.CreateSmallCube(0.0f, 0.0f, 1.0f);
+	ObjMgr.SetPosition(2, LightPos.x, LightPos.y, LightPos.z);
 
 	CameraPos = glm::vec3(0.6f, 0.3f, 0.5f);
 }
@@ -353,11 +358,11 @@ GLvoid StopAllAnim()
 
 GLvoid RotatingFigure(int idx)
 {
-	ObjMgr.Rotate(idx, 0.0f, 10.0f, 0.0f);
+	ObjMgr.Rotate(idx, 0.0f, 0.5f, 0.0f);
 
 	glutPostRedisplay();
 
-	if (isRotatingFigure) glutTimerFunc(30, RotatingFigure, isRotatingFigure);
+	if (isRotatingFigure) glutTimerFunc(30, RotatingFigure, idx);
 }
 
 float angle_camera = 0;
@@ -377,7 +382,6 @@ GLvoid RotatingCamera(int isAnim)
 float angle_light = 0;
 GLvoid RotatingLight(int isAnim)
 {
-	float radius = 0.5f;
 	LightPos.x = sin(angle_light) * radius * roatingLightDir;
 	LightPos.z = cos(angle_light) * radius;
 
@@ -386,6 +390,9 @@ GLvoid RotatingLight(int isAnim)
 	//ObjMgr.SetPosition(3, LightPos.x, LightPos.y, LightPos.z);
 
 	glutPostRedisplay();
+
+
+	ObjMgr.SetPosition(2, LightPos.x, LightPos.y, LightPos.z);
 
 	if (rotatingLight) glutTimerFunc(30, RotatingLight, rotatingLight);
 }
@@ -430,22 +437,24 @@ void Keyboard(unsigned char key, int x, int y)
 		break;
 	// 조명 이동
 	case 'Z':
-		LightPos.z += 0.5f;
+		LightPos.z += 0.1f;
 		break;
 	case 'z':
-		LightPos.z -= 0.5f;
+		LightPos.z -= 0.1f;
 		break;
 	case 'X':
-		LightPos.x += 0.5f;
+		LightPos.x += 0.1f;
+		radius += 0.1f;
 		break;
 	case 'x':
-		LightPos.x -= 0.5f;
+		LightPos.x -= 0.1f;
+		radius -= 0.1f;
 		break;
 	case 'C':
-		LightPos.y += 0.5f;
+		LightPos.y += 0.1f;
 		break;
 	case 'c':
-		LightPos.y -= 0.5f;
+		LightPos.y -= 0.1f;
 		break;
 	case 'Y':
 	case 'y':
@@ -474,6 +483,7 @@ void Keyboard(unsigned char key, int x, int y)
 		break;
 	}
 
+	ObjMgr.SetPosition(2, LightPos.x, LightPos.y, LightPos.z);
 	//ObjMgr.SetPosition(3, LightPos.x, LightPos.y, LightPos.z);
 
 	glutPostRedisplay();

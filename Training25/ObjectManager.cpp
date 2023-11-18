@@ -115,6 +115,37 @@ GLvoid InitObject(ObjectInfo* objInfo, float r, float g, float b, int drawType, 
 	objInfo->m_model = glm::mat4(1.0f);
 }
 
+void ObjectManager::CreateSmallCube(float r, float g, float b)
+{
+	ObjectInfo temp_obj;
+	RoadObj("smallCube.txt", &temp_obj);
+
+	// vertexs
+	for (unsigned int i = 0; i < temp_obj.vertexIndices.size(); i++) {
+		unsigned int vertexIndex = temp_obj.vertexIndices[i];
+		glm::vec3 vertex = temp_obj.temp_vertices[vertexIndex - 1];
+		temp_obj.vertices.push_back(vertex);
+	}
+
+	// uvs
+	for (unsigned int i = 0; i < temp_obj.uvIndices.size(); i++) {
+		unsigned int uvIndex = temp_obj.uvIndices[i];
+		glm::vec2 uv = temp_obj.temp_uvs[uvIndex - 1];
+		temp_obj.uvs.push_back(uv);
+	}
+
+	// normals
+	for (unsigned int i = 0; i < temp_obj.normalIndices.size(); i++) {
+		unsigned int normalIndex = temp_obj.normalIndices[i];
+		glm::vec3 normal = temp_obj.temp_normals[normalIndex - 1];
+		temp_obj.normals.push_back(normal);
+	}
+
+	InitObject(&temp_obj, r, g, b, GL_TRIANGLES, true, true);
+
+	m_ObjectList.emplace_back(temp_obj);
+}
+
 void ObjectManager::CreateCube(float r, float g, float b)
 {
 	ObjectInfo temp_obj;

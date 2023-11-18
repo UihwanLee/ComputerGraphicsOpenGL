@@ -69,5 +69,8 @@
     <Text Include="pyramid.txt">
       <Filter>리소스 파일\Modles</Filter>
     </Text>
+    <Text Include="smallCube.txt">
+      <Filter>리소스 파일\Modles</Filter>
+    </Text>
   </ItemGroup>
 </Project>
