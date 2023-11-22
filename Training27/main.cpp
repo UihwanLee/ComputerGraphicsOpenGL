@@ -106,6 +106,11 @@ float rotatingCameraRate = 0.0f;
 float rotatingCameraRate_x = 0.0f;
 float rotatingCameraRate_y = 0.0f;
 
+
+bool rotateCamera_mode_Y = false;
+bool isRotateCamera_Y = false;
+float roatingCameraDir = 1.0f;
+
 void Keyboard(unsigned char key, int x, int y);
 void keyboardUp(unsigned char key, int x, int y);
 
@@ -177,11 +182,14 @@ GLvoid Message()
 	cout << "h/H : 은면 제거" << endl;
 	cout << "p/P : 직각 투영/ 원근 투영" << endl;
 	cout << endl;
-	cout << "n: 육면체/사각뿔 그리기" << endl;
 	cout << "m: 조명 켜기/끄기" << endl;
-	cout << "y: 객체를 y축에 대하여 회전 (제자리에서 자전)" << endl;
-	cout << "r: 조명을 객체의 중심 y축에 대하여 양/음 방향으로 공전시키기(원 궤도)" << endl;
-	cout << "z/Z: 조명을 객체에 가깝게/멀게 이동하기" << endl;
+	cout << "c: 조명을 다른 색으로 바뀌도록 한다." << endl;
+	cout << "y: 조명을 화면 중심의 y축 기준으로 양/음 방향으로 회전하기(공전)" << endl;
+	cout << "s: 회전 멈추기" << endl;
+	cout << endl;	
+	cout << "z/Z: 카메라가 z축 방향으로 양/음으로 이동" << endl;
+	cout << "x/X: 카메라가 x축 방향으로 양/음으로 이동" << endl;
+	cout << "r/R: 화면의 중심의 y축에 대하여 카메라 양/음 방향으로 회전(중점에 대하여 공전)" << endl;
 	cout << endl;
 	cout << "q: 프로그램 종료" << endl;
 	cout << endl;
@@ -263,7 +271,17 @@ GLvoid drawView()
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f); //--- 카메라 위쪽 방향
 	glm::mat4 view = glm::mat4(1.0f);
 
-	view = glm::lookAt(cameraPos, cameraDirection, cameraUp);
+	if (rotateCamera_mode_Y)
+	{
+		view = glm::rotate(view, glm::radians(rotatingCameraRate_y), glm::vec3(0.0f, 1.0f, 0.0f));
+		view = glm::translate(view, glm::vec3(0.0f, -0.15f, -0.6f));
+		view = glm::rotate(view, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	}
+	else
+	{
+		view = glm::lookAt(cameraPos, cameraDirection, cameraUp);
+	}
+
 
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &view[0][0]);		// 뷰변환
 }
@@ -393,6 +411,15 @@ GLvoid StopAllAnim()
 {
 	rotatingCarmera = false;
 	rotatingLight = false;
+}
+
+GLvoid RotatingCamera_Y(int isAnim)
+{
+	rotatingCameraRate_y += 5.0f;
+
+	glutPostRedisplay();
+
+	if (isRotateCamera_Y) glutTimerFunc(30, RotatingCamera_Y, isRotateCamera_Y);
 }
 
 GLvoid MovingCrainBottomX(int isAnim)
@@ -526,7 +553,7 @@ float angle_camera = 0;
 GLvoid RotatingCamera(int isAnim)
 {
 	float radius = 1.0f;
-	CameraPos.x = sin(angle_camera) * radius;
+	CameraPos.x = sin(angle_camera) * radius * roatingCameraDir;
 	CameraPos.z = cos(angle_camera) * radius;
 
 	angle_camera += 0.03f;
@@ -617,11 +644,21 @@ void Keyboard(unsigned char key, int x, int y)
 		isMovingCrainGun = true;
 		if (isMovingCrainGun)glutTimerFunc(30, MovingCrainGun, isMovingCrainGun);
 		break;
-	case 'R':
-	case 'r':
+	case 's':
+		rotatingLight = false;
+		rotatingCarmera = false;
+		break;
+	case 'Y':
+	case 'y':
 		if (rotatingLight) rotatingLight = false;
 		else if (rotatingLight == false) { rotatingLight = true; roatingLightDir *= (-1.0f); }
 		if (rotatingLight) glutTimerFunc(30, RotatingLight, rotatingLight);
+		break;
+	case 'R':
+	case 'r':
+		if (rotatingCarmera) rotatingCarmera = false;
+		else { rotatingCarmera = true; roatingCameraDir *= (-1.0f); }
+		if (rotatingCarmera) glutTimerFunc(30, RotatingCamera, rotatingCarmera);
 		break;
 	case 'C':
 	case 'c':

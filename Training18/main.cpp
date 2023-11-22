@@ -271,9 +271,6 @@ GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VE
 
 	move = glm::translate(move, glm::vec3(0.0f, 0.0f, 0.0f));
 
-	//rot = glm::rotate(rot, glm::radians(-30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	//rot = glm::rotate(rot, glm::radians(-30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
 	model = model * move * rot * scale;
 
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));		// ¸ðµ¨º¯È¯

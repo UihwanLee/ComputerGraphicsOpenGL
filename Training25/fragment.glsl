@@ -20,9 +20,9 @@ void main()
 	float diffuseLight = max(dot(normalVector, lightDir), 0.0);
 	vec3 diffuse = diffuseLight * lightColor; 
 
-	int shininess = 128; 
+	int shininess = 10; 
 	vec3 viewDir = normalize(viewPos - FragPos); 
-	vec3 reflectDir = reflect(-lightDir, normalVector); 
+	vec3 reflectDir = reflect(lightDir, normalVector); 
 	float specularLight = max(dot(viewDir, reflectDir), 0.0); 
 	specularLight = pow(specularLight, shininess); 
 	vec3 specular = specularLight * lightColor; 
