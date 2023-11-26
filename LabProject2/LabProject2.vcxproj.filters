@@ -66,5 +66,8 @@
     <Text Include="cube.txt">
       <Filter>리소스 파일\Models</Filter>
     </Text>
+    <Text Include="sqhere.txt">
+      <Filter>리소스 파일\Models</Filter>
+    </Text>
   </ItemGroup>
 </Project>

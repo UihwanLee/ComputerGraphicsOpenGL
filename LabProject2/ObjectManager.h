@@ -32,12 +32,17 @@ typedef struct ObjectInfo
 	GLfloat* m_pos;
 	GLfloat* m_col;
 	GLint* m_inex;
+
+	float		m_move_speed = 0.1f;
+
 	int			m_num_vertex;
 	int			m_size_pos;
 	int			m_size_idx;
 	int			m_num_idx;
 	int			m_DRAW_TYPE;
 	bool		m_isAnimRotating;
+	bool		m_isUpSideDown;
+	bool		m_isWaving;
 	bool		m_isActive;
 	bool		m_isModeIDX;
 	float		m_model_pos[4];

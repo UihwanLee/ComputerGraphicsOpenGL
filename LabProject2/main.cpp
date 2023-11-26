@@ -27,6 +27,7 @@ GLvoid UpdateRender();
 
 GLvoid Init();
 GLvoid Message();
+GLvoid Message2();
 GLvoid Reset();
 GLvoid drawScene(GLvoid);
 GLvoid drawModel();
@@ -40,8 +41,11 @@ GLvoid drawLight();
 GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL);
 GLvoid DrawObjectByIDX(int DRAW_TYPE, glm::mat4& model, int idx);
 
+GLvoid CreateCubePosBuffer();
+
 // 애니메이션 :: 초기화
 GLvoid StopAllAnim();
+GLvoid UpSideDown(int idx);
 
 bool isRotatingFigure = false;
 GLvoid RotatingFigure(int idx);
@@ -55,6 +59,13 @@ float radius = 0.5f;
 // 애니메이션 :: 변수
 GLvoid CheckCollision();
 bool CheckCollisionByBox(float x, float y, float z);
+
+// 큐브 개수
+int CUBE_WIDTH = 5;
+int CUBE_HEIGHT = 5;
+vector<float> WIDTH_POS;
+vector<float> HEIGHT_POS;
+float CUBE_OFFSET = 1.1f;
 
 
 GLfloat rotateSpeed = 4.0f;
@@ -74,7 +85,7 @@ int y_dir = 1, z_dir = 1;
 glm::vec3 CameraPos = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 AT = glm::vec3(0.0f, 0.0f, 0.0f);
 
-glm::vec3 LightPos = glm::vec3(0.5f, 0.5f, 0.0f);
+glm::vec3 LightPos = glm::vec3(0.0f, 5.0f, 0.0f);
 glm::vec3 LightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
 float roatingLightDir = 1.0f;
@@ -120,8 +131,6 @@ GLvoid Init()
 	glGenBuffers(2, VBO);
 	glGenBuffers(1, &EBO);
 
-	Reset();
-
 	startTime = glutGet(GLUT_ELAPSED_TIME); // 시작 시간 설정
 }
 
@@ -154,6 +163,26 @@ GLvoid UpdateRender()
 
 GLvoid Message()
 {
+	/*while (true)
+	{
+		system("cls");
+		cout << "생성할 큐브맵의 가로 세로를 입력하세요(5~25)(5~25): ";
+		cin >> CUBE_WIDTH >> CUBE_HEIGHT;
+
+		if (CUBE_WIDTH >= 5 && CUBE_WIDTH <= 25 && CUBE_HEIGHT >= 5 && CUBE_HEIGHT <= 25)
+		{
+			break;
+		}
+	}*/
+	//cout << endl;
+
+	Message2();
+	Reset();
+}
+
+GLvoid Message2()
+{
+	system("cls");
 	cout << "1: 애니메이션 1" << endl;
 	cout << "2: 애니메이션 2" << endl;
 	cout << "3: 애니메이션 3" << endl;
@@ -163,9 +192,36 @@ GLvoid Message()
 	cout << "y/Y: 카메라가 바닥의 y축을 기준으로 양/음 방향으로 회전한다" << endl;
 	cout << "+/-: 육면체가 이동하는 속도 증가/감소" << endl;
 	cout << endl;
-	cout << "r: 모든 값 초기화 (새롭게 가로세로 값을 입력 받아 애니메이션을 시작한다" << endl;
+	cout << "r: 모든 값 초기화 (새롭게 가로세로 값을 입력 받아 애니메이션을 시작한다)" << endl;
 	cout << "q: 프로그램 종료" << endl;
 	cout << endl;
+}
+
+GLvoid CreateCubePosBuffer()
+{
+	WIDTH_POS.clear();
+	HEIGHT_POS.clear();
+
+	// 입력값에 따라 배치 버퍼 생성
+	float start_offset_WIDTH = 0.0f;
+	float start_offset_HEIGHT = 0.0f;
+	if (CUBE_WIDTH % 2 == 0) start_offset_WIDTH = (CUBE_OFFSET / 2.0f) + CUBE_OFFSET * (CUBE_WIDTH / 2 - 1);
+	else start_offset_WIDTH = (CUBE_OFFSET) * (CUBE_WIDTH / 2);
+
+	for (int i = 0; i < CUBE_WIDTH; i++)
+	{
+		WIDTH_POS.emplace_back(start_offset_WIDTH);
+		start_offset_WIDTH -= CUBE_OFFSET;
+	}
+
+	if (CUBE_HEIGHT % 2 == 0) start_offset_HEIGHT = (CUBE_OFFSET / 2.0f) + CUBE_OFFSET * (CUBE_HEIGHT / 2 - 1);
+	else start_offset_HEIGHT = (CUBE_OFFSET) * (CUBE_HEIGHT / 2);
+
+	for (int i = 0; i < CUBE_HEIGHT; i++)
+	{
+		HEIGHT_POS.emplace_back(start_offset_HEIGHT);
+		start_offset_HEIGHT -= CUBE_OFFSET;
+	}
 }
 
 GLvoid Reset()
@@ -173,10 +229,27 @@ GLvoid Reset()
 	StopAllAnim();
 	ObjMgr.Reset();
 
-	// 평지
-	ObjMgr.CreateCube(150.0f / 255.0f, 75.0f / 255.0f, 0.0f);
-	ObjMgr.SetScale(0, 1.0f, 0.05f, 1.0f);
-	ObjMgr.SetPosition(0, 0.0f, -0.2f, 0.0f);
+	CreateCubePosBuffer();
+
+	// 조명
+	ObjMgr.CreateSqhere(1.0f, 1.0f, 0.0f);
+	ObjMgr.SetPosition(0, LightPos.x, LightPos.y, LightPos.z);
+
+	// 큐브 맵
+	int idx = 1;
+	for (int i = 0; i < CUBE_WIDTH; i++)
+	{
+		for (int j = 0; j < CUBE_HEIGHT; j++)
+		{
+			float pos_X = WIDTH_POS[i];
+			float pos_Z = HEIGHT_POS[j];
+
+			ObjMgr.CreateCube(1.0f, 1.0f, 1.0f);
+			ObjMgr.SetScale(idx, 0.05f, 0.1f, 0.05f);
+			ObjMgr.SetPosition(idx, pos_X, 0.0f, pos_Z);
+			idx += 1;
+		}
+	}
 }
 
 GLvoid drawScene()
@@ -193,22 +266,22 @@ GLvoid drawScene()
 	glViewport(0, 0, WIDTH, HEIGHT);
 
 	CameraPos = glm::vec3(1.5f, 2.0f, 0.0f);
+	projectionMode = true;
 
 	drawView();
 	drawProjection();
 	drawLight();
 	drawModel();
 
-	glViewport(WIDTH / 2, HEIGHT / 2, WIDTH - 10, HEIGHT - 10);
+	glViewport(WIDTH / 4, HEIGHT / 4, WIDTH, HEIGHT);
 
-	CameraPos = glm::vec3(1.0f, 5.0f, 0.0f);
+	CameraPos = glm::vec3(-0.1f, 10.0f, 0.0f);
 	projectionMode = false;
 
 	drawView();
 	drawProjection();
 	drawLight();
 	drawModel();
-
 
 	glutSwapBuffers();
 }
@@ -264,7 +337,7 @@ GLvoid drawLight()
 	glUniform3f(lightPosLocation, LightPos.x, LightPos.y, LightPos.z);
 	unsigned int lightColorLocation = glGetUniformLocation(ShaderProgram, "lightColor"); //--- lightColor 값 전달: (1.0, 1.0, 1.0) 백색
 	if (isLight) glUniform3f(lightColorLocation, LightColor.r, LightColor.g, LightColor.b);
-	else glUniform3f(lightColorLocation, 0.5, 0.5, 0.5);
+	else glUniform3f(lightColorLocation, 0.1, 0.1, 0.1);
 	unsigned int viewPosLocation = glGetUniformLocation(ShaderProgram, "viewPos"); //--- viewPos 값 전달: 카메라 위치
 	glUniform3f(viewPosLocation, 0.0f, 0.0f, 0.0f);
 }
@@ -352,6 +425,47 @@ GLvoid StopAllAnim()
 {
 	rotatingCarmera = false;
 	rotatingLight = false;
+
+	for (int i = 0; i < ObjMgr.m_ObjectList.size(); i++)
+	{
+		if (ObjMgr.m_ObjectList[i].m_isActive)
+		{
+			for (int j = 0; j < ObjMgr.m_ObjectList[i].vertices.size(); j++)
+			{
+				if (ObjMgr.m_ObjectList[i].vertices[j].y > 0.0f)
+				{
+					ObjMgr.m_ObjectList[i].vertices[j].y = 0.5f;
+				}
+				ObjMgr.m_ObjectList[i].m_isUpSideDown = false;
+				ObjMgr.m_ObjectList[i].m_isWaving = false;
+			}
+		}
+	}
+}
+
+GLvoid UpSideDown(int idx)
+{
+	for (int i = 0; i < ObjMgr.m_ObjectList[idx].vertices.size(); i++)
+	{
+		if (ObjMgr.m_ObjectList[idx].vertices[i].y > 0.0f)
+		{
+			if (ObjMgr.m_ObjectList[idx].vertices[i].y >= 10.0f)
+			{
+				ObjMgr.m_ObjectList[idx].m_move_speed = -0.1f;
+			}
+
+			if (ObjMgr.m_ObjectList[idx].vertices[i].y <= 0.5f)
+			{
+				ObjMgr.m_ObjectList[idx].m_move_speed = 0.1f;
+			}
+
+			ObjMgr.m_ObjectList[idx].vertices[i].y += ObjMgr.m_ObjectList[idx].m_move_speed;
+		}
+	}
+
+	glutPostRedisplay();
+
+	if (ObjMgr.m_ObjectList[idx].m_isUpSideDown) glutTimerFunc(30, UpSideDown, idx);
 }
 
 GLvoid RotatingFigure(int idx)
@@ -406,14 +520,40 @@ GLvoid ChangeLightRandomColor()
 
 void Keyboard(unsigned char key, int x, int y)
 {
-	float force_x, force_y, force_z;
-	force_x = force_y = force_z = 0.f;
-	bool input_w = false;
 	switch (key)
 	{
-	case 'P':
-	case 'p':
-		projectionMode = !projectionMode;
+	case '1':
+		for (int i = 0; i < ObjMgr.m_ObjectList.size(); i++)
+		{
+			if (ObjMgr.m_ObjectList[i].m_isActive)
+			{
+				ObjMgr.m_ObjectList[i].m_isUpSideDown = true;
+				if (ObjMgr.m_ObjectList[i].m_isUpSideDown) glutTimerFunc(30, UpSideDown, i);
+			}
+		}
+		break;
+	case '2':
+		break;
+	case '3':
+		break;
+	case 'Y':
+	case 'y':
+		break;
+	case '+':
+		break;
+	case '-':
+		break;
+	// 조명 켜기/끄기
+	case 'T':
+	case 't':
+		if (isLight) isLight = false;
+		else isLight = true;
+		break;
+	case 'C':
+	case 'c':
+		ChangeLightRandomColor();
+		break;
+	case 'r':
 		break;
 	case 'q':
 		glutLeaveMainLoop();
