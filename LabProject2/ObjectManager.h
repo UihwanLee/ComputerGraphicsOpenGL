@@ -33,7 +33,9 @@ typedef struct ObjectInfo
 	GLfloat* m_col;
 	GLint* m_inex;
 
-	float		m_move_speed = 0.1f;
+	float		m_move_speed;
+	float		m_move_speed_down;
+	float		m_move_speed_up;
 
 	int			m_num_vertex;
 	int			m_size_pos;

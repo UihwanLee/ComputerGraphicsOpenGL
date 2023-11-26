@@ -46,6 +46,7 @@ GLvoid CreateCubePosBuffer();
 // 애니메이션 :: 초기화
 GLvoid StopAllAnim();
 GLvoid UpSideDown(int idx);
+GLvoid Waving(int idx);
 
 bool isRotatingFigure = false;
 GLvoid RotatingFigure(int idx);
@@ -163,7 +164,7 @@ GLvoid UpdateRender()
 
 GLvoid Message()
 {
-	/*while (true)
+	while (true)
 	{
 		system("cls");
 		cout << "생성할 큐브맵의 가로 세로를 입력하세요(5~25)(5~25): ";
@@ -173,7 +174,7 @@ GLvoid Message()
 		{
 			break;
 		}
-	}*/
+	}
 	//cout << endl;
 
 	Message2();
@@ -423,13 +424,13 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, glm::mat4& model, int idx)
 
 GLvoid StopAllAnim()
 {
-	rotatingCarmera = false;
-	rotatingLight = false;
-
 	for (int i = 0; i < ObjMgr.m_ObjectList.size(); i++)
 	{
 		if (ObjMgr.m_ObjectList[i].m_isActive)
 		{
+			ObjMgr.m_ObjectList[i].m_move_speed = 0.1f;
+			ObjMgr.m_ObjectList[i].m_move_speed_up = 0.1f;
+			ObjMgr.m_ObjectList[i].m_move_speed_down = -0.1f;
 			for (int j = 0; j < ObjMgr.m_ObjectList[i].vertices.size(); j++)
 			{
 				if (ObjMgr.m_ObjectList[i].vertices[j].y > 0.0f)
@@ -443,20 +444,31 @@ GLvoid StopAllAnim()
 	}
 }
 
+GLvoid SetRandomSpeed()
+{
+	for (int i = 0; i < ObjMgr.m_ObjectList.size(); i++)
+	{
+		float rand_speed = ObjMgr.GetRandomFloatValue(0.05f, 0.2f);
+		ObjMgr.m_ObjectList[i].m_move_speed_up = rand_speed;
+		ObjMgr.m_ObjectList[i].m_move_speed_down = -rand_speed;
+		ObjMgr.m_ObjectList[i].m_move_speed = rand_speed;
+	}
+}
+
 GLvoid UpSideDown(int idx)
 {
 	for (int i = 0; i < ObjMgr.m_ObjectList[idx].vertices.size(); i++)
 	{
 		if (ObjMgr.m_ObjectList[idx].vertices[i].y > 0.0f)
 		{
-			if (ObjMgr.m_ObjectList[idx].vertices[i].y >= 10.0f)
+			if (ObjMgr.m_ObjectList[idx].vertices[i].y > 7.0f)
 			{
-				ObjMgr.m_ObjectList[idx].m_move_speed = -0.1f;
+				ObjMgr.m_ObjectList[idx].m_move_speed = ObjMgr.m_ObjectList[idx].m_move_speed_down;
 			}
 
-			if (ObjMgr.m_ObjectList[idx].vertices[i].y <= 0.5f)
+			if (ObjMgr.m_ObjectList[idx].vertices[i].y < 0.5f)
 			{
-				ObjMgr.m_ObjectList[idx].m_move_speed = 0.1f;
+				ObjMgr.m_ObjectList[idx].m_move_speed = ObjMgr.m_ObjectList[idx].m_move_speed_up;
 			}
 
 			ObjMgr.m_ObjectList[idx].vertices[i].y += ObjMgr.m_ObjectList[idx].m_move_speed;
@@ -466,6 +478,41 @@ GLvoid UpSideDown(int idx)
 	glutPostRedisplay();
 
 	if (ObjMgr.m_ObjectList[idx].m_isUpSideDown) glutTimerFunc(30, UpSideDown, idx);
+}
+
+GLvoid SetDefaultSpeed()
+{
+	for (int i = 0; i < ObjMgr.m_ObjectList.size(); i++)
+	{
+		ObjMgr.m_ObjectList[i].m_move_speed_up = 0.1f;
+		ObjMgr.m_ObjectList[i].m_move_speed_down = -0.1f;
+		ObjMgr.m_ObjectList[i].m_move_speed = 0.1f;
+	}
+}
+
+GLvoid Waving(int idx)
+{
+	for (int i = 0; i < ObjMgr.m_ObjectList[idx].vertices.size(); i++)
+	{
+		if (ObjMgr.m_ObjectList[idx].vertices[i].y > 0.0f)
+		{
+			if (ObjMgr.m_ObjectList[idx].vertices[i].y > 7.0f)
+			{
+				ObjMgr.m_ObjectList[idx].m_move_speed = ObjMgr.m_ObjectList[idx].m_move_speed_down;
+			}
+
+			if (ObjMgr.m_ObjectList[idx].vertices[i].y < 0.5f)
+			{
+				ObjMgr.m_ObjectList[idx].m_move_speed = ObjMgr.m_ObjectList[idx].m_move_speed_up;
+			}
+
+			ObjMgr.m_ObjectList[idx].vertices[i].y += ObjMgr.m_ObjectList[idx].m_move_speed;
+		}
+	}
+
+	glutPostRedisplay();
+
+	if (ObjMgr.m_ObjectList[idx].m_isWaving) glutTimerFunc(30, Waving, idx);
 }
 
 GLvoid RotatingFigure(int idx)
@@ -520,9 +567,12 @@ GLvoid ChangeLightRandomColor()
 
 void Keyboard(unsigned char key, int x, int y)
 {
+	int time = 30.0f;
 	switch (key)
 	{
 	case '1':
+		StopAllAnim();
+		SetRandomSpeed();
 		for (int i = 0; i < ObjMgr.m_ObjectList.size(); i++)
 		{
 			if (ObjMgr.m_ObjectList[i].m_isActive)
@@ -533,6 +583,17 @@ void Keyboard(unsigned char key, int x, int y)
 		}
 		break;
 	case '2':
+		StopAllAnim();
+		SetDefaultSpeed();
+		for (int i = 0; i < ObjMgr.m_ObjectList.size(); i++)
+		{
+			if (ObjMgr.m_ObjectList[i].m_isActive)
+			{
+				ObjMgr.m_ObjectList[i].m_isWaving = true;
+				if (ObjMgr.m_ObjectList[i].m_isWaving) glutTimerFunc(time, Waving, i);
+			}
+			time += 30.0f;
+		}
 		break;
 	case '3':
 		break;

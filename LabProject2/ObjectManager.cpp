@@ -108,6 +108,9 @@ GLvoid InitObject(ObjectInfo* objInfo, float r, float g, float b, int drawType, 
 	objInfo->m_color[1] = g;
 	objInfo->m_color[2] = b;
 
+	objInfo->m_move_speed = 0.1f;
+	objInfo->m_move_speed_down = -0.1f;
+	objInfo->m_move_speed_up = 0.1f;
 	objInfo->m_isUpSideDown = false;
 	objInfo->m_isWaving = false;
 
