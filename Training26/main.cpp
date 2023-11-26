@@ -155,11 +155,8 @@ GLvoid Message()
 	cout << "h/H : 은면 제거" << endl;
 	cout << "p/P : 직각 투영/ 원근 투영" << endl;
 	cout << endl;
-	cout << "n: 육면체/사각뿔 그리기" << endl;
-	cout << "m: 조명 켜기/끄기" << endl;
-	cout << "y: 객체를 y축에 대하여 회전 (제자리에서 자전)" << endl;
-	cout << "r: 조명을 객체의 중심 y축에 대하여 양/음 방향으로 공전시키기(원 궤도)" << endl;
-	cout << "z/Z: 조명을 객체에 가깝게/멀게 이동하기" << endl;
+	cout << "c: 조명 색을 다른 색으로 바뀌도록 한다.";
+	cout << " r/R: 조명의 위치를 중심의 구의 y축에 대하여 양/음 방향으로 회전한다.";
 	cout << endl;
 	cout << "q: 프로그램 종료" << endl;
 	cout << endl;

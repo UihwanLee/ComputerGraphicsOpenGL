@@ -265,8 +265,8 @@ GLvoid drawLight()
 	unsigned int lightPosLocation = glGetUniformLocation(ShaderProgram, "lightPos"); //--- lightPos 값 전달: (0.0, 0.0, 5.0);
 	glUniform3f(lightPosLocation, LightPos.x, LightPos.y, LightPos.z);
 	unsigned int lightColorLocation = glGetUniformLocation(ShaderProgram, "lightColor"); //--- lightColor 값 전달: (1.0, 1.0, 1.0) 백색
-	if(isLight) glUniform3f(lightColorLocation, 1.0, 1.0, 1.0);
-	else glUniform3f(lightColorLocation, 0.5, 0.5, 0.5);
+	if(isLight) glUniform3f(lightColorLocation, 0.5, 0.5, 0.5);
+	else glUniform3f(lightColorLocation, 0.1, 0.1, 0.1);
 	unsigned int viewPosLocation = glGetUniformLocation(ShaderProgram, "viewPos"); //--- viewPos 값 전달: 카메라 위치
 	glUniform3f(viewPosLocation, 0.0f, 0.0f, 0.0f);
 }
@@ -437,10 +437,10 @@ void Keyboard(unsigned char key, int x, int y)
 		break;
 	// 조명 이동
 	case 'Z':
-		LightPos.z += 0.1f;
+		LightPos.x += 0.1f;
 		break;
 	case 'z':
-		LightPos.z -= 0.1f;
+		LightPos.x -= 0.1f;
 		break;
 	case 'X':
 		LightPos.x += 0.1f;

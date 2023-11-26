@@ -236,9 +236,6 @@ void ObjectManager::CreateSqhere(float r, float g, float b)
 
 	InitObject(&temp_obj, r, g, b, GL_TRIANGLES, true, true);
 
-	cout << temp_obj.normals.size() << endl;
-	cout << temp_obj.vertices.size() << endl;
-
 	m_ObjectList.emplace_back(temp_obj);
 }
 

@@ -502,13 +502,6 @@ GLvoid MoveObject(int isAnim)
 
 	// 마우스 회전에 따른 이동
 
-	// mx 양 -> 왼쪽 mx 음 -> 오른쪽 
-		// 3.5 ~ -3.5 양끝
-
-		// 0 ~ 90 -> x (0.0 ~ 3.5) -
-		// 90 ~ 180 -> y (-3.5 ~ 3.5) +
-		// 180 ~ 
-
 	float angle = int(curAngle) % 360;
 	float moveSpeed = 0.1f;
 	float dir = 1.0f;
