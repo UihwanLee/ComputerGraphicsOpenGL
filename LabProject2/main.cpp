@@ -35,7 +35,6 @@ GLvoid drawView();
 GLvoid Reshape(int w, int h);
 GLuint ShaderProgram;
 GLuint VBO[2], EBO;
-bool isDepthTest = true;
 
 GLvoid drawLight();
 GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL);
@@ -155,15 +154,16 @@ GLvoid UpdateRender()
 
 GLvoid Message()
 {
-	cout << "h/H : 은면 제거" << endl;
-	cout << "p/P : 직각 투영/ 원근 투영" << endl;
+	cout << "1: 애니메이션 1" << endl;
+	cout << "2: 애니메이션 2" << endl;
+	cout << "3: 애니메이션 3" << endl;
 	cout << endl;
-	cout << "n: 육면체/사각뿔 그리기" << endl;
-	cout << "m: 조명 켜기/끄기" << endl;
-	cout << "y: 객체를 y축에 대하여 회전 (제자리에서 자전)" << endl;
-	cout << "r: 조명을 객체의 중심 y축에 대하여 양/음 방향으로 공전시키기(원 궤도)" << endl;
-	cout << "z/Z: 조명을 객체에 가깝게/멀게 이동하기" << endl;
+	cout << "t: 조명을 켠다/끈다" << endl;
+	cout << "c: 조명 색을 바꾼다" << endl;
+	cout << "y/Y: 카메라가 바닥의 y축을 기준으로 양/음 방향으로 회전한다" << endl;
+	cout << "+/-: 육면체가 이동하는 속도 증가/감소" << endl;
 	cout << endl;
+	cout << "r: 모든 값 초기화 (새롭게 가로세로 값을 입력 받아 애니메이션을 시작한다" << endl;
 	cout << "q: 프로그램 종료" << endl;
 	cout << endl;
 }
@@ -175,10 +175,8 @@ GLvoid Reset()
 
 	// 평지
 	ObjMgr.CreateCube(150.0f / 255.0f, 75.0f / 255.0f, 0.0f);
-	ObjMgr.SetScale(0, 1.0f, 0.1f, 1.0f);
+	ObjMgr.SetScale(0, 1.0f, 0.05f, 1.0f);
 	ObjMgr.SetPosition(0, 0.0f, -0.2f, 0.0f);
-
-	CameraPos = glm::vec3(1.0f, 0.3f, 0.0f);
 }
 
 GLvoid drawScene()
@@ -190,13 +188,27 @@ GLvoid drawScene()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(ShaderProgram);
 
-	if (isDepthTest) glEnable(GL_DEPTH_TEST);
-	else glDisable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
+
+	glViewport(0, 0, WIDTH, HEIGHT);
+
+	CameraPos = glm::vec3(1.5f, 2.0f, 0.0f);
 
 	drawView();
 	drawProjection();
 	drawLight();
 	drawModel();
+
+	glViewport(WIDTH / 2, HEIGHT / 2, WIDTH - 10, HEIGHT - 10);
+
+	CameraPos = glm::vec3(1.0f, 5.0f, 0.0f);
+	projectionMode = false;
+
+	drawView();
+	drawProjection();
+	drawLight();
+	drawModel();
+
 
 	glutSwapBuffers();
 }
@@ -270,7 +282,7 @@ GLvoid drawModel()
 
 GLvoid Reshape(int w, int h)
 {
-	glViewport(0, 0, w, h);
+	// glViewport(0, 0, w, h);
 }
 
 GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL)
@@ -399,12 +411,6 @@ void Keyboard(unsigned char key, int x, int y)
 	bool input_w = false;
 	switch (key)
 	{
-	case 'H':
-	case 'h':
-		// 은면 제거
-		if (isDepthTest) isDepthTest = false;
-		else isDepthTest = true;
-		break;
 	case 'P':
 	case 'p':
 		projectionMode = !projectionMode;
