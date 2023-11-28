@@ -54,6 +54,10 @@ GLvoid RotatingCamera(int isAnim);
 // 애니메이션 :: 행성
 GLvoid RotatingStar(int idx);
 
+// 애니메이션 :: 눈 내리기
+GLvoid SnowAnim(int idx);
+bool snow_on = true;
+
 float radius = 0.5f;
 
 // 애니메이션 :: 변수
@@ -75,8 +79,9 @@ int y_dir = 1, z_dir = 1;
 glm::vec3 CameraPos = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 AT = glm::vec3(0.0f, 0.0f, 0.0f);
 
-glm::vec3 LightPos = glm::vec3(0.5f, 0.5f, 0.0f);
+glm::vec3 LightPos = glm::vec3(0.5f, 0.0f, 0.0f);
 glm::vec3 LightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+glm::vec3 LightVolume = glm::vec3(0.5f, 0.5f, 0.5f);
 
 float roatingLightDir = 1.0f;
 bool isShowCube = true;
@@ -158,9 +163,9 @@ GLvoid Message()
 	cout << "s: 하늘에서 눈이 내린다/멈춘다" << endl;
 	cout << "0~5: 시어핀스키 프렉탈 삼각형의 단계" << endl;
 	cout << endl;
-	cout << "r: 조명이 화면 중앙의 y축에 대하여 공전한다 / 멈춘다";
-	cout << "n/f: 조명이 가까워지기 / 멀어지기";
-	cout << "+ / -: 조명의 세기 높아지기 / 낮춰지기";
+	cout << "r: 조명이 화면 중앙의 y축에 대하여 공전한다 / 멈춘다" << endl;
+	cout << "n/f: 조명이 가까워지기 / 멀어지기" << endl;
+	cout << "+ / -: 조명의 세기 높아지기 / 낮춰지기" << endl;
 	cout << endl;
 	cout << "q: 프로그램 종료" << endl;
 	cout << endl;
@@ -188,6 +193,25 @@ GLvoid Reset()
 	ObjMgr.CreateSqhere(0.0f, 0.0f, 1.0f);
 	ObjMgr.SetScale(4, 0.01f, 0.01f, 0.01f);
 	ObjMgr.SetPosition(4, 0.0f, 15.0f, 0.0f);
+
+	// 눈
+	int idx = 5;
+	for (int i = 0; i < 40; i++)
+	{
+		ObjMgr.CreateSqhere(1.0f, 1.0f, 1.0f);
+		ObjMgr.SetScale(idx, 0.001f, 0.001f, 0.001f);
+
+		float rand_x = ObjMgr.GetRandomFloatValue(-200.0f, 200.0f);
+		float rand_z = ObjMgr.GetRandomFloatValue(-200.0f, 200.0f);
+
+		ObjMgr.SetPosition(idx, rand_x, 200.0f, rand_z);
+
+		ObjMgr.m_ObjectList[idx].m_snow_speed = ObjMgr.GetRandomFloatValue(1.0f, 5.0f);
+
+		glutTimerFunc(30, SnowAnim, idx);
+
+		idx++;
+	}
 
 	CameraPos = glm::vec3(0.5f, 0.4f, 0.0f);
 
@@ -264,8 +288,7 @@ GLvoid drawLight()
 	unsigned int lightPosLocation = glGetUniformLocation(ShaderProgram, "lightPos"); //--- lightPos 값 전달: (0.0, 0.0, 5.0);
 	glUniform3f(lightPosLocation, LightPos.x, LightPos.y, LightPos.z);
 	unsigned int lightColorLocation = glGetUniformLocation(ShaderProgram, "lightColor"); //--- lightColor 값 전달: (1.0, 1.0, 1.0) 백색
-	if (isLight) glUniform3f(lightColorLocation, LightColor.r, LightColor.g, LightColor.b);
-	else glUniform3f(lightColorLocation, 0.5, 0.5, 0.5);
+	glUniform3f(lightColorLocation, LightColor.r, LightColor.g, LightColor.b);
 	unsigned int viewPosLocation = glGetUniformLocation(ShaderProgram, "viewPos"); //--- viewPos 값 전달: 카메라 위치
 	glUniform3f(viewPosLocation, 0.0f, 0.0f, 0.0f);
 }
@@ -406,6 +429,29 @@ GLvoid RotatingStar(int isAnim)
 	glutTimerFunc(30, RotatingStar, isAnim);
 }
 
+GLvoid SnowAnim(int idx)
+{
+	float speed = ObjMgr.m_ObjectList[idx].m_snow_speed;
+	ObjMgr.Move(idx, 0.0f, -speed, 0.0f);
+
+	if (ObjMgr.m_ObjectList[idx].m_pivot[1] < 0.0f)
+	{
+		ObjMgr.m_ObjectList[idx].m_pivot[1] = 200.0f;
+	}
+
+	glutPostRedisplay();
+
+	glutTimerFunc(30, SnowAnim, idx);
+}
+
+GLvoid SetSnowAnim(bool active)
+{
+	for (int i = 5; i < 45; i++)
+	{
+		ObjMgr.m_ObjectList[i].m_isActive = active;
+	}
+}
+
 GLvoid ChangeLightRandomColor()
 {
 	float r = ObjMgr.GetRandomFloatValue(0.0f, 1.0f);
@@ -430,15 +476,35 @@ void Keyboard(unsigned char key, int x, int y)
 		if (isDepthTest) isDepthTest = false;
 		else isDepthTest = true;
 		break;
+	case 'S':
+	case 's':
+		if (snow_on) snow_on = false;
+		else snow_on = true;
+		SetSnowAnim(snow_on);
+		break;
+	case 'N':
+	case 'n':
+		LightPos.x -= 0.1f;
+		break;
+	case 'F':
+	case 'f':
+		LightPos.x += 0.1f;
+		break;
 	case 'R':
 	case 'r':
 		if (rotatingLight) rotatingLight = false;
 		else if (rotatingLight == false) { rotatingLight = true; roatingLightDir *= (-1.0f); }
 		if (rotatingLight) glutTimerFunc(30, RotatingLight, rotatingLight);
 		break;
-	case 'C':
-	case 'c':
-		ChangeLightRandomColor();
+	case '+':
+		LightColor.x += 0.05f;
+		LightColor.y += 0.05f;
+		LightColor.z += 0.05f;
+		break;
+	case '-':
+		LightColor.x -= 0.05f;
+		LightColor.y -= 0.05f;
+		LightColor.z -= 0.05f;
 		break;
 	case 'P':
 	case 'p':

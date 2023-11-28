@@ -85,6 +85,8 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 	objInfo->m_modelInfo[2] = 0.0f;
 	objInfo->m_modelInfo[3] = 0.0f;
 
+	objInfo->m_snow_speed = 5.0f;
+
 	objInfo->m_model = glm::mat4(1.0f);
 }
 

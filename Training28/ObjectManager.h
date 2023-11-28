@@ -42,6 +42,9 @@ typedef struct ObjectInfo
 	bool		m_isModeIDX;
 	float		m_model_pos[4];
 
+	// Snow speed
+	float		m_snow_speed;
+
 	// 좌표계 행렬
 	float		m_modelInfo[4];
 	glm::mat4	m_model;
