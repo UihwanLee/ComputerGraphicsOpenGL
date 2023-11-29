@@ -365,7 +365,6 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, glm::mat4& model, int idx)
 	unsigned int objColorLocation = glGetUniformLocation(ShaderProgram, "objectColor"); //--- object Color값 전달: (1.0, 0.5, 0.3)의 색
 	glUniform3f(objColorLocation, ObjMgr.m_ObjectList[idx].m_color[0], ObjMgr.m_ObjectList[idx].m_color[1], ObjMgr.m_ObjectList[idx].m_color[2]);
 
-
 	glDrawArrays(DRAW_TYPE, 0, ObjMgr.m_ObjectList[idx].vertices.size());
 
 	glDisableVertexAttribArray(0);

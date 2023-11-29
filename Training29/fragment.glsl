@@ -15,6 +15,8 @@ void main()
 	vec3 ambientLight = vec3(0.7f, 0.7f, 0.7f); 
 	vec3 ambient = ambientLight * lightColor;
 
+	float d = distance(FragPos, lightPos);
+
 	vec3 normalVector = normalize (Normal);
 	vec3 lightDir = normalize(lightPos - FragPos);
 	float diffuseLight = max(dot(normalVector, lightDir), 0.0);
@@ -25,7 +27,7 @@ void main()
 	vec3 reflectDir = reflect(-lightDir, normalVector); 
 	float specularLight = max(dot(viewDir, reflectDir), 0.0); 
 	specularLight = pow(specularLight, shininess); 
-	vec3 specular = specularLight * lightColor; 
+	vec3 specular = specularLight * lightColor / d; 
 
 	vec3 result = (ambient + diffuse + specular) * objectColor; 
 

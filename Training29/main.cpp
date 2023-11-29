@@ -92,6 +92,8 @@ float rotatingCameraRate = 0.0f;
 float rotatingCameraRate_x = 0.0f;
 float rotatingCameraRate_y = 0.0f;
 
+int camera_num = 0;
+
 void Keyboard(unsigned char key, int x, int y);
 void keyboardUp(unsigned char key, int x, int y);
 
@@ -506,9 +508,47 @@ void Keyboard(unsigned char key, int x, int y)
 		LightColor.y -= 0.05f;
 		LightColor.z -= 0.05f;
 		break;
+	case 'C':
+	case 'c':
+		ChangeLightRandomColor();
+		break;
 	case 'P':
 	case 'p':
-		projectionMode = !projectionMode;
+		camera_num += 1;
+		if (camera_num % 4 == 0)
+		{
+			LightPos.x = 0.5f;
+			LightPos.y = 0.0f;
+			LightPos.z = 0.0f;
+		}
+		else if(camera_num % 4 == 1)
+		{
+			LightPos.x = -0.5f;
+			LightPos.y = 0.0f;
+			LightPos.z = 0.0f;
+		}
+		else if (camera_num % 4 == 2)
+		{
+			LightPos.x = 0.0f;
+			LightPos.y = 0.0f;
+			LightPos.z = 0.5f;
+		}
+		else if (camera_num % 4 == 3)
+		{
+			LightPos.x = 0.0f;
+			LightPos.y = 0.0f;
+			LightPos.z = -0.5f;
+		}
+		break;
+	case 'M':
+		LightColor.x = 1.0f;
+		LightColor.y = 1.0f;
+		LightColor.z = 1.0f;
+		break;
+	case 'm':
+		LightColor.x = 0.1f;
+		LightColor.y = 0.1f;
+		LightColor.z = 0.1f;
 		break;
 	case 'q':
 		glutLeaveMainLoop();
