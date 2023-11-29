@@ -53,6 +53,9 @@
     <ClInclude Include="Timer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="fragment.glsl">
@@ -72,5 +75,10 @@
     <Text Include="sqhere.txt">
       <Filter>리소스 파일\Models</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Test.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
   </ItemGroup>
 </Project>

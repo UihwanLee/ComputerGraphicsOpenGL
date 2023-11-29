@@ -6,6 +6,9 @@
 #include "Timer.h"
 #include <cmath>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #pragma comment(lib, "glew32.lib")
 #pragma comment(lib, "freeglut.lib")
 
@@ -34,11 +37,11 @@ GLvoid drawProjection();
 GLvoid drawView();
 GLvoid Reshape(int w, int h);
 GLuint ShaderProgram;
-GLuint VBO[2], EBO;
+GLuint VBO[3], EBO;
+GLuint texture;
 bool isDepthTest = true;
 
 GLvoid drawLight();
-GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL);
 GLvoid DrawObjectByIDX(int DRAW_TYPE, glm::mat4& model, int idx);
 
 // 애니메이션 :: 초기화
@@ -116,8 +119,9 @@ int main(int argc, char** argv)
 
 GLvoid Init()
 {
-	glGenBuffers(2, VBO);
+	glGenBuffers(3, VBO);
 	glGenBuffers(1, &EBO);
+	glGenTextures(2, &texture);
 
 	Reset();
 
@@ -260,42 +264,9 @@ GLvoid Reshape(int w, int h)
 	glViewport(0, 0, w, h);
 }
 
-GLvoid DrawObjectByArray(int DRAW_TYPE, void* posList, void* colList, int NUM_VETEX, int SIZE_COL)
-{
-	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	glBufferData(GL_ARRAY_BUFFER, SIZE_COL, posList, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-	glEnableVertexAttribArray(0);
-
-	unsigned int modelLocation = glGetUniformLocation(ShaderProgram, "modelTransform");
-
-	glm::mat4 model = glm::mat4(1.0f);
-	glm::mat4 scale = glm::mat4(1.0f);
-	glm::mat4 rot = glm::mat4(1.0f);
-	glm::mat4 move = glm::mat4(1.0f);
-
-	scale = glm::scale(scale, glm::vec3(1.0f, 1.0f, 1.0f));
-
-	move = glm::translate(move, glm::vec3(0.0f, 0.0f, 0.0f));
-
-	model = model * move * rot * scale;
-
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));		// 모델변환
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
-	glBufferData(GL_ARRAY_BUFFER, SIZE_COL, colList, GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-	glEnableVertexAttribArray(1);
-
-
-	glDrawArrays(GL_LINES, 0, NUM_VETEX);
-
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
-}
-
 GLvoid DrawObjectByIDX(int DRAW_TYPE, glm::mat4& model, int idx)
 {
+	// vPos
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
 	glBufferData(GL_ARRAY_BUFFER, ObjMgr.m_ObjectList[idx].vertices.size() * sizeof(glm::vec3), &ObjMgr.m_ObjectList[idx].vertices[0], GL_STATIC_DRAW);
 
@@ -307,20 +278,44 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, glm::mat4& model, int idx)
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
 
+	// vNormal
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
 	glBufferData(GL_ARRAY_BUFFER, ObjMgr.m_ObjectList[idx].normals.size() * sizeof(glm::vec3), &ObjMgr.m_ObjectList[idx].normals[0], GL_STATIC_DRAW);
-
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
 
+	// color
 	unsigned int objColorLocation = glGetUniformLocation(ShaderProgram, "objectColor"); //--- object Color값 전달: (1.0, 0.5, 0.3)의 색
 	glUniform3f(objColorLocation, ObjMgr.m_ObjectList[idx].m_color[0], ObjMgr.m_ObjectList[idx].m_color[1], ObjMgr.m_ObjectList[idx].m_color[2]);
 
+	// vTexture
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
+	glBufferData(GL_ARRAY_BUFFER, ObjMgr.m_ObjectList[idx].uvs.size() * sizeof(glm::vec2), &ObjMgr.m_ObjectList[idx].uvs[0], GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0);
+
+	// Texture
+	int widthImage, heightImage, numberOfChannel;
+	// stbi_set_flip_vertically_on_load(true); //--- 이미지가 거꾸로 읽힌다면 추가
+	unsigned char* data = stbi_load("Test.png", &widthImage, &heightImage, &numberOfChannel, 0);
+
+	unsigned int objTextureLocation = glGetUniformLocation(ShaderProgram, "outTexture"); 
+	glUniform1i(objTextureLocation, 0);
+
+	glActiveTexture(GL_TEXTURE0); //--- 유닛 0을 활성화
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 
 	glDrawArrays(DRAW_TYPE, 0, ObjMgr.m_ObjectList[idx].vertices.size());
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
+	stbi_image_free(data);
 }
 
 GLvoid StopAllAnim()
