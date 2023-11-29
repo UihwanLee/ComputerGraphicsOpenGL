@@ -167,7 +167,7 @@ GLvoid Reset()
 	StopAllAnim();
 	ObjMgr.Reset();
 
-	ObjMgr.CreateCube(0.0f, 1.0f, 0.0f);
+	ObjMgr.CreateCube(1.0f, 1.0f, 1.0f);
 	ObjMgr.SetScale(0, 0.1f, 0.1f, 0.1f);
 
 	CameraPos = glm::vec3(0.5f, 0.4f, 0.0f);
@@ -298,7 +298,7 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, glm::mat4& model, int idx)
 	// Texture
 	int widthImage, heightImage, numberOfChannel;
 	// stbi_set_flip_vertically_on_load(true); //--- 이미지가 거꾸로 읽힌다면 추가
-	unsigned char* data = stbi_load("Test.png", &widthImage, &heightImage, &numberOfChannel, 0);
+	unsigned char* data = stbi_load("test.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
 
 	unsigned int objTextureLocation = glGetUniformLocation(ShaderProgram, "outTexture"); 
 	glUniform1i(objTextureLocation, 0);
@@ -384,6 +384,12 @@ void Keyboard(unsigned char key, int x, int y)
 		// 은면 제거
 		if (isDepthTest) isDepthTest = false;
 		else isDepthTest = true;
+		break;
+	case 'R':
+	case 'r':
+		if (rotatingLight) rotatingLight = false;
+		else if (rotatingLight == false) { rotatingLight = true; roatingLightDir *= (-1.0f); }
+		if (rotatingLight) glutTimerFunc(30, RotatingLight, rotatingLight);
 		break;
 	case 'q':
 		glutLeaveMainLoop();

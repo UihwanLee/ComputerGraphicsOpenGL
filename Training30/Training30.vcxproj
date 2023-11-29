@@ -150,9 +150,6 @@
     <Text Include="pyramid.txt" />
     <Text Include="sqhere.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Image Include="Test.png" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
