@@ -167,7 +167,7 @@ GLvoid Message()
 	while (true)
 	{
 		system("cls");
-		cout << "생성할 큐브맵의 가로 세로를 입력하세요(5~25)(5~25): ";
+		cout << "생성할 큐브맵의 세로 가로를 입력하세요(5~25)(5~25): ";
 		cin >> CUBE_WIDTH >> CUBE_HEIGHT;
 
 		if (CUBE_WIDTH >= 5 && CUBE_WIDTH <= 25 && CUBE_HEIGHT >= 5 && CUBE_HEIGHT <= 25)
@@ -490,6 +490,17 @@ GLvoid SetDefaultSpeed()
 	}
 }
 
+GLvoid ChangeSpeed(bool isFast)
+{
+	float change_speed = (isFast) ? 0.01f : -0.01f;
+	for (int i = 0; i < ObjMgr.m_ObjectList.size(); i++)
+	{
+		ObjMgr.m_ObjectList[i].m_move_speed_up += change_speed;
+		ObjMgr.m_ObjectList[i].m_move_speed_down -= change_speed;
+		ObjMgr.m_ObjectList[i].m_move_speed += change_speed;
+	}
+}
+
 GLvoid Waving(int idx)
 {
 	for (int i = 0; i < ObjMgr.m_ObjectList[idx].vertices.size(); i++)
@@ -585,12 +596,17 @@ void Keyboard(unsigned char key, int x, int y)
 	case '2':
 		StopAllAnim();
 		SetDefaultSpeed();
-		for (int i = 0; i < ObjMgr.m_ObjectList.size(); i++)
+		for (int i = 0; i < CUBE_HEIGHT; i++)
 		{
 			if (ObjMgr.m_ObjectList[i].m_isActive)
 			{
-				ObjMgr.m_ObjectList[i].m_isWaving = true;
-				if (ObjMgr.m_ObjectList[i].m_isWaving) glutTimerFunc(time, Waving, i);
+				int idx = i;
+				for (int j = 0; j < CUBE_WIDTH; j++)
+				{
+					ObjMgr.m_ObjectList[idx].m_isWaving = true;
+					if (ObjMgr.m_ObjectList[idx].m_isWaving) glutTimerFunc(time, Waving, idx);
+					idx += CUBE_HEIGHT;
+				}
 			}
 			time += 30.0f;
 		}
@@ -601,8 +617,10 @@ void Keyboard(unsigned char key, int x, int y)
 	case 'y':
 		break;
 	case '+':
+		ChangeSpeed(true);
 		break;
 	case '-':
+		ChangeSpeed(false);
 		break;
 	// 조명 켜기/끄기
 	case 'T':
