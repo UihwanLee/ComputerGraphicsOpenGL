@@ -30,6 +30,7 @@ GLvoid Message();
 GLvoid Reset();
 GLvoid drawScene(GLvoid);
 GLvoid drawModel();
+GLvoid drawModelAlpha();
 GLvoid drawProjection();
 GLvoid drawView();
 GLvoid Reshape(int w, int h);
@@ -176,21 +177,21 @@ GLvoid Reset()
 	StopAllAnim();
 	ObjMgr.Reset();
 
-	ObjMgr.CreateCube(0.0f, 1.0f, 0.0f);
+	ObjMgr.CreateCube(0.0f, 1.0f, 0.0f, 1.0f);
 	ObjMgr.SetScale(0, 0.5f, 0.03f, 0.5f);
 
-	ObjMgr.CreateSquarePyramid(1.0f, 0.0f, 0.0f);
+	ObjMgr.CreateSquarePyramid(1.0f, 0.0f, 0.0f, 1.0f);
 	ObjMgr.SetScale(1, 0.03f, 0.03f, 0.03f);
 
-	ObjMgr.CreateSqhere(1.0f, 0.0f, 0.0f);
+	ObjMgr.CreateSqhere(1.0f, 0.0f, 0.0f, 1.0f);
 	ObjMgr.SetScale(2, 0.01f, 0.01f, 0.01f);
 	ObjMgr.SetPosition(2, 0.0f, 15.0f, 0.0f);
 
-	ObjMgr.CreateSqhere(0.0f, 1.0f, 0.0f);
+	ObjMgr.CreateSqhere(0.0f, 1.0f, 0.0f, 1.0f);
 	ObjMgr.SetScale(3, 0.01f, 0.01f, 0.01f);
 	ObjMgr.SetPosition(3, 0.0f, 15.0f, 0.0f);
 
-	ObjMgr.CreateSqhere(0.0f, 0.0f, 1.0f);
+	ObjMgr.CreateSqhere(0.0f, 0.0f, 1.0f, 1.0f);
 	ObjMgr.SetScale(4, 0.01f, 0.01f, 0.01f);
 	ObjMgr.SetPosition(4, 0.0f, 15.0f, 0.0f);
 
@@ -198,7 +199,7 @@ GLvoid Reset()
 	int idx = 5;
 	for (int i = 0; i < 40; i++)
 	{
-		ObjMgr.CreateSqhere(1.0f, 1.0f, 1.0f);
+		ObjMgr.CreateSqhere(1.0f, 1.0f, 1.0f, 1.0f);
 		ObjMgr.SetScale(idx, 0.001f, 0.001f, 0.001f);
 
 		float rand_x = ObjMgr.GetRandomFloatValue(-200.0f, 200.0f);
@@ -212,6 +213,22 @@ GLvoid Reset()
 
 		idx++;
 	}
+
+	ObjMgr.CreateCube(139.0f/255.0f, 0.0f, 1.0f, 0.5f);
+	ObjMgr.SetScale(45, 0.05f, 0.15f, 0.05f);
+	ObjMgr.SetPosition(45, 0.0f, 0.0f, 2.0f);
+
+	ObjMgr.CreateCube(139.0f / 255.0f, 0.0f, 1.0f, 0.5f);
+	ObjMgr.SetScale(46, 0.05f, 0.15f, 0.05f);
+	ObjMgr.SetPosition(46, 0.0f, 0.0f, -3.0f);
+
+	ObjMgr.CreateCube(139.0f / 255.0f, 0.0f, 1.0f, 0.5f);
+	ObjMgr.SetScale(47, 0.05f, 0.15f, 0.05f);
+	ObjMgr.SetPosition(47, -4.0f, 0.0f, -1.0f);
+
+	ObjMgr.CreateCube(139.0f / 255.0f, 0.0f, 1.0f, 0.5f);
+	ObjMgr.SetScale(48, 0.05f, 0.15f, 0.05f);
+	ObjMgr.SetPosition(48, 3.0f, 0.0f, 0.0f);
 
 	CameraPos = glm::vec3(0.5f, 0.4f, 0.0f);
 
@@ -234,6 +251,15 @@ GLvoid drawScene()
 	drawProjection();
 	drawLight();
 	drawModel();
+
+	//--- 투명 객체 그리기
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	drawModelAlpha();
+
+	//--- 블렌딩 해제
+	glDisable(GL_BLEND);
 
 	glutSwapBuffers();
 }
@@ -295,7 +321,18 @@ GLvoid drawLight()
 
 GLvoid drawModel()
 {
-	for (int i = 0; i < ObjMgr.m_ObjectList.size(); i++)
+	for (int i = 0; i < 45; i++)
+	{
+		if (ObjMgr.m_ObjectList[i].m_isActive)
+		{
+			DrawObjectByIDX(ObjMgr.m_ObjectList[i].m_DRAW_TYPE, ObjMgr.m_ObjectList[i].m_model, i);
+		}
+	}
+}
+
+GLvoid drawModelAlpha()
+{
+	for (int i = 45; i < ObjMgr.m_ObjectList.size(); i++)
 	{
 		if (ObjMgr.m_ObjectList[i].m_isActive)
 		{
@@ -364,6 +401,9 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, glm::mat4& model, int idx)
 
 	unsigned int objColorLocation = glGetUniformLocation(ShaderProgram, "objectColor"); //--- object Color값 전달: (1.0, 0.5, 0.3)의 색
 	glUniform3f(objColorLocation, ObjMgr.m_ObjectList[idx].m_color[0], ObjMgr.m_ObjectList[idx].m_color[1], ObjMgr.m_ObjectList[idx].m_color[2]);
+
+	unsigned int objAlphaLocation = glGetUniformLocation(ShaderProgram, "alpha"); //--- object Color값 전달: (1.0, 0.5, 0.3)의 색
+	glUniform1f(objAlphaLocation, ObjMgr.m_ObjectList[idx].m_color[3]);
 
 	glDrawArrays(DRAW_TYPE, 0, ObjMgr.m_ObjectList[idx].vertices.size());
 

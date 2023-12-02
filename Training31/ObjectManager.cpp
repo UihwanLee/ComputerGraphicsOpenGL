@@ -117,7 +117,7 @@ GLvoid InitObject(ObjectInfo* objInfo, float r, float g, float b, int drawType, 
 	objInfo->m_model = glm::mat4(1.0f);
 }
 
-void ObjectManager::CreateSmallCube(float r, float g, float b)
+void ObjectManager::CreateSmallCube(float r, float g, float b, float a)
 {
 	ObjectInfo temp_obj;
 	RoadObj("smallCube.txt", &temp_obj);
@@ -143,12 +143,14 @@ void ObjectManager::CreateSmallCube(float r, float g, float b)
 		temp_obj.normals.push_back(normal);
 	}
 
+	temp_obj.m_color[3] = a;
+
 	InitObject(&temp_obj, r, g, b, GL_TRIANGLES, true, true);
 
 	m_ObjectList.emplace_back(temp_obj);
 }
 
-void ObjectManager::CreateCube(float r, float g, float b)
+void ObjectManager::CreateCube(float r, float g, float b, float a)
 {
 	ObjectInfo temp_obj;
 	RoadObj("cube.txt", &temp_obj);
@@ -174,12 +176,14 @@ void ObjectManager::CreateCube(float r, float g, float b)
 		temp_obj.normals.push_back(normal);
 	}
 
+	temp_obj.m_color[3] = a;
+
 	InitObject(&temp_obj, r, g, b, GL_TRIANGLES, true, true);
 
 	m_ObjectList.emplace_back(temp_obj);
 }
 
-void ObjectManager::CreateSquarePyramid(float r, float g, float b)
+void ObjectManager::CreateSquarePyramid(float r, float g, float b, float a)
 {
 	ObjectInfo temp_obj;
 	RoadObj("pyramid.txt", &temp_obj);
@@ -205,12 +209,14 @@ void ObjectManager::CreateSquarePyramid(float r, float g, float b)
 		temp_obj.normals.push_back(normal);
 	}
 
+	temp_obj.m_color[3] = a;
+
 	InitObject(&temp_obj, r, g, b, GL_TRIANGLES, true, true);
 
 	m_ObjectList.emplace_back(temp_obj);
 }
 
-void ObjectManager::CreateSqhere(float r, float g, float b)
+void ObjectManager::CreateSqhere(float r, float g, float b, float a)
 {
 	ObjectInfo temp_obj;
 	RoadObj("sqhere.txt", &temp_obj);
@@ -235,6 +241,8 @@ void ObjectManager::CreateSqhere(float r, float g, float b)
 		glm::vec3 normal = temp_obj.temp_normals[normalIndex - 1];
 		temp_obj.normals.push_back(normal);
 	}
+
+	temp_obj.m_color[3] = a;
 
 	InitObject(&temp_obj, r, g, b, GL_TRIANGLES, true, true);
 

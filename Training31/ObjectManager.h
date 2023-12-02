@@ -18,7 +18,7 @@ typedef struct ObjectInfo
 	float		m_vel[3];
 	float		m_mass;
 
-	float		m_color[3];
+	float		m_color[4];
 
 	vector<unsigned int> vertexIndices, uvIndices, normalIndices;
 	vector<glm::vec3> temp_vertices;
@@ -70,10 +70,10 @@ public:
 	int GetRandomIntValue(GLfloat min, GLfloat max);
 	GLfloat GetRandomFloatValue(GLfloat min, GLfloat max);
 
-	void CreateSmallCube(float r, float g, float b);
-	void CreateCube(float r, float g, float b);
-	void CreateSquarePyramid(float r, float g, float b);
-	void CreateSqhere(float r, float g, float b);
+	void CreateSmallCube(float r, float g, float b, float a);
+	void CreateCube(float r, float g, float b, float a);
+	void CreateSquarePyramid(float r, float g, float b, float a);
+	void CreateSqhere(float r, float g, float b, float a);
 
 	void SetChangeActive(int mode);
 	void ChangeWireSolidType();
