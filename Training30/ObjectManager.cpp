@@ -87,6 +87,8 @@ GLvoid InitObjectStruct(ObjectInfo* objInfo, int num_ver, int sp, int si, int ni
 
 	objInfo->m_snow_speed = 5.0f;
 
+	objInfo->m_type = ObjectType::DEFAULT;
+
 	objInfo->m_model = glm::mat4(1.0f);
 }
 
@@ -148,7 +150,7 @@ void ObjectManager::CreateSmallCube(float r, float g, float b)
 	m_ObjectList.emplace_back(temp_obj);
 }
 
-void ObjectManager::CreateCube(float r, float g, float b)
+void ObjectManager::CreateCube(float r, float g, float b, ObjectType type)
 {
 	ObjectInfo temp_obj;
 	RoadObj("cube.txt", &temp_obj);
@@ -176,10 +178,12 @@ void ObjectManager::CreateCube(float r, float g, float b)
 
 	InitObject(&temp_obj, r, g, b, GL_TRIANGLES, true, true);
 
+	temp_obj.m_type = type;
+
 	m_ObjectList.emplace_back(temp_obj);
 }
 
-void ObjectManager::CreateSquarePyramid(float r, float g, float b)
+void ObjectManager::CreateSquarePyramid(float r, float g, float b, ObjectType type)
 {
 	ObjectInfo temp_obj;
 	RoadObj("pyramid.txt", &temp_obj);
@@ -206,6 +210,8 @@ void ObjectManager::CreateSquarePyramid(float r, float g, float b)
 	}
 
 	InitObject(&temp_obj, r, g, b, GL_TRIANGLES, true, true);
+
+	temp_obj.m_type = type;
 
 	m_ObjectList.emplace_back(temp_obj);
 }

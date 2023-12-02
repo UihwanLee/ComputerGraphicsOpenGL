@@ -10,6 +10,17 @@
 
 using namespace std;
 
+enum ObjectType
+{
+	DEFAULT,
+
+	CUBE_01, CUBE_02, CUBE_03,
+	CUBE_04, CUBE_05, CUBE_06,
+
+	PYRAMID_01, PYRAMID_02, PYRAMID_03, 
+	PYRAMID_04, PYRAMID_05
+};
+
 typedef struct ObjectInfo
 {
 	float		m_pivot[3];
@@ -52,6 +63,8 @@ typedef struct ObjectInfo
 	bool		m_Initmodel = false;
 	bool		m_rotateRevol = false;
 
+	ObjectType	m_type;
+
 	vector<int> m_child;
 };
 
@@ -71,8 +84,8 @@ public:
 	GLfloat GetRandomFloatValue(GLfloat min, GLfloat max);
 
 	void CreateSmallCube(float r, float g, float b);
-	void CreateCube(float r, float g, float b);
-	void CreateSquarePyramid(float r, float g, float b);
+	void CreateCube(float r, float g, float b, ObjectType type);
+	void CreateSquarePyramid(float r, float g, float b, ObjectType type);
 	void CreateSqhere(float r, float g, float b);
 
 	void SetChangeActive(int mode);

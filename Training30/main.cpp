@@ -53,6 +53,7 @@ int figure_idx = 0;
 
 // 애니메이션 :: 카메라
 GLvoid RotatingCamera(int isAnim);
+GLvoid RotatingCamera_X(int isAnim);
 
 float radius = 0.5f;
 
@@ -83,6 +84,7 @@ float roatingLightDir = 1.0f;
 bool isShowCube = true;
 bool rotatingLight = false;
 bool rotatingCarmera = false;
+bool rotatingCarmera_X = false;
 bool rotatingCamera_z = false;
 float rotatingCameraRate = 0.0f;
 float rotatingCameraRate_x = 0.0f;
@@ -158,6 +160,11 @@ GLvoid UpdateRender()
 GLvoid Message()
 {
 	cout << endl;
+	cout << "c: 육면체" << endl;
+	cout << "p: 사각뿔" << endl;
+	cout << "x/X: x축을 중심으로 회전" << endl;
+	cout << "y/Y: y축을 중심으로 회전" << endl;
+	cout << endl;
 	cout << "q: 프로그램 종료" << endl;
 	cout << endl;
 }
@@ -167,10 +174,32 @@ GLvoid Reset()
 	StopAllAnim();
 	ObjMgr.Reset();
 
-	ObjMgr.CreateCube(1.0f, 1.0f, 1.0f);
-	ObjMgr.SetScale(0, 0.1f, 0.1f, 0.1f);
+	ObjMgr.CreateCube(1.0f, 1.0f, 1.0f, ObjectType::CUBE_01);
+	ObjMgr.SetScale(0, 0.01f, 0.1f, 0.1f);
+	ObjMgr.SetPosition(0, 5.0f, 0.0f, 0.0f);
 
-	CameraPos = glm::vec3(0.5f, 0.4f, 0.0f);
+	ObjMgr.CreateCube(1.0f, 1.0f, 1.0f, ObjectType::CUBE_02);
+	ObjMgr.SetScale(1, 0.1f, 0.1f, 0.01f);
+	ObjMgr.SetPosition(1, 0.0f, 0.0f, 4.5f);
+
+	ObjMgr.CreateCube(1.0f, 1.0f, 1.0f, ObjectType::CUBE_03);
+	ObjMgr.SetScale(2, 0.1f, 0.1f, 0.01f);
+	ObjMgr.SetPosition(2, 0.0f, 0.0f, -4.5f);
+
+	ObjMgr.CreateCube(1.0f, 1.0f, 1.0f, ObjectType::CUBE_04);
+	ObjMgr.SetScale(3, 0.01f, 0.1f, 0.095f);
+	ObjMgr.SetPosition(3, -4.6f, 0.0f, 0.0f);
+
+	ObjMgr.CreateCube(1.0f, 1.0f, 1.0f, ObjectType::CUBE_04);
+	ObjMgr.SetScale(4, 0.1f, 0.01f, 0.09f);
+	ObjMgr.SetPosition(4, 0.0f, 4.53f, 0.0f);
+
+	ObjMgr.CreateCube(1.0f, 1.0f, 1.0f, ObjectType::CUBE_04);
+	ObjMgr.SetScale(5, 0.1f, 0.01f, 0.09f);
+	ObjMgr.SetPosition(5, 0.0f, -4.53f, 0.0f);
+
+
+	CameraPos = glm::vec3(0.5f, 0.2f, 0.2f);
 }
 
 GLvoid drawScene()
@@ -298,7 +327,36 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, glm::mat4& model, int idx)
 	// Texture
 	int widthImage, heightImage, numberOfChannel;
 	// stbi_set_flip_vertically_on_load(true); //--- 이미지가 거꾸로 읽힌다면 추가
-	unsigned char* data = stbi_load("test.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	unsigned char* data = stbi_load("white.png", &widthImage, &heightImage, &numberOfChannel, 0);
+
+	if (ObjMgr.m_ObjectList[idx].m_type == ObjectType::DEFAULT)
+	{
+		data = stbi_load("white.png", &widthImage, &heightImage, &numberOfChannel, 0);
+	}
+	else if (ObjMgr.m_ObjectList[idx].m_type == ObjectType::CUBE_01 || ObjMgr.m_ObjectList[idx].m_type == ObjectType::PYRAMID_01)
+	{
+		data = stbi_load("Texture01.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	}
+	else if (ObjMgr.m_ObjectList[idx].m_type == ObjectType::CUBE_02 || ObjMgr.m_ObjectList[idx].m_type == ObjectType::PYRAMID_02)
+	{
+		data = stbi_load("Texture02.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	}
+	else if (ObjMgr.m_ObjectList[idx].m_type == ObjectType::CUBE_03 || ObjMgr.m_ObjectList[idx].m_type == ObjectType::PYRAMID_03)
+	{
+		data = stbi_load("Texture03.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	}
+	else if (ObjMgr.m_ObjectList[idx].m_type == ObjectType::CUBE_04 || ObjMgr.m_ObjectList[idx].m_type == ObjectType::PYRAMID_04)
+	{
+		data = stbi_load("Texture04.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	}
+	else if (ObjMgr.m_ObjectList[idx].m_type == ObjectType::CUBE_05 || ObjMgr.m_ObjectList[idx].m_type == ObjectType::PYRAMID_05)
+	{
+		data = stbi_load("Texture05.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	}
+	else if (ObjMgr.m_ObjectList[idx].m_type == ObjectType::CUBE_06)
+	{
+		data = stbi_load("Texture06.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	}
 
 	unsigned int objTextureLocation = glGetUniformLocation(ShaderProgram, "outTexture"); 
 	glUniform1i(objTextureLocation, 0);
@@ -318,10 +376,14 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, glm::mat4& model, int idx)
 	stbi_image_free(data);
 }
 
+float angle_camera_x = 0;
+float angle_camera = 0;
 GLvoid StopAllAnim()
 {
+	angle_camera_x = 0;
+	angle_camera = 0;
 	rotatingCarmera = false;
-	rotatingLight = false;
+	rotatingCarmera_X = false;
 }
 
 GLvoid RotatingFigure(int idx)
@@ -333,7 +395,6 @@ GLvoid RotatingFigure(int idx)
 	if (isRotatingFigure) glutTimerFunc(30, RotatingFigure, idx);
 }
 
-float angle_camera = 0;
 GLvoid RotatingCamera(int isAnim)
 {
 	float radius = 1.0f;
@@ -345,6 +406,19 @@ GLvoid RotatingCamera(int isAnim)
 	glutPostRedisplay();
 
 	if (rotatingCarmera) glutTimerFunc(30, RotatingCamera, rotatingCarmera);
+}
+
+GLvoid RotatingCamera_X(int isAnim)
+{
+	float radius = 1.0f;
+	CameraPos.y = sin(angle_camera_x) * radius;
+	CameraPos.z = cos(angle_camera_x) * radius;
+
+	angle_camera_x += 0.03f;
+
+	glutPostRedisplay();
+
+	if (rotatingCarmera_X) glutTimerFunc(30, RotatingCamera_X, rotatingCarmera_X);
 }
 
 float angle_light = 0;
@@ -385,11 +459,24 @@ void Keyboard(unsigned char key, int x, int y)
 		if (isDepthTest) isDepthTest = false;
 		else isDepthTest = true;
 		break;
-	case 'R':
-	case 'r':
-		if (rotatingLight) rotatingLight = false;
-		else if (rotatingLight == false) { rotatingLight = true; roatingLightDir *= (-1.0f); }
-		if (rotatingLight) glutTimerFunc(30, RotatingLight, rotatingLight);
+	case 'X':
+	case 'x':
+		StopAllAnim();
+		if (rotatingCarmera_X) rotatingCarmera_X = false;
+		else if (rotatingCarmera_X == false) { rotatingCarmera_X = true; }
+		if (rotatingCarmera_X) glutTimerFunc(30, RotatingCamera_X, rotatingCarmera_X);
+		break;
+	case 'Y':
+	case 'y':
+		StopAllAnim();
+		if (rotatingCarmera) rotatingCarmera = false;
+		else if (rotatingCarmera == false) { rotatingCarmera = true; }
+		if (rotatingCarmera) glutTimerFunc(30, RotatingCamera, rotatingCarmera);
+		break;
+	case 'S':
+	case 's':
+		StopAllAnim();
+		CameraPos = glm::vec3(0.5f, 0.2f, 0.2f);
 		break;
 	case 'q':
 		glutLeaveMainLoop();
