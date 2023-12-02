@@ -47,6 +47,7 @@ GLvoid CreateCubePosBuffer();
 GLvoid StopAllAnim();
 GLvoid UpSideDown(int idx);
 GLvoid Waving(int idx);
+GLvoid Rolling(int idx);
 
 bool isRotatingFigure = false;
 GLvoid RotatingFigure(int idx);
@@ -167,15 +168,14 @@ GLvoid Message()
 	while (true)
 	{
 		system("cls");
-		cout << "생성할 큐브맵의 세로 가로를 입력하세요(5~25)(5~25): ";
+		cout << "생성할 큐브맵의 세로 가로를 입력하세요(5~20)(5~20): ";
 		cin >> CUBE_WIDTH >> CUBE_HEIGHT;
 
-		if (CUBE_WIDTH >= 5 && CUBE_WIDTH <= 25 && CUBE_HEIGHT >= 5 && CUBE_HEIGHT <= 25)
+		if (CUBE_WIDTH >= 5 && CUBE_WIDTH <= 20 && CUBE_HEIGHT >= 5 && CUBE_HEIGHT <= 20)
 		{
 			break;
 		}
 	}
-	//cout << endl;
 
 	Message2();
 	Reset();
@@ -227,7 +227,6 @@ GLvoid CreateCubePosBuffer()
 
 GLvoid Reset()
 {
-	StopAllAnim();
 	ObjMgr.Reset();
 
 	CreateCubePosBuffer();
@@ -251,6 +250,8 @@ GLvoid Reset()
 			idx += 1;
 		}
 	}
+
+	StopAllAnim();
 }
 
 GLvoid drawScene()
@@ -424,6 +425,19 @@ GLvoid DrawObjectByIDX(int DRAW_TYPE, glm::mat4& model, int idx)
 
 GLvoid StopAllAnim()
 {
+	int idx = 1;
+	for (int i = 0; i < CUBE_WIDTH; i++)
+	{
+		for (int j = 0; j < CUBE_HEIGHT; j++)
+		{
+			float pos_X = WIDTH_POS[i];
+			float pos_Z = HEIGHT_POS[j];
+
+			ObjMgr.SetPosition(idx, pos_X, 0.0f, pos_Z);
+			idx += 1;
+		}
+	}
+
 	for (int i = 0; i < ObjMgr.m_ObjectList.size(); i++)
 	{
 		if (ObjMgr.m_ObjectList[i].m_isActive)
@@ -439,6 +453,7 @@ GLvoid StopAllAnim()
 				}
 				ObjMgr.m_ObjectList[i].m_isUpSideDown = false;
 				ObjMgr.m_ObjectList[i].m_isWaving = false;
+				ObjMgr.m_ObjectList[i].m_isRolling = false;
 			}
 		}
 	}
@@ -526,6 +541,33 @@ GLvoid Waving(int idx)
 	if (ObjMgr.m_ObjectList[idx].m_isWaving) glutTimerFunc(30, Waving, idx);
 }
 
+GLvoid Rolling(int idx)
+{
+	for (int i = 0; i < ObjMgr.m_ObjectList[idx].vertices.size(); i++)
+	{
+		if (ObjMgr.m_ObjectList[idx].vertices[i].y > 0.0f)
+		{
+			if (ObjMgr.m_ObjectList[idx].vertices[i].y > 7.0f)
+			{
+				ObjMgr.m_ObjectList[idx].m_move_speed = ObjMgr.m_ObjectList[idx].m_move_speed_down;
+			}
+
+			if (ObjMgr.m_ObjectList[idx].vertices[i].y < 0.5f)
+			{
+				ObjMgr.m_ObjectList[idx].m_move_speed = ObjMgr.m_ObjectList[idx].m_move_speed_up;
+			}
+
+			ObjMgr.m_ObjectList[idx].vertices[i].y += ObjMgr.m_ObjectList[idx].m_move_speed;
+		}
+	}
+
+	glutPostRedisplay();
+
+	glutPostRedisplay();
+
+	if (ObjMgr.m_ObjectList[idx].m_isRolling) glutTimerFunc(30, Rolling, idx);
+}
+
 GLvoid RotatingFigure(int idx)
 {
 	ObjMgr.Rotate(idx, 0.0f, 0.5f, 0.0f);
@@ -596,11 +638,12 @@ void Keyboard(unsigned char key, int x, int y)
 	case '2':
 		StopAllAnim();
 		SetDefaultSpeed();
-		for (int i = 0; i < CUBE_HEIGHT; i++)
+		for (int i = 1; i < CUBE_HEIGHT+1; i++)
 		{
 			if (ObjMgr.m_ObjectList[i].m_isActive)
 			{
 				int idx = i;
+				if (idx % 10 == 0) idx -= 10;
 				for (int j = 0; j < CUBE_WIDTH; j++)
 				{
 					ObjMgr.m_ObjectList[idx].m_isWaving = true;
@@ -612,6 +655,17 @@ void Keyboard(unsigned char key, int x, int y)
 		}
 		break;
 	case '3':
+		StopAllAnim();
+		SetDefaultSpeed();
+		for (int i = 0; i < ObjMgr.m_ObjectList.size(); i++)
+		{
+			if (ObjMgr.m_ObjectList[i].m_isActive)
+			{
+				ObjMgr.m_ObjectList[i].m_isRolling = true;
+				if (ObjMgr.m_ObjectList[i].m_isRolling) glutTimerFunc(time, Rolling, i);
+			}
+			time += 30.0f;
+		}
 		break;
 	case 'Y':
 	case 'y':
@@ -632,7 +686,9 @@ void Keyboard(unsigned char key, int x, int y)
 	case 'c':
 		ChangeLightRandomColor();
 		break;
+	case 'R':
 	case 'r':
+		Message();
 		break;
 	case 'q':
 		glutLeaveMainLoop();

@@ -45,6 +45,7 @@ typedef struct ObjectInfo
 	bool		m_isAnimRotating;
 	bool		m_isUpSideDown;
 	bool		m_isWaving;
+	bool		m_isRolling;
 	bool		m_isActive;
 	bool		m_isModeIDX;
 	float		m_model_pos[4];

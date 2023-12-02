@@ -113,6 +113,7 @@ GLvoid InitObject(ObjectInfo* objInfo, float r, float g, float b, int drawType, 
 	objInfo->m_move_speed_up = 0.1f;
 	objInfo->m_isUpSideDown = false;
 	objInfo->m_isWaving = false;
+	objInfo->m_isRolling = false;
 
 	objInfo->m_isActive = isActive;
 
