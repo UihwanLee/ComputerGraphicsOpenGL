@@ -93,6 +93,9 @@ float rotatingCameraRate_y = 0.0f;
 void Keyboard(unsigned char key, int x, int y);
 void keyboardUp(unsigned char key, int x, int y);
 
+GLvoid SetCube(bool active);
+GLvoid SetPyramid(bool active);
+
 int main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
@@ -175,33 +178,54 @@ GLvoid Reset()
 	ObjMgr.Reset();
 
 	ObjMgr.CreateCube(1.0f, 1.0f, 1.0f, ObjectType::CUBE_01);
-	ObjMgr.SetScale(0, 0.01f, 0.1f, 0.1f);
-	ObjMgr.SetPosition(0, 5.0f, 0.0f, 0.0f);
+	ObjMgr.SetScale(0, 0.1f, 0.1f, 0.1f);
+	ObjMgr.SetPosition(0, 0.01f, 0.0f, 0.0f);
 
 	ObjMgr.CreateCube(1.0f, 1.0f, 1.0f, ObjectType::CUBE_02);
-	ObjMgr.SetScale(1, 0.1f, 0.1f, 0.01f);
-	ObjMgr.SetPosition(1, 0.0f, 0.0f, 4.5f);
+	ObjMgr.SetScale(1, 0.1f, 0.1f, 0.1f);
+	ObjMgr.SetPosition(1, 0.0f, 0.0f, 0.01f);
 
 	ObjMgr.CreateCube(1.0f, 1.0f, 1.0f, ObjectType::CUBE_03);
-	ObjMgr.SetScale(2, 0.1f, 0.1f, 0.01f);
-	ObjMgr.SetPosition(2, 0.0f, 0.0f, -4.5f);
+	ObjMgr.SetScale(2, 0.1f, 0.1f, 0.1f);
+	ObjMgr.SetPosition(2, 0.0f, 0.0f, -0.01f);
 
 	ObjMgr.CreateCube(1.0f, 1.0f, 1.0f, ObjectType::CUBE_04);
-	ObjMgr.SetScale(3, 0.01f, 0.1f, 0.095f);
-	ObjMgr.SetPosition(3, -4.6f, 0.0f, 0.0f);
+	ObjMgr.SetScale(3, 0.1f, 0.1f, 0.1f);
+	ObjMgr.SetPosition(3, -0.01f, 0.0f, 0.0f);
 
 	ObjMgr.CreateCube(1.0f, 1.0f, 1.0f, ObjectType::CUBE_04);
-	ObjMgr.SetScale(4, 0.1f, 0.01f, 0.09f);
-	ObjMgr.SetPosition(4, 0.0f, 4.53f, 0.0f);
+	ObjMgr.SetScale(4, 0.1f, 0.1f, 0.09f);
+	ObjMgr.SetPosition(4, 0.0f, 0.01f, 0.0f);
 
 	ObjMgr.CreateCube(1.0f, 1.0f, 1.0f, ObjectType::CUBE_04);
-	ObjMgr.SetScale(5, 0.1f, 0.01f, 0.09f);
-	ObjMgr.SetPosition(5, 0.0f, -4.53f, 0.0f);
+	ObjMgr.SetScale(5, 0.1f, 0.1f, 0.1f);
+	ObjMgr.SetPosition(5, 0.0f, -0.01f, 0.0f);
+
+	ObjMgr.CreateSquarePyramid(1.0f, 1.0f, 1.0f, ObjectType::CUBE_01);
+	ObjMgr.SetScale(6, 0.03f, 0.03f, 0.03f);
+	ObjMgr.SetPosition(6, 0.01f, 0.0f, 0.0f);
+
+	ObjMgr.CreateSquarePyramid(1.0f, 1.0f, 1.0f, ObjectType::CUBE_02);
+	ObjMgr.SetScale(7, 0.03f, 0.03f, 0.03f);
+	ObjMgr.SetPosition(7, 0.0f, 0.0f, 0.01f);
+
+	ObjMgr.CreateSquarePyramid(1.0f, 1.0f, 1.0f, ObjectType::CUBE_03);
+	ObjMgr.SetScale(8, 0.03f, 0.03f, 0.03f);
+	ObjMgr.SetPosition(8, 0.0f, 0.0f, -0.01f);
+
+	ObjMgr.CreateSquarePyramid(1.0f, 1.0f, 1.0f, ObjectType::CUBE_04);
+	ObjMgr.SetScale(9, 0.03f, 0.03f, 0.03f);
+	ObjMgr.SetPosition(9, -0.01f, 0.0f, 0.0f);
+
+	ObjMgr.CreateCube(1.0f, 1.0f, 1.0f, ObjectType::CUBE_04);
+	ObjMgr.SetScale(10, 0.16f, 0.001f, 0.16f);
+	ObjMgr.SetPosition(10, 0.0f, -65.0f, 0.0f);
+
+	SetCube(false);
 
 	ObjMgr.CreateCube(1.0f, 1.0f, 1.0f, ObjectType::SKY);
-	ObjMgr.SetScale(6, 0.01f, 5.0f, 5.0f);
-	ObjMgr.SetPosition(6, -10.0f, 0.0f, 0.0f);
-
+	ObjMgr.SetScale(11, 0.01f, 5.0f, 5.0f);
+	ObjMgr.SetPosition(11, -10.0f, 0.0f, 0.0f);
 
 	CameraPos = glm::vec3(0.5f, 0.2f, 0.2f);
 }
@@ -453,6 +477,22 @@ GLvoid ChangeLightRandomColor()
 	LightColor.b = b;
 }
 
+GLvoid SetCube(bool active)
+{
+	for (int i = 0; i < 6; i++)
+	{
+		ObjMgr.SetActive(i, active);
+	}
+}
+
+GLvoid SetPyramid(bool active)
+{
+	for (int i = 6; i < 10; i++)
+	{
+		ObjMgr.SetActive(i, active);
+	}
+}
+
 
 void Keyboard(unsigned char key, int x, int y)
 {
@@ -466,6 +506,16 @@ void Keyboard(unsigned char key, int x, int y)
 		// 은면 제거
 		if (isDepthTest) isDepthTest = false;
 		else isDepthTest = true;
+		break;
+	case 'C':
+	case 'c':
+		SetCube(true);
+		SetPyramid(false);
+		break;
+	case 'P':
+	case 'p':
+		SetCube(false);
+		SetPyramid(true);
 		break;
 	case 'X':
 	case 'x':
