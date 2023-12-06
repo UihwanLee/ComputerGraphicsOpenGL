@@ -545,6 +545,16 @@ void Keyboard(unsigned char key, int x, int y)
 		LightColor.y -= 0.05f;
 		LightColor.z -= 0.05f;
 		break;
+	case 'M':
+		LightColor.x = 1.0f;
+		LightColor.y = 1.0f;
+		LightColor.z = 1.0f;
+		break;
+	case 'm':
+		LightColor.x = 0.2f;
+		LightColor.y = 0.2f;
+		LightColor.z = 0.2f;
+		break;
 	case 'P':
 	case 'p':
 		projectionMode = !projectionMode;

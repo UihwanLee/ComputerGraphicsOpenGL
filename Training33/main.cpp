@@ -1027,7 +1027,6 @@ void Keyboard(unsigned char key, int x, int y)
 	{
 	case 'H':
 	case 'h':
-		// 은면 제거
 		if (isDepthTest) isDepthTest = false;
 		else isDepthTest = true;
 		break;

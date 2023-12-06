@@ -167,6 +167,7 @@ GLvoid Message()
 	cout << "p: 사각뿔" << endl;
 	cout << "x/X: x축을 중심으로 회전" << endl;
 	cout << "y/Y: y축을 중심으로 회전" << endl;
+	cout << "s/S: 전체 리셋" << endl;
 	cout << endl;
 	cout << "q: 프로그램 종료" << endl;
 	cout << endl;
